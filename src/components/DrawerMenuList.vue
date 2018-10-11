@@ -2,14 +2,13 @@
   <div class="drawer-menu-list">
     <v-list>
       <v-list-tile
-          v-for="(menu, i) in menus"
-          :color="i === activeIndex ? 'dark' : 'dark'"
+          v-for="menu in menus"
           :key="menu.title"
-          @click.exact="activeIndex = i"
+          :to="{name: menu.title}"
           ripple
       >
         <v-list-tile-action>
-            <v-icon :color="i === activeIndex ? 'accent' : 'dark'">{{ menu.icon }}</v-icon>
+            <v-icon>{{ menu.icon }}</v-icon>
         </v-list-tile-action>
 
         <v-list-tile-content>
@@ -27,7 +26,6 @@ export default {
 
   data () {
     return {
-      activeIndex: 0,
       // TODO: Export to const in api/
       menus: [
         {
@@ -36,13 +34,11 @@ export default {
         },
         {
           title: 'Duties',
-          icon: 'work',
-          target: '_blank'
+          icon: 'work'
         },
         {
           title: 'Social',
-          icon: 'local_bar',
-          target: '_blank'
+          icon: 'local_bar'
         },
         {
           title: 'Contacts',
