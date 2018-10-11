@@ -4,7 +4,7 @@
       <v-list-tile
           v-for="menu in menus"
           :key="menu.title"
-          :to="{name: menu.title}"
+          :to="{name: menu.title, params: { title: menu.title }}"
           ripple
       >
         <v-list-tile-action>

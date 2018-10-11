@@ -2,7 +2,9 @@
   <v-app dark>
     <app-navigation></app-navigation>
     <v-content>
-      <router-view></router-view>
+      <div class="page-wrapper">
+        <router-view></router-view>
+      </div>
     </v-content>
   </v-app>
 </template>
@@ -16,8 +18,13 @@ export default {
   components: { AppNavigation },
   data () {
     return {
-      drawer: true
     }
   }
 }
 </script>
+
+<style>
+  .page-wrapper {
+    min-height: calc(100vh - 64px - 50px - 81px );
+  }
+</style>
