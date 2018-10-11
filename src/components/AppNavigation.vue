@@ -1,5 +1,6 @@
 <template>
   <div class="app-navigation">
+
     <!-- DRAWER -->
     <v-navigation-drawer
       persistent
@@ -7,41 +8,64 @@
       enable-resize-watcher
       v-model="drawer"
       fixed
+      width="260"
       app
     >
-      <v-list>
-        <v-list-tile
-          value="true"
-          v-for="(item, i) in items"
-          :key="i"
-        >
-          <v-list-tile-action>
-            <v-icon v-html="item.icon"></v-icon>
-          </v-list-tile-action>
-          <v-list-tile-content>
-            <v-list-tile-title v-text="item.title"></v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
-      </v-list>
+      <drawer-menu-list></drawer-menu-list>
     </v-navigation-drawer>
+
     <!-- TOOLBAR -->
     <v-toolbar
       app
       clipped-left
     >
-      <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+      <v-toolbar-side-icon @click.stop="drawer = (!drawer)"></v-toolbar-side-icon>
       <v-toolbar-title v-text="title"></v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn icon @click.stop="rightDrawer = !rightDrawer">
-        <v-icon>menu</v-icon>
-      </v-btn>
+
+      <!-- AVATAR -->
+      <v-menu offset-y origin="center center" :nudge-bottom="10" transition="scale-transition">
+        <v-btn icon large flat slot="activator">
+          <v-avatar color="error" size="44px">
+            <span class="white--text headline">C</span>
+          </v-avatar>
+        </v-btn>
+
+        <!-- AVATAR DROP DOWN MENU -->
+        <v-list class="pa-0">
+          <v-list-tile
+              v-for="(item,index) in menuItems"
+              :to="!item.href ? { name: item.name } : null"
+              :href="item.href"
+              @click="item.click"
+              ripple="ripple"
+              :disabled="item.disabled"
+              :target="item.target"
+              rel="noopener"
+              :key="index"
+          >
+            <v-list-tile-action v-if="item.icon">
+              <v-icon>{{ item.icon }}</v-icon>
+            </v-list-tile-action>
+
+            <v-list-tile-content>
+              <v-list-tile-title>{{ item.title }}</v-list-tile-title>
+            </v-list-tile-content>
+
+          </v-list-tile>
+        </v-list>
+      </v-menu>
     </v-toolbar>
   </div>
 </template>
 
 <script>
+import DrawerMenuList from './DrawerMenuList'
+
 export default {
   name: 'app-navigation',
+
+  components: { DrawerMenuList },
 
   data () {
     return {
@@ -55,6 +79,33 @@ export default {
         {
           icon: 'format_paint',
           title: 'Duties'
+        }
+      ],
+      menuItems: [
+        {
+          icon: 'account_circle',
+          href: '#',
+          title: 'Profile',
+          click: (e) => {
+            console.log(e)
+          }
+        },
+        {
+          icon: 'settings',
+          href: '#',
+          title: 'Settings',
+          click: (e) => {
+            console.log(e)
+          }
+        },
+        {
+          icon: 'fullscreen_exit',
+          href: '#',
+          title: 'Logout',
+          click: (e) => {
+            console.log(e)
+            this.$emit('APP_LOGOUT')
+          }
         }
       ]
     }
