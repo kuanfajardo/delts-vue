@@ -1,21 +1,19 @@
 <template>
   <v-app>
-    <app-drawer></app-drawer>
-    <app-toolbar></app-toolbar>
+    <app-navigation></app-navigation>
   </v-app>
 </template>
 
 <script>
 
-import AppToolbar from './components/AppToolbar'
-import AppDrawer from './components/AppDrawer'
+import AppNavigation from './components/AppNavigation'
 
 export default {
   name: 'App',
-  components: { AppDrawer, AppToolbar },
+  components: { AppNavigation },
   data () {
     return {
-      msg: true
+      drawer: true
     }
   }
 }

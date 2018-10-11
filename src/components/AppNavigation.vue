@@ -1,10 +1,11 @@
 <template>
-  <div class="app-drawer">
+  <div class="app-navigation">
+    <!-- DRAWER -->
     <v-navigation-drawer
       persistent
-      clipped="true"
-      v-model="drawer"
+      clipped
       enable-resize-watcher
+      v-model="drawer"
       fixed
       app
     >
@@ -23,22 +24,36 @@
         </v-list-tile>
       </v-list>
     </v-navigation-drawer>
+    <!-- TOOLBAR -->
+    <v-toolbar
+      app
+      clipped-left
+    >
+      <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+      <v-toolbar-title v-text="title"></v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn icon @click.stop="rightDrawer = !rightDrawer">
+        <v-icon>menu</v-icon>
+      </v-btn>
+    </v-toolbar>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'app-drawer',
+  name: 'app-navigation',
 
   data () {
     return {
+      drawer: true,
+      title: 'Delts Manager',
       items: [
         {
-          icon: 'add',
+          icon: 'home',
           title: 'Dashboard'
         },
         {
-          icon: 'bubble_chart',
+          icon: 'format_paint',
           title: 'Duties'
         }
       ]
@@ -49,7 +64,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  .app-drawer {
+  .app-navigation {
 
   }
 </style>
