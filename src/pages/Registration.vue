@@ -1,10 +1,10 @@
 <template>
   <div class="registration-page">
     <v-container>
-      <v-layout row wrap>
-        <v-flex lg12>
+      <v-layout>
+        <v-flex lg9>
           <v-card class="mb-4">
-            <v-toolbar color="teal" flat cad>
+            <v-toolbar flat>
               <v-toolbar-title class="heading">Registration Form</v-toolbar-title>
               <v-spacer></v-spacer>
             </v-toolbar>

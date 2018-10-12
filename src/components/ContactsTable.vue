@@ -1,6 +1,6 @@
 <template>
   <div class="contacts-table">
-    <v-toolbar dark>
+    <v-toolbar class="elevation-1">
       <v-text-field
         v-model="search"
         append-icon="search"
@@ -10,7 +10,7 @@
       ></v-text-field>
       <v-spacer></v-spacer>
       <v-dialog v-model="dialog" max-width="500px">
-        <v-btn slot="activator" color="primary" dark class="mb-2">New User</v-btn>
+        <v-btn slot="activator" color="primary" class="mb-2">New User</v-btn>
         <v-card>
           <v-card-title>
             <span class="headline">{{ formTitle }}</span>

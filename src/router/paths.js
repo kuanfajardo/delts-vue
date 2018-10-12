@@ -104,7 +104,7 @@ export default [
   },
   {
     path: '/registration',
-    meta: { },
+    meta: { public: false },
     props: true,
     name: 'Registration',
     component: () => import(

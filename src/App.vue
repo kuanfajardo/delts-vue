@@ -1,12 +1,25 @@
 <template>
-  <v-app dark>
-    <app-navigation></app-navigation>
-    <v-content>
-      <div class="page-wrapper">
-        <router-view></router-view>
-      </div>
-    </v-content>
-  </v-app>
+  <div class="appRoot">
+    <template v-if="!$route.meta.public">
+      <v-app light>
+        <app-navigation></app-navigation>
+        <v-content>
+          <div class="page-wrapper">
+            <router-view></router-view>
+          </div>
+        </v-content>
+      </v-app>
+    </template>
+    <template v-else>
+      <!--<v-app dark>-->
+        <transition>
+          <keep-alive>
+            <router-view></router-view>
+          </keep-alive>
+        </transition>
+      <!--</v-app>-->
+    </template>
+  </div>
 </template>
 
 <script>
