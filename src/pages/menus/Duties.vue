@@ -1,6 +1,6 @@
 <template>
   <div class="duties-page">
-    <page-header title="Contacts"></page-header>
+    <page-header title="Duties"></page-header>
   </div>
 </template>
 
