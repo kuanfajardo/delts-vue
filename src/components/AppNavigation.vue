@@ -71,16 +71,6 @@ export default {
     return {
       drawer: true,
       title: 'Delts Manager',
-      items: [
-        {
-          icon: 'home',
-          title: 'Dashboard'
-        },
-        {
-          icon: 'format_paint',
-          title: 'Duties'
-        }
-      ],
       menuItems: [
         {
           icon: 'account_circle',

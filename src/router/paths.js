@@ -101,5 +101,16 @@ export default [
       /* webpackMode: "lazy-once" */
       '@/pages/menus/Contacts.vue'
     )
+  },
+  {
+    path: '/registration',
+    meta: { },
+    props: true,
+    name: 'Registration',
+    component: () => import(
+      /* webpackChunkName: "routes" */
+      /* webpackMode: "lazy-once" */
+      '@/pages/Registration.vue'
+    )
   }
 ]
