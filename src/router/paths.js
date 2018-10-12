@@ -72,7 +72,6 @@ export default [
   {
     path: '/duties',
     meta: { },
-    props: true,
     name: 'Duties',
     component: () => import(
       /* webpackChunkName: "routes" */
@@ -83,7 +82,6 @@ export default [
   {
     path: '/social',
     meta: { },
-    props: true,
     name: 'Social',
     component: () => import(
       /* webpackChunkName: "routes" */
@@ -94,7 +92,6 @@ export default [
   {
     path: '/contacts',
     meta: { },
-    props: true,
     name: 'Contacts',
     component: () => import(
       /* webpackChunkName: "routes" */
@@ -105,7 +102,6 @@ export default [
   {
     path: '/registration',
     meta: { public: false },
-    props: true,
     name: 'Registration',
     component: () => import(
       /* webpackChunkName: "routes" */

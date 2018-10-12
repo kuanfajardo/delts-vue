@@ -15,7 +15,7 @@
                     name="login"
                     label="Login"
                     type="text"
-                    v-model="model.username"
+                    v-model="username"
                     placeholder="jfajardo@mit.edu"
                   ></v-text-field>
                   <v-text-field
@@ -24,7 +24,7 @@
                     label="Password"
                     id="password"
                     type="password"
-                    v-model="model.password"
+                    v-model="pass"
                   ></v-text-field>
                 </v-form>
               </v-card-text>
@@ -32,6 +32,21 @@
                 <v-spacer></v-spacer>
                 <v-btn class="mx-1" color="primary" @click="login" :loading="loading">Login</v-btn>
               </v-card-actions>
+              <v-snackbar
+                v-model="snackbar"
+                color="error"
+                :timeout="timeout"
+                top
+              >
+                {{ text }}
+                <v-btn
+                  dark
+                  flat
+                  @click="snackbar = false"
+                >
+                  Close
+                </v-btn>
+              </v-snackbar>
             </v-card>
           </v-flex>
         </v-layout>
@@ -41,24 +56,35 @@
 </template>
 
 <script>
+import auth from '@/auth/'
+
 export default {
   data: () => ({
+    text: 'Login failure',
+    timeout: 6000,
+    snackbar: false,
     loading: false,
-    model: {
-      username: '',
-      password: ''
-    }
+    username: '',
+    pass: '',
   }),
+
   methods: {
     login () {
-      this.loading = true;
-      setTimeout(() => {
-        this.$router.push({ name: 'Dashboard', params: { title: 'Dashboard' } })
-      }, 1000)
+      this.loading = true
+      auth.login(this.username, this.pass, loggedIn => {
+        if (!loggedIn) {
+          this.snackbar = true
+        } else {
+          this.$router.replace(this.$route.query.redirect || '/')
+        }
+
+        this.loading = false
+      })
     }
   }
-};
+}
 </script>
+
 <style scoped lang="css">
   #login {
     height: 50%;

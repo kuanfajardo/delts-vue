@@ -1,6 +1,6 @@
 <template>
   <div class="duties-page">
-    <page-header :title="title"></page-header>
+    <page-header title="Contacts"></page-header>
   </div>
 </template>
 
@@ -14,10 +14,6 @@ export default {
     return {
       msg: 'msg'
     }
-  },
-
-  props: {
-    title: String
   }
 }
 </script>

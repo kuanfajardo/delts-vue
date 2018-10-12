@@ -15,10 +15,6 @@ export default {
     return {
       msg: 'msg'
     }
-  },
-
-  props: {
-    title: String
   }
 }
 </script>
