@@ -1,50 +1,30 @@
 /* eslint-disable */
+import firebase from 'firebase'
 
 export default {
-  login (email, pass, callback) {
-    if (localStorage.token) {
-      if (callback) callback(true)
-      this.onChange(true)
-      return
-    }
-    pretendRequest(email, pass, (res) => {
-      if (res.authenticated) {
-        localStorage.token = res.token
-        if (callback) callback(true)
-        this.onChange(true)
-      } else {
-        if (callback) callback(false)
-        this.onChange(false)
+  signIn(email, pass, callback) {
+    firebase.auth().signInWithEmailAndPassword(email, pass).then(
+        function (user) {
+          callback(true)
+        },
+        function (err) {
+          callback(false)
+        }
+      )
+  },
+
+  signOut (callback) {
+    firebase.auth().signOut().then(
+      function () {
+        callback(true)
+      },
+      function () {
+        callback(false)
       }
-    })
-  },
-
-  getToken () {
-    return localStorage.token
-  },
-
-  logout (callback) {
-    delete localStorage.token
-    if (callback) callback()
-    this.onChange(false)
+    )
   },
 
   loggedIn () {
-    return !!localStorage.token
-  },
-
-  onChange () {}
-}
-
-function pretendRequest (email, pass, callback) {
-  setTimeout(() => {
-    if (email === 'joe@example.com' && pass === 'password1') {
-      callback({
-        authenticated: true,
-        token: Math.random().toString(36).substring(7)
-      })
-    } else {
-      callback({ authenticated: false })
-    }
-  }, 0)
+    return !!firebase.auth().currentUser
+  }
 }

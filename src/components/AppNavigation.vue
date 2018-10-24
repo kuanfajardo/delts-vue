@@ -63,6 +63,7 @@
 
 <script>
 import DrawerMenuList from './DrawerMenuList'
+import auth from  '@/auth'
 
 export default {
   name: 'app-navigation',
@@ -95,8 +96,11 @@ export default {
           href: '#',
           title: 'Logout',
           click: (e) => {
-            console.log(e)
-            this.$emit('APP_LOGOUT')
+            auth.signOut(success => {
+              if (success) {
+                this.$router.replace('/login')
+              }
+            })
           }
         }
       ]

@@ -30,7 +30,7 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn class="mx-1" color="primary" @click="login" :loading="loading">Login</v-btn>
+                <v-btn class="mx-1" color="primary" @click="signIn" :loading="loading">Login</v-btn>
               </v-card-actions>
               <v-snackbar
                 v-model="snackbar"
@@ -65,16 +65,16 @@ export default {
     snackbar: false,
     loading: false,
     username: '',
-    pass: '',
+    pass: ''
   }),
 
   methods: {
-    login () {
+    signIn () {
       this.loading = true
-      auth.login(this.username, this.pass, loggedIn => {
-        if (!loggedIn) {
-          this.snackbar = true
-        } else {
+
+      auth.signIn(this.username, this.pass, loggedIn => {
+        this.snackbar = !loggedIn
+        if (loggedIn) {
           this.$router.replace(this.$route.query.redirect || '/')
         }
 

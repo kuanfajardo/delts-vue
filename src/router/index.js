@@ -10,13 +10,25 @@ const router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
-  if (!to.meta.public && !auth.loggedIn()) {
-    next({
-      path: '/login',
-      query: { redirect: to.fullPath }
-    })
+  let requiresAuth = !to.meta.public
+
+  if (requiresAuth) {
+    if (auth.loggedIn()) {
+      next()
+    } else {
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+    }
   } else {
-    next()
+    if (auth.loggedIn()) {
+      next({
+        path: '/'
+      })
+    } else {
+      next()
+    }
   }
 })
 
