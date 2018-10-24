@@ -15,7 +15,7 @@
                     name="login"
                     label="Login"
                     type="text"
-                    v-model="username"
+                    v-model="email"
                     placeholder="jfajardo@mit.edu"
                   ></v-text-field>
                   <v-text-field
@@ -32,21 +32,6 @@
                 <v-spacer></v-spacer>
                 <v-btn class="mx-1" color="primary" @click="signIn" :loading="loading">Login</v-btn>
               </v-card-actions>
-              <v-snackbar
-                v-model="snackbar"
-                color="error"
-                :timeout="timeout"
-                top
-              >
-                {{ text }}
-                <v-btn
-                  dark
-                  flat
-                  @click="snackbar = false"
-                >
-                  Close
-                </v-btn>
-              </v-snackbar>
             </v-card>
           </v-flex>
         </v-layout>
@@ -57,14 +42,12 @@
 
 <script>
 import auth from '@/auth/'
+import appEvents from '@/events/names'
 
 export default {
   data: () => ({
-    text: 'Login failure',
-    timeout: 6000,
-    snackbar: false,
     loading: false,
-    username: '',
+    email: '',
     pass: ''
   }),
 
@@ -72,12 +55,12 @@ export default {
     signIn () {
       this.loading = true
 
-      auth.signIn(this.username, this.pass, loggedIn => {
-        this.snackbar = !loggedIn
+      auth.signIn(this.email, this.pass, loggedIn => {
         if (loggedIn) {
-          this.$router.replace(this.$route.query.redirect || '/')
+          window.getApp.$emit(appEvents.loginSuccess)
+        } else {
+          window.getApp.$emit(appEvents.loginFailure)
         }
-
         this.loading = false
       })
     }

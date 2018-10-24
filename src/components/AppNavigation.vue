@@ -63,7 +63,8 @@
 
 <script>
 import DrawerMenuList from './DrawerMenuList'
-import auth from  '@/auth'
+import auth from '@/auth'
+import appEvents from '@/events/names'
 
 export default {
   name: 'app-navigation',
@@ -98,7 +99,7 @@ export default {
           click: (e) => {
             auth.signOut(success => {
               if (success) {
-                this.$router.replace('/login')
+                window.getApp.$emit(appEvents.logout)
               }
             })
           }

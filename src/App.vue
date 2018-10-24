@@ -11,19 +11,35 @@
       </v-app>
     </template>
     <template v-else>
-      <!--<v-app dark>-->
-        <transition>
-          <keep-alive>
-            <router-view></router-view>
-          </keep-alive>
-        </transition>
-      <!--</v-app>-->
+      <transition>
+        <keep-alive>
+          <router-view></router-view>
+        </keep-alive>
+      </transition>
     </template>
+    <v-container>
+      <v-snackbar
+        v-model="snackbar.show"
+        :color="snackbar.color"
+        :timeout="snackbar.timeout"
+        top
+        id="snack"
+      >
+        {{ snackbar.text }}
+        <v-btn
+          dark
+          flat
+          @click="snackbar.show = false"
+        >
+          <v-icon>close</v-icon>
+        </v-btn>
+      </v-snackbar>
+    </v-container>
   </div>
 </template>
 
 <script>
-
+import appEvents from './events'
 import AppNavigation from './components/AppNavigation'
 
 export default {
@@ -31,7 +47,20 @@ export default {
   components: { AppNavigation },
   data () {
     return {
+      snackbar: {
+        show: false,
+        text: '',
+        color: '',
+        timeout: 3000
+      }
     }
+  },
+
+  created () {
+    appEvents.forEach(item => {
+      this.$on(item.name, item.callback)
+    })
+    window.getApp = this
   }
 }
 </script>
@@ -39,5 +68,10 @@ export default {
 <style>
   .page-wrapper {
     min-height: calc(100vh - 64px - 50px - 81px );
+  }
+
+  /* For some reason, Vuetify doesn't catch snackbar */
+  #snack {
+   font-family: 'Roboto', 'sans-serif';
   }
 </style>
