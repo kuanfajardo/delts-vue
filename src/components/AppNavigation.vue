@@ -97,10 +97,8 @@ export default {
           href: '#',
           title: 'Logout',
           click: (e) => {
-            auth.signOut(success => {
-              if (success) {
-                window.getApp.$emit(appEvents.logout)
-              }
+            auth.signOut(() => {
+              window.getApp.$emit(appEvents.logout)
             })
           }
         }

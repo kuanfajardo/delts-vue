@@ -1,22 +1,26 @@
 <template>
-  <div class="registration-page">
-    <v-container>
-      <v-layout>
-        <v-flex lg9>
-          <v-card class="mb-4">
-            <v-toolbar flat>
-              <v-toolbar-title class="heading">Registration Form</v-toolbar-title>
-              <v-spacer></v-spacer>
-            </v-toolbar>
-            <v-divider></v-divider>
-            <v-card-text class="">
-              <registration-form></registration-form>
-            </v-card-text>
-          </v-card>
-        </v-flex>
-      </v-layout>
-    </v-container>
-  </div>
+  <v-app>
+    <v-content>
+        <v-container>
+          <v-layout>
+            <v-spacer lg2></v-spacer>
+            <v-flex lg8>
+              <v-card class="mb-4">
+                <v-toolbar flat color="primary" dark>
+                  <v-toolbar-title class="heading">Registration Form</v-toolbar-title>
+                  <v-spacer></v-spacer>
+                </v-toolbar>
+                <v-divider></v-divider>
+                <v-card-text class="">
+                  <registration-form></registration-form>
+                </v-card-text>
+              </v-card>
+            </v-flex>
+            <v-spacer lg2></v-spacer>
+          </v-layout>
+        </v-container>
+      </v-content>
+  </v-app>
 </template>
 
 <script>

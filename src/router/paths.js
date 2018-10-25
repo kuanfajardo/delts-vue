@@ -59,7 +59,8 @@ export default [
   {
     path: '/dashboard',
     meta: {
-      breadcrumb: true
+      breadcrumb: true,
+      appMenu: true
     },
     props: true,
     name: 'Dashboard',
@@ -71,7 +72,7 @@ export default [
   },
   {
     path: '/duties',
-    meta: { },
+    meta: { appMenu: true },
     name: 'Duties',
     component: () => import(
       /* webpackChunkName: "routes" */
@@ -81,7 +82,7 @@ export default [
   },
   {
     path: '/social',
-    meta: { },
+    meta: { appMenu: true },
     name: 'Social',
     component: () => import(
       /* webpackChunkName: "routes" */
@@ -91,7 +92,7 @@ export default [
   },
   {
     path: '/contacts',
-    meta: { },
+    meta: { appMenu: true },
     name: 'Contacts',
     component: () => import(
       /* webpackChunkName: "routes" */
@@ -100,8 +101,8 @@ export default [
     )
   },
   {
-    path: '/registration',
-    meta: { public: false },
+    path: '/register',
+    meta: { },
     name: 'Registration',
     component: () => import(
       /* webpackChunkName: "routes" */

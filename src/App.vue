@@ -1,6 +1,6 @@
 <template>
   <div class="appRoot">
-    <template v-if="!$route.meta.public">
+    <template v-if="$route.meta.appMenu">
       <v-app light>
         <app-navigation></app-navigation>
         <v-content>

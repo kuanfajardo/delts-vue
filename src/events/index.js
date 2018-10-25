@@ -21,6 +21,12 @@ export default [
     }
   },
   {
+    name: events.loginFirstTimeUser,
+    callback: function (e) {
+      this.$router.replace('/register')
+    }
+  },
+  {
     name: events.authFailed,
     callback: function (e) {
       this.$router.push('/login')
@@ -36,7 +42,7 @@ export default [
         text: 'Logout successfully.',
         timeout: 3000
       }
-      this.$router.replace({ path: '/login' })
+      this.$router.push({ path: '/login' })
     }
   },
 

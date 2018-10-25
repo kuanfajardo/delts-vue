@@ -28,20 +28,9 @@
       label="Given Name"
       name="givenName"
       placeholder="If you go by another name..."
-      v-model="formModel.lastName"
+      v-model="formModel.givenName"
       data-vv-name="givenName"
       :error-messages="errors.collect('givenName')"
-    ></v-text-field>
-
-    <!-- EMAIL -->
-    <v-text-field
-      label="Email"
-      placeholder="jfajardo@mit.edu"
-      name="email"
-      v-validate="'required|email'"
-      data-vv-name="email"
-      :error-messages="errors.collect('email')"
-      v-model="formModel.email"
     ></v-text-field>
 
     <!-- PHONE -->
@@ -120,6 +109,26 @@
       </template>
     </v-select>
 
+    <v-text-field
+      label="Password"
+      placeholder=""
+      v-validate="'required|min:6'"
+      type="password"
+      data-vv-name="password"
+      :error-messages="errors.collect('password')"
+      v-model="formModel.password"
+      ref="passwordField"
+    ></v-text-field>
+    <v-text-field
+      label="Repeat Password"
+      placeholder=""
+      v-validate="'required|confirmed:passwordField'"
+      type="password"
+      data-vv-name="repeat password"
+      :error-messages="errors.first('repeat password')"
+      v-model="formModel.repeatPassword"
+    ></v-text-field>
+
     <!-- BUTTONS -->
     <div class="form-btn">
       <v-btn @click="submit" color="primary">Submit</v-btn>
@@ -129,79 +138,92 @@
 </template>
 
 <script>
+import appEvents from '@/events/names'
 
 export default {
   $_veeValidate: {
     validator: 'new'
   },
 
-  data: () => ({
-    formModel: {
-      country: null
-    },
-    states: [
-      'Alabama',
-      'Alaska',
-      'American Samoa',
-      'Arizona',
-      'Arkansas',
-      'California',
-      'Colorado',
-      'Connecticut',
-      'Delaware',
-      'District of Columbia',
-      'Federated States of Micronesia',
-      'Florida',
-      'Georgia',
-      'Guam',
-      'Hawaii',
-      'Idaho',
-      'Illinois',
-      'Indiana',
-      'Iowa',
-      'Kansas',
-      'Kentucky',
-      'Louisiana',
-      'Maine',
-      'Marshall Islands',
-      'Maryland',
-      'Massachusetts',
-      'Michigan',
-      'Minnesota',
-      'Mississippi',
-      'Missouri',
-      'Montana',
-      'Nebraska',
-      'Nevada',
-      'New Hampshire',
-      'New Jersey',
-      'New Mexico',
-      'New York',
-      'North Carolina',
-      'North Dakota',
-      'Northern Mariana Islands',
-      'Ohio',
-      'Oklahoma',
-      'Oregon',
-      'Palau',
-      'Pennsylvania',
-      'Puerto Rico',
-      'Rhode Island',
-      'South Carolina',
-      'South Dakota',
-      'Tennessee',
-      'Texas',
-      'Utah',
-      'Vermont',
-      'Virgin Island',
-      'Virginia',
-      'Washington',
-      'West Virginia',
-      'Wisconsin',
-      'Wyoming'
-    ],
-    valid: true
-  }),
+  data () {
+    return {
+      formModel: {
+        firstName: null,
+        lastName: null,
+        givenName: null,
+        phone: null,
+        state: null,
+        fb: null,
+        snapchat: null,
+        year: null,
+        interests: null,
+        password: null,
+        repeatPassword: null
+      },
+      states: [
+        'Alabama',
+        'Alaska',
+        'American Samoa',
+        'Arizona',
+        'Arkansas',
+        'California',
+        'Colorado',
+        'Connecticut',
+        'Delaware',
+        'District of Columbia',
+        'Federated States of Micronesia',
+        'Florida',
+        'Georgia',
+        'Guam',
+        'Hawaii',
+        'Idaho',
+        'Illinois',
+        'Indiana',
+        'Iowa',
+        'Kansas',
+        'Kentucky',
+        'Louisiana',
+        'Maine',
+        'Marshall Islands',
+        'Maryland',
+        'Massachusetts',
+        'Michigan',
+        'Minnesota',
+        'Mississippi',
+        'Missouri',
+        'Montana',
+        'Nebraska',
+        'Nevada',
+        'New Hampshire',
+        'New Jersey',
+        'New Mexico',
+        'New York',
+        'North Carolina',
+        'North Dakota',
+        'Northern Mariana Islands',
+        'Ohio',
+        'Oklahoma',
+        'Oregon',
+        'Palau',
+        'Pennsylvania',
+        'Puerto Rico',
+        'Rhode Island',
+        'South Carolina',
+        'South Dakota',
+        'Tennessee',
+        'Texas',
+        'Utah',
+        'Vermont',
+        'Virgin Island',
+        'Virginia',
+        'Washington',
+        'West Virginia',
+        'Wisconsin',
+        'Wyoming'
+      ],
+      valid: true
+    }
+  },
 
   mounted () {
     this.$validator.localize('en', this.dictionary)
@@ -209,8 +231,16 @@ export default {
 
   methods: {
     submit: function () {
-      this.$validator.validateAll()
+      this.$validator.validateAll().then(
+        valid => {
+          if (valid) {
+            // TODO: Push user data to server
+            window.getApp.$emit(appEvents.loginSuccess)
+          }
+        }
+      )
     },
+
     clear: function () {
       this.formModel = {}
       this.$validator.reset()

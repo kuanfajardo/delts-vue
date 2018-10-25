@@ -43,10 +43,6 @@ export default {
         {
           title: 'Contacts',
           icon: 'contacts'
-        },
-        {
-          title: 'Registration',
-          icon: 'person_add'
         }
       ]
     }

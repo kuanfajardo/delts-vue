@@ -55,10 +55,16 @@ export default {
     signIn () {
       this.loading = true
 
-      auth.signIn(this.email, this.pass, loggedIn => {
-        if (loggedIn) {
-          window.getApp.$emit(appEvents.loginSuccess)
+      auth.signIn(this.email, this.pass, (user, error) => {
+        if (user) {
+          let isVerified = false // TODO: call server to check if verified
+          if (isVerified) {
+            window.getApp.$emit(appEvents.loginSuccess)
+          } else {
+            window.getApp.$emit(appEvents.loginFirstTimeUser)
+          }
         } else {
+          console.log(error)
           window.getApp.$emit(appEvents.loginFailure)
         }
         this.loading = false
