@@ -48,7 +48,8 @@ export default {
   data: () => ({
     loading: false,
     email: '',
-    pass: ''
+    pass: '',
+
   }),
 
   methods: {
