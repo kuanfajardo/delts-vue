@@ -1,15 +1,17 @@
 <template>
   <div class="duties-page">
     <page-header title="Duties"></page-header>
+    <duties-picker></duties-picker>
   </div>
 </template>
 
 <script>
 import PageHeader from '../../components/PageHeader'
+import DutiesPicker from '../../components/DutiesPicker'
 
 export default {
   name: 'duties-page',
-  components: { PageHeader },
+  components: { DutiesPicker, PageHeader },
   data () {
     return {
       msg: 'msg'
