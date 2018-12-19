@@ -22,10 +22,10 @@
         <v-flex xs10 :key="`dutyRow_${duty}`">
           <v-layout row wrap>
              <v-flex v-for="weekday in weekdayAbbs" :key="`dutySlot_${duty}_${weekday}`" xs2>
-              <v-card dark :color="colorForDuty(duty, weekday)">
-                <v-card-text v-if="isXSmall" class="px-0">{{weekday}}</v-card-text>
-                <v-card-text v-else class="px-0">.</v-card-text>
-              </v-card>
+              <!--<v-card dark :color="colorForDuty(duty, weekday)">-->
+                <v-btn v-if="isXSmall" block dark class="duty_button xs" :color="colorForDuty(duty, weekday)">{{weekday}}</v-btn>
+                <v-btn v-else block dark class="duty_button" :color="colorForDuty(duty, weekday)">-</v-btn>
+              <!--</v-card>-->
             </v-flex>
           </v-layout>
         </v-flex>
@@ -40,6 +40,7 @@ export default {
 
   data () {
     return {
+      // CONSTANTS
       ALL_WEEKDAYS: [
         'Sunday',
         'Monday',
@@ -58,6 +59,8 @@ export default {
         'F',
         'S'
       ],
+
+      // FROM API CALLS
       weekdaysToUse: [0, 1, 2, 3, 4, 5],
       dutyMap: {
         'Kitchen 1': {
@@ -186,15 +189,17 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.dutyUnavailable {
-  color: darkgray;
+.duty_button {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 16px 0 16px 0;
+  height: auto;
 }
 
-.dutyUnselected { /* i.e. already picked */
-  color: palegreen;
+.duty_button.xs {
+  margin: 0;
+  min-width: 0;
+  width: 100%;
 }
 
-.dutySelected {
-  color: #E57373;
-}
 </style>
