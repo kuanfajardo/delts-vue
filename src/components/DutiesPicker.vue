@@ -23,8 +23,11 @@
           <v-layout row wrap>
              <v-flex v-for="weekday in weekdayAbbs" :key="`dutySlot_${duty}_${weekday}`" xs2>
               <!--<v-card dark :color="colorForDuty(duty, weekday)">-->
-                <v-btn v-if="isXSmall" block dark class="duty_button xs" :color="colorForDuty(duty, weekday)">{{weekday}}</v-btn>
-                <v-btn v-else block dark class="duty_button" :color="colorForDuty(duty, weekday)">-</v-btn>
+                <v-tooltip bottom>
+                  <v-btn v-if="isXSmall" slot="activator" block dark class="duty_button xs" :color="colorForDuty(duty, weekday)">{{weekday}}</v-btn>
+                  <v-btn v-else slot="activator" block dark class="duty_button" :color="colorForDuty(duty, weekday)">-</v-btn>
+                  <span>Tooltip</span>
+                </v-tooltip>
               <!--</v-card>-->
             </v-flex>
           </v-layout>
