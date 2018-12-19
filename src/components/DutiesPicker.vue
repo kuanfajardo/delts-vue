@@ -5,25 +5,25 @@
         <v-flex xs2></v-flex>
         <v-flex xs10>
           <v-layout row wrap>
-            <v-flex v-for="i in 6" :key="`A1${i}`" xs2>
+            <v-flex v-for="weekday in weekdays" :key="`weekdayHeader_${weekday}`" xs2>
               <v-card light color="#E0E0E0">
-                <v-card-text class="px-0">{{weekdays[i - 1]}}</v-card-text>
+                <v-card-text class="px-0">{{weekday}}</v-card-text>
               </v-card>
             </v-flex>
           </v-layout>
         </v-flex>
       </template>
-      <template v-for="i in dutyNames.length">
-        <v-flex xs2 :key="`dutyName_${i}`">
+      <template v-for="duty in dutyNames">
+        <v-flex xs2 :key="`dutyHeader_${duty}`">
           <v-card light color="#E0E0E0">
-            <v-card-text class="px-0">{{dutyNames[i - 1]}}</v-card-text>
+            <v-card-text class="px-0">{{duty}}</v-card-text>
           </v-card>
         </v-flex>
-        <v-flex xs10 :key="`dutyPicker_${i}`">
+        <v-flex xs10 :key="`dutyRow_${duty}`">
           <v-layout row wrap>
-             <v-flex v-for="i in weekdays.length" :key="`A2${i}`" xs2>
-              <v-card dark color="#E57373">
-                <v-card-text v-if="isXSmall" class="px-0">{{weekdayAbbs[i - 1]}}</v-card-text>
+             <v-flex v-for="weekday in weekdayAbbs" :key="`dutySlot_${duty}_${weekday}`" xs2>
+              <v-card dark :color="colorForDuty(duty, weekday)">
+                <v-card-text v-if="isXSmall" class="px-0">{{weekday}}</v-card-text>
                 <v-card-text v-else class="px-0">.</v-card-text>
               </v-card>
             </v-flex>
@@ -40,44 +40,145 @@ export default {
 
   data () {
     return {
-      msg: 'msg',
-      weekdays: [
+      ALL_WEEKDAYS: [
         'Sunday',
         'Monday',
         'Tuesday',
         'Wednesday',
         'Thursday',
-        'Friday'
+        'Friday',
+        'Saturday'
       ],
-      weekdayAbbs: [
+      ALL_WEEKDAY_ABBS: [
         'U',
         'M',
         'T',
         'W',
         'R',
-        'F'
+        'F',
+        'S'
       ],
-      dutyNames: [
-        'Kitchen 1',
-        'Kitchen 2',
-        'Basement',
-        '2nd Bathrooms',
-        '3rd Bathrooms'
-      ]
+      weekdaysToUse: [0, 1, 2, 3, 4, 5],
+      dutyMap: {
+        'Kitchen 1': {
+          'U': true,
+          'M': true,
+          'T': true,
+          'W': true,
+          'R': true,
+          'F': true
+        },
+        'Kitchen 2': {
+          'U': true,
+          'M': true,
+          'T': true,
+          'W': true,
+          'R': true,
+          'F': true
+        },
+        'Basement': {
+          'U': true,
+          'M': false,
+          'T': true,
+          'W': false,
+          'R': true,
+          'F': false
+        },
+        '2nd Bathrooms': {
+          'U': true,
+          'M': false,
+          'T': true,
+          'W': false,
+          'R': true,
+          'F': false
+        },
+        '3rd Bathrooms': {
+          'U': true,
+          'M': false,
+          'T': true,
+          'W': false,
+          'R': true,
+          'F': false
+        },
+        '4th Bathrooms': {
+          'U': true
+        }
+      },
+      currentSheet: {
+        'Kitchen 1': {
+          'U': '',
+          'F': ''
+        },
+        'Basement': {
+          'U': '',
+          'T': '',
+          'R': ''
+        },
+        '2nd Bathrooms': {
+          'T': ''
+        },
+        '3rd Bathrooms': {
+          'R': ''
+        }
+      }
     }
   },
 
   methods: {
-    randomColor () {
-      let color = '#' + Math.floor(Math.random() * 16777215).toString(16)
-      console.log(color)
-      return color
+    colorForDuty (duty, weekday) {
+      const UNAVAILABLE_COLOR = '#707070'
+      const UNSELECTED_COLOR = '#E57373'
+      const SELECTED_COLOR = '#27af6a'
+
+      var isAvailable = this.dutyMap[duty][weekday]
+      if (typeof isAvailable === 'undefined') {
+        isAvailable = false
+      }
+
+      if (!isAvailable) {
+        return UNAVAILABLE_COLOR
+      }
+
+      var isSelected = false
+      if (duty in this.currentSheet) {
+        if (weekday in this.currentSheet[duty]) {
+          isSelected = true
+        }
+      }
+
+      return isSelected ? SELECTED_COLOR : UNSELECTED_COLOR
     }
   },
 
   computed: {
     isXSmall () {
       return (this.$vuetify.breakpoint.xs)
+    },
+
+    dutyNames () {
+      return Object.keys(this.dutyMap)
+    },
+
+    weekdays () {
+      var wd = []
+      this.ALL_WEEKDAYS.forEach((value, index) => {
+        if (this.weekdaysToUse.includes(index)) {
+          wd.push(value)
+        }
+      })
+
+      return wd
+    },
+
+    weekdayAbbs () {
+      var abbs = []
+      this.ALL_WEEKDAY_ABBS.forEach((value, index) => {
+        if (this.weekdaysToUse.includes(index)) {
+          abbs.push(value)
+        }
+      })
+
+      return abbs
     }
   }
 }
@@ -85,7 +186,15 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  .duties-picker {
+.dutyUnavailable {
+  color: darkgray;
+}
 
-  }
+.dutyUnselected { /* i.e. already picked */
+  color: palegreen;
+}
+
+.dutySelected {
+  color: #E57373;
+}
 </style>
