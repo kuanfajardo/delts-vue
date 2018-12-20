@@ -22,13 +22,18 @@
         <v-flex xs10 :key="`dutyRow_${duty}`">
           <v-layout row wrap>
              <v-flex v-for="weekday in weekdayAbbs" :key="`dutySlot_${duty}_${weekday}`" xs2>
-              <!--<v-card dark :color="colorForDuty(duty, weekday)">-->
-                <v-tooltip bottom>
-                  <v-btn v-if="isXSmall" slot="activator" block dark class="duty_button xs" :color="colorForDuty(duty, weekday)">{{weekday}}</v-btn>
-                  <v-btn v-else slot="activator" block dark class="duty_button" :color="colorForDuty(duty, weekday)">-</v-btn>
-                  <span>Tooltip</span>
-                </v-tooltip>
-              <!--</v-card>-->
+                <template v-if="isDutyAvailable(duty, weekday)">
+                  <v-tooltip bottom>
+                    <v-btn v-if="isXSmall" slot="activator" block dark class="duty_button xs" :color="colorForDuty(duty, weekday)">{{weekday}}</v-btn>
+                    <v-btn v-else slot="activator" block dark class="duty_button" :color="colorForDuty(duty, weekday)"></v-btn>
+                    <span>{{tooltipForDuty(duty, weekday)}}</span>
+                  </v-tooltip>
+                </template>
+                <template v-else>
+                  <v-card dark class="duty_button" :color="colorForDuty(duty, weekday)">
+                    <v-card-text></v-card-text>
+                  </v-card>
+                </template>
             </v-flex>
           </v-layout>
         </v-flex>
@@ -112,19 +117,19 @@ export default {
       },
       currentSheet: {
         'Kitchen 1': {
-          'U': '',
-          'F': ''
+          'U': 'Juan',
+          'F': 'Malik'
         },
         'Basement': {
-          'U': '',
-          'T': '',
-          'R': ''
+          'U': 'Jorge',
+          'T': 'Nonye',
+          'R': 'Rianna'
         },
         '2nd Bathrooms': {
-          'T': ''
+          'T': 'YEET'
         },
         '3rd Bathrooms': {
-          'R': ''
+          'R': 'MOOOO'
         }
       }
     }
@@ -136,15 +141,39 @@ export default {
       const UNSELECTED_COLOR = '#E57373'
       const SELECTED_COLOR = '#27af6a'
 
-      var isAvailable = this.dutyMap[duty][weekday]
-      if (typeof isAvailable === 'undefined') {
-        isAvailable = false
-      }
+      const isAvailable = this.isDutyAvailable(duty, weekday)
 
       if (!isAvailable) {
         return UNAVAILABLE_COLOR
       }
 
+      const isSelected = this.isDutySelected(duty, weekday)
+
+      return isSelected ? SELECTED_COLOR : UNSELECTED_COLOR
+    },
+
+    tooltipForDuty (duty, weekday) {
+      if (this.isDutySelected(duty, weekday)) {
+        return this.currentSheet[duty][weekday]
+      }
+
+      if (this.isDutyAvailable(duty, weekday)) {
+        return 'Claim ' + duty + ' (' + weekday + ')'
+      }
+
+      return null
+    },
+
+    isDutyAvailable (duty, weekday) {
+      var isAvailable = this.dutyMap[duty][weekday]
+      if (typeof isAvailable === 'undefined') {
+        isAvailable = false
+      }
+
+      return isAvailable
+    },
+
+    isDutySelected (duty, weekday) {
       var isSelected = false
       if (duty in this.currentSheet) {
         if (weekday in this.currentSheet[duty]) {
@@ -152,7 +181,7 @@ export default {
         }
       }
 
-      return isSelected ? SELECTED_COLOR : UNSELECTED_COLOR
+      return isSelected
     }
   },
 
@@ -195,8 +224,7 @@ export default {
 .duty_button {
   margin-top: 0;
   margin-bottom: 0;
-  padding: 16px 0 16px 0;
-  height: auto;
+  height: 54px; /* To get value, simply inspect to see height of duty name cards */
 }
 
 .duty_button.xs {
