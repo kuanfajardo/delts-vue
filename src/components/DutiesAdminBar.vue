@@ -2,11 +2,11 @@
   <v-toolbar v-if="showAdmin"  id="admin-bar" class="mb-3 mt-2" style="opacity: 1">
     <template v-if="tab === 0">
       <!-- General Actions-->
-      <v-btn color="primary">Go Live
+      <v-btn color="primary" @click.stop="liveButtonClicked">Go Live
         <v-icon right>visibility</v-icon>
       </v-btn>
 
-      <v-btn dark color="teal">Edit Duty Sheet
+      <v-btn dark color="teal" @click.stop="editDutySheetButtonClicked">Edit Duty Sheet
         <v-icon dark right>edit</v-icon>
       </v-btn>
 
@@ -25,7 +25,7 @@
       ></v-overflow-btn>
 
       <!-- Checkoff Actions -->
-      <template v-if="duty_selected">
+      <template v-if="selectedDuty !== null">
         <v-btn v-if="checked_off" color="error">Undo Checkoff
           <v-icon dark right>cancel</v-icon>
         </v-btn>
@@ -40,12 +40,13 @@
 </template>
 
 <script>
+import { dutiesMixin } from '../mixins/duties-mixin'
+
 export default {
   name: 'duties-admin-bar',
 
   data () {
     return {
-      duty_selected: true,
       showAdmin: true,
       checked_off: false,
       dropdownNames: [
@@ -59,6 +60,27 @@ export default {
 
   props: {
     tab: Number
+  },
+
+  methods: {
+    liveButtonClicked () {
+      alert('Live button clicked')
+    },
+
+    editDutySheetButtonClicked () {
+      alert('Edit duty sheet button clicked')
+    }
+  },
+
+  computed: {
+    selectedDuty () {
+      return this.$store.state.dutiesStore.selectedDuty
+    },
+
+    showCheckoffButton () {
+      if (this.selectedDuty === null) return false
+      return dutiesMixin.methods.statusForDuty(this.selectedDuty.name, this.selectedDuty.weekday) === dutiesMixin.data().DutyStatus.claimed
+    }
   }
 }
 </script>
