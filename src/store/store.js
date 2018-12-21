@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { SELECTED_DUTY_MUTATION } from './mutation-types'
+import { EDIT_SELECTED_DUTY } from './mutation-types'
 
 Vue.use(Vuex)
 
@@ -119,7 +119,7 @@ const dutiesStore = {
     isDutySheetLive: true
   },
   mutations: {
-    [SELECTED_DUTY_MUTATION] (state, duty) {
+    [EDIT_SELECTED_DUTY] (state, duty) {
       state.selectedDuty = duty
     }
   },

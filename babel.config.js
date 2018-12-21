@@ -6,5 +6,9 @@ module.exports = {
         "useBuiltIns": "entry"
       }
     ]
+  ],
+
+  "plugins": [
+    "@babel/plugin-proposal-export-default-from"
   ]
 }

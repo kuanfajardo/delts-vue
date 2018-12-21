@@ -1,16 +1,9 @@
-import store from '../store/store'
+import store from '@/store'
+import { DutyStatus } from '@/definitions'
 
 export const dutiesMixin = {
   data () {
-    return {
-      DutyStatus: {
-        'unavailable': 0,
-        'unclaimed': 1,
-        'claimed': 2,
-        'completed': 3,
-        'punted': 4
-      }
-    }
+    return {}
   },
 
   methods: {
@@ -19,15 +12,15 @@ export const dutiesMixin = {
       const isAvailable = this.isDutyAvailable(duty, weekday)
 
       if (!isAvailable) {
-        return dutiesMixin.data().DutyStatus.unavailable
+        return DutyStatus.unavailable
       }
 
       if (store.state.dutiesStore.isDutySheetLive || this.isWeekdayFuture(weekday) || this.isWeekdayToday(weekday)) {
         const isClaimed = this.isDutyClaimed(duty, weekday)
-        return isClaimed ? dutiesMixin.data().DutyStatus.claimed : dutiesMixin.data().DutyStatus.unclaimed
+        return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
       } else {
         const isCheckedOff = this.isDutyCheckedOff(duty, weekday)
-        return isCheckedOff ? dutiesMixin.data().DutyStatus.completed : dutiesMixin.data().DutyStatus.punted
+        return isCheckedOff ? DutyStatus.completed : DutyStatus.punted
       }
     },
 

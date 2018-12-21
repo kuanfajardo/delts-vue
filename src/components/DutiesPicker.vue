@@ -95,11 +95,14 @@
 </template>
 
 <script>
-import { SELECTED_DUTY_MUTATION } from '@/store/mutation-types'
-import { dutiesMixin } from '../mixins/duties-mixin'
+import { EDIT_SELECTED_DUTY } from '@/store'
+import { dutiesMixin } from '@/mixins'
+import { mapState, mapMutations } from 'vuex'
+import { DutyStatus } from '@/definitions'
 
 export default {
   name: 'duties-picker',
+  mixins: [dutiesMixin],
 
   data () {
     return {
@@ -142,28 +145,24 @@ export default {
 
   // For ALL methods, duty :: string name of duty (i.e. key in dutyMap); weekday :: int (Sunday = 0)
   methods: {
-    isDutyAvailable (duty, weekday) {
-      return dutiesMixin.methods.isDutyAvailable(duty, weekday)
-    },
-
     // STYLING
     colorForDuty (duty, weekday) {
-      const dutyStatus = dutiesMixin.methods.statusForDuty(duty, weekday)
+      const dutyStatus = this.statusForDuty(duty, weekday)
 
       switch (dutyStatus) {
-        case dutiesMixin.data().DutyStatus.unavailable:
+        case DutyStatus.unavailable:
           return '#707070'
 
-        case dutiesMixin.data().DutyStatus.unclaimed:
-          return this.$store.state.dutiesStore.isDutySheetLive ? 'primary' : '#8a95ff' //'#685dee'
+        case DutyStatus.unclaimed:
+          return this.isDutySheetLive ? 'primary' : '#8a95ff' //'#685dee'
 
-        case dutiesMixin.data().DutyStatus.claimed:
-          return this.$store.state.dutiesStore.isDutySheetLive ? '#eeeeee' : 'primary'
+        case DutyStatus.claimed:
+          return this.isDutySheetLive ? '#eeeeee' : 'primary'
 
-        case dutiesMixin.data().DutyStatus.completed:
+        case DutyStatus.completed:
           return '#27af6a'
 
-        case dutiesMixin.data().DutyStatus.punted:
+        case DutyStatus.punted:
           return '#E57373'
 
         default:
@@ -173,7 +172,7 @@ export default {
 
     styleForDuty (duty, weekday) {
       var opacity = 1
-      if (!this.$store.state.dutiesStore.isDutySheetLive && dutiesMixin.methods.isWeekdayPast(weekday)) {
+      if (!this.isDutySheetLive && this.isWeekdayPast(weekday)) {
         opacity = 0.75
       }
 
@@ -181,23 +180,23 @@ export default {
     },
 
     tooltipForDuty (duty, weekday) {
-      const dutyStatus = dutiesMixin.methods.statusForDuty(duty, weekday)
+      const dutyStatus = this.statusForDuty(duty, weekday)
 
       switch (dutyStatus) {
-        case dutiesMixin.data().DutyStatus.unavailable:
+        case DutyStatus.unavailable:
           return null
 
-        case dutiesMixin.data().DutyStatus.unclaimed:
+        case DutyStatus.unclaimed:
           return 'Claim ' + duty + ' (' + this.WEEKDAYS[weekday].abb + ')'
 
-        case dutiesMixin.data().DutyStatus.claimed:
-          return this.$store.state.dutiesStore.currentSheet[duty][weekday]['assignee']
+        case DutyStatus.claimed:
+          return this.currentSheet[duty][weekday]['assignee']
 
-        case dutiesMixin.data().DutyStatus.completed:
-          var dutyObj = this.$store.state.dutiesStore.currentSheet[duty][weekday]
+        case DutyStatus.completed:
+          var dutyObj = this.currentSheet[duty][weekday]
           return dutyObj.assignee + ' (checked off by ' + dutyObj.checkoff + ')'
 
-        case dutiesMixin.data().DutyStatus.punted:
+        case DutyStatus.punted:
           return 'Punted by ' + ''
 
         default:
@@ -206,22 +205,22 @@ export default {
     },
 
     iconForDuty (duty, weekday) {
-      const dutyStatus = dutiesMixin.methods.statusForDuty(duty, weekday)
+      const dutyStatus = this.statusForDuty(duty, weekday)
 
       switch (dutyStatus) {
-        case dutiesMixin.data().DutyStatus.unavailable:
+        case DutyStatus.unavailable:
           return null
 
-        case dutiesMixin.data().DutyStatus.unclaimed:
-          return this.$store.state.dutiesStore.isDutySheetLive ? 'assignment_ind' : 'warning'
+        case DutyStatus.unclaimed:
+          return this.isDutySheetLive ? 'assignment_ind' : 'warning'
 
-        case dutiesMixin.data().DutyStatus.claimed:
+        case DutyStatus.claimed:
           return 'how_to_reg'
 
-        case dutiesMixin.data().DutyStatus.completed:
+        case DutyStatus.completed:
           return 'check_circle'
 
-        case dutiesMixin.data().DutyStatus.punted:
+        case DutyStatus.punted:
           return 'error'
 
         default:
@@ -230,22 +229,22 @@ export default {
     },
 
     iconColorForDuty (duty, weekday) {
-      const dutyStatus = dutiesMixin.methods.statusForDuty(duty, weekday)
+      const dutyStatus = this.statusForDuty(duty, weekday)
 
       switch (dutyStatus) {
-        case dutiesMixin.data().DutyStatus.unavailable:
+        case DutyStatus.unavailable:
           return null
 
-        case dutiesMixin.data().DutyStatus.unclaimed:
+        case DutyStatus.unclaimed:
           return '#ffffff'
 
-        case dutiesMixin.data().DutyStatus.claimed:
-          return this.$store.state.dutiesStore.isDutySheetLive ? '#797a7a' : '#ffffff'
+        case DutyStatus.claimed:
+          return this.isDutySheetLive ? '#797a7a' : '#ffffff'
 
-        case dutiesMixin.data().DutyStatus.completed:
+        case DutyStatus.completed:
           return '#ffffff'
 
-        case dutiesMixin.data().DutyStatus.punted:
+        case DutyStatus.punted:
           return '#ffffff'
 
         default:
@@ -265,10 +264,10 @@ export default {
       }
     },
 
-    // STATE MUTATIONS
+    // STATE MUTATIONS (and UI?)
     selectDuty (duty, weekday) {
       document.getElementById(duty + '_' + weekday).classList.add('selected')
-      this.$store.commit(SELECTED_DUTY_MUTATION, {
+      this.EDIT_SELECTED_DUTY({
         'name': duty,
         'weekday': weekday
       })
@@ -276,21 +275,31 @@ export default {
 
     deselectDuty (duty, weekday) {
       document.getElementById(duty + '_' + weekday).classList.remove('selected')
-      this.$store.commit(SELECTED_DUTY_MUTATION, null)
-    }
+      this.EDIT_SELECTED_DUTY(null)
+    },
+
+    ...mapMutations({
+      EDIT_SELECTED_DUTY
+    })
   },
 
   computed: {
+    // Local Computed
     isXSmall () {
       return (this.$vuetify.breakpoint.xs)
     },
 
-    dutyNames () {
-      return Object.keys(this.$store.state.dutiesStore.dutyMap)
-    },
+    // Store Computed
+    ...mapState({
+      selectedDuty: state => state.dutiesStore.selectedDuty,
+      dutyMap: state => state.dutiesStore.dutyMap,
+      isDutySheetLive: state => state.dutiesStore.isDutySheetLive,
+      currentSheet: state => state.dutiesStore.currentSheet
+    }),
 
-    selectedDuty () {
-      return this.$store.state.dutiesStore.selectedDuty
+    // Mix of local and store
+    dutyNames () {
+      return Object.keys(this.dutyMap)
     }
   }
 }

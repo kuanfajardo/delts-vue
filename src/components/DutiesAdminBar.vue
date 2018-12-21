@@ -41,6 +41,7 @@
 
 <script>
 import { dutiesMixin } from '../mixins/duties-mixin'
+import { mapState } from 'vuex'
 
 export default {
   name: 'duties-admin-bar',
@@ -73,9 +74,9 @@ export default {
   },
 
   computed: {
-    selectedDuty () {
-      return this.$store.state.dutiesStore.selectedDuty
-    },
+    ...mapState({
+      selectedDuty: state => state.dutiesStore.selectedDuty
+    }),
 
     showCheckoffButton () {
       if (this.selectedDuty === null) return false
