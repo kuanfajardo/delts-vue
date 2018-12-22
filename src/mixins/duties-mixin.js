@@ -1,6 +1,6 @@
-import { SET_DUTY_TEMPLATES_REF } from '@/store'
+import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF } from '@/store'
 import { DutyStatus } from '@/definitions'
-import { dutyTemplatesRef } from '@/plugins/firebase'
+import { dutyTemplatesRef, usersRef } from '@/plugins/firebase'
 
 export const dutiesMixin = {
   data () {
@@ -71,5 +71,6 @@ export const dutiesMixin = {
 
   created () {
     this.$store.dispatch(SET_DUTY_TEMPLATES_REF, dutyTemplatesRef)
+    this.$store.dispatch(SET_USERS_REF, usersRef)
   }
 }

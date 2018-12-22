@@ -1,14 +1,15 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { EDIT_SELECTED_DUTY } from './mutation-types'
-import { SET_DUTY_TEMPLATES_REF } from './action-types'
+import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF } from './action-types'
 import { firebaseMutations, firebaseAction } from 'vuexfire'
 
 Vue.use(Vuex)
 
 const dutiesStore = {
   state: {
-    dutyTemplates: [],
+    dutyTemplates: [], // Will be bound to duty-templates collection
+    users: [], // Will be bound to users collection
     selectedDuty: null,
     currentSheet: [
       {'Kitchen': {
@@ -85,6 +86,10 @@ const dutiesStore = {
   actions: {
     [SET_DUTY_TEMPLATES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
       bindFirebaseRef('dutyTemplates', ref)
+    }),
+
+    [SET_USERS_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
+      bindFirebaseRef('users', ref)
     })
   },
   getters: {
