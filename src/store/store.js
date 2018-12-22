@@ -105,10 +105,10 @@ const dutiesStore = {
   getters: {
     dutyMap: state => {
       var mapReal = []
-      state.dutyTemplates.forEach(value => {
+      state.dutyTemplates.forEach(template => {
         var maxNumDuties = 0
-        Object.keys(value.schedule).forEach(weekday => {
-          maxNumDuties = Math.max(value.schedule[weekday], maxNumDuties)
+        Object.keys(template.schedule).forEach(weekday => {
+          maxNumDuties = Math.max(template.schedule[weekday], maxNumDuties)
         })
 
         var allDuties = []
@@ -117,13 +117,13 @@ const dutiesStore = {
           for (let j = 0; j < 7; j++) {
             localSchedule[j] = false
           }
-          allDuties.push({ [value.name]: localSchedule })
+          allDuties.push({ 'name': template.name, 'schedule': localSchedule })
         }
 
-        Object.keys(value.schedule).forEach(weekday => {
-          let numDuties = value.schedule[weekday]
+        Object.keys(template.schedule).forEach(weekday => {
+          let numDuties = template.schedule[weekday]
           for (let i = 0; i < numDuties; i++) {
-            allDuties[i][value.name][weekday] = true
+            allDuties[i]['schedule'][weekday] = true
           }
         })
 

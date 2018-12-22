@@ -27,7 +27,7 @@ export const dutiesMixin = {
     },
 
     isDutyAvailable (dutyIdx, dutyName, weekday) {
-      var isAvailable = this.$store.getters.dutyMap[dutyIdx][dutyName][weekday]
+      var isAvailable = this.$store.getters.dutyMap[dutyIdx]['schedule'][weekday]
       if (typeof isAvailable === 'undefined') {
         isAvailable = false
       }
