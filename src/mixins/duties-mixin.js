@@ -1,5 +1,6 @@
-import store from '@/store'
+import { SET_DUTY_TEMPLATES_REF } from '@/store'
 import { DutyStatus } from '@/definitions'
+import { dutyTemplatesRef } from '@/plugins/firebase'
 
 export const dutiesMixin = {
   data () {
@@ -8,24 +9,24 @@ export const dutiesMixin = {
 
   methods: {
     // STATUS
-    statusForDuty (duty, weekday) {
-      const isAvailable = this.isDutyAvailable(duty, weekday)
+    statusForDuty (dutyIdx, dutyName, weekday) {
+      const isAvailable = this.isDutyAvailable(dutyIdx, dutyName, weekday)
 
       if (!isAvailable) {
         return DutyStatus.unavailable
       }
 
-      if (store.state.dutiesStore.isDutySheetLive || this.isWeekdayFuture(weekday) || this.isWeekdayToday(weekday)) {
-        const isClaimed = this.isDutyClaimed(duty, weekday)
+      if (this.$store.state.dutiesStore.isDutySheetLive || this.isWeekdayFuture(weekday) || this.isWeekdayToday(weekday)) {
+        const isClaimed = this.isDutyClaimed(dutyIdx, dutyName, weekday)
         return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
       } else {
-        const isCheckedOff = this.isDutyCheckedOff(duty, weekday)
+        const isCheckedOff = this.isDutyCheckedOff(dutyIdx, dutyName, weekday)
         return isCheckedOff ? DutyStatus.completed : DutyStatus.punted
       }
     },
 
-    isDutyAvailable (duty, weekday) {
-      var isAvailable = store.state.dutiesStore.dutyMap[duty][weekday]
+    isDutyAvailable (dutyIdx, dutyName, weekday) {
+      var isAvailable = this.$store.getters.dutyMap[dutyIdx][dutyName][weekday]
       if (typeof isAvailable === 'undefined') {
         isAvailable = false
       }
@@ -33,23 +34,19 @@ export const dutiesMixin = {
       return isAvailable
     },
 
-    isDutyClaimed (duty, weekday) {
+    isDutyClaimed (dutyIdx, dutyName, weekday) {
       var isClaimed = false
-      if (duty in store.state.dutiesStore.currentSheet) {
-        if (weekday in store.state.dutiesStore.currentSheet[duty]) {
-          isClaimed = true
-        }
+      if (weekday in this.$store.state.dutiesStore.currentSheet[dutyIdx][dutyName]) {
+        isClaimed = true
       }
 
       return isClaimed
     },
 
-    isDutyCheckedOff (duty, weekday) {
+    isDutyCheckedOff (dutyIdx, dutyName, weekday) {
       var isCheckedOff = false
-      if (duty in store.state.dutiesStore.currentSheet) {
-        if (weekday in store.state.dutiesStore.currentSheet[duty]) {
-          isCheckedOff = store.state.dutiesStore.currentSheet[duty][weekday]['checkoff'] !== null
-        }
+      if (weekday in this.$store.state.dutiesStore.currentSheet[dutyIdx][dutyName]) {
+        isCheckedOff = this.$store.state.dutiesStore.currentSheet[dutyIdx][dutyName][weekday]['checkoff'] !== null
       }
 
       return isCheckedOff
@@ -70,5 +67,9 @@ export const dutiesMixin = {
       const currentDate = new Date()
       return weekday > currentDate.getDay() - 2
     }
+  },
+
+  created () {
+    this.$store.dispatch(SET_DUTY_TEMPLATES_REF, dutyTemplatesRef)
   }
 }

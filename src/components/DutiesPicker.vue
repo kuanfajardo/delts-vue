@@ -27,10 +27,10 @@
       </template>
 
       <!-- DUTY SHEET (V-FOR over each ROW) -->
-      <template v-for="duty in dutyNames">
+      <template v-for="(duty, idx) in dutyNames">
 
         <!-- Duty Name -->
-        <v-flex xs2 :key="`dutyHeader_${duty}`">
+        <v-flex xs2 :key="`dutyHeader_${duty}_${idx}`">
           <v-card light color="#E0E0E0">
             <v-card-text class="px-0">{{duty}}</v-card-text>
           </v-card>
@@ -39,18 +39,18 @@
         <!-- Weekday Slots-->
         <v-flex
             xs10
-            :key="`dutyRow_${duty}`"
+            :key="`dutyRow_${duty}_${idx}`"
         >
           <v-layout row wrap>
              <v-flex
                  v-for="weekday in weekdaysToUse"
-                 :key="`dutySlot_${duty}_${weekday}`"
+                 :key="`dutySlot_${duty}${idx}_${weekday}`"
                  :id="duty + '_' + weekday"
-                 :style="{ 'border-bottom-color': colorForDuty(duty, weekday) }"
+                 :style="{ 'border-bottom-color': colorForDuty(idx, duty, weekday) }"
                  xs2
              >
                 <!-- Available Duty -->
-                <template v-if="isDutyAvailable(duty, weekday)">
+                <template v-if="isDutyAvailable(idx, duty, weekday)">
                   <v-tooltip bottom>
                     <!-- For XS screens, (1) weekday text in btn and (2) constrained width -->
                     <v-btn
@@ -59,21 +59,21 @@
                         dark
                         class="duty-button"
                         :class="{ 'xs' : isXSmall }"
-                        :style="styleForDuty(duty, weekday)"
-                        :color="colorForDuty(duty, weekday)"
+                        :style="styleForDuty(idx, duty, weekday)"
+                        :color="colorForDuty(idx, duty, weekday)"
                         @click.stop="dutyClicked(duty, weekday)"
                     >
                       <span
                           v-if="isXSmall
                           && isDutySheetLive
-                          && statusForDuty(duty, weekday) === DutyStatus.unclaimed"
+                          && statusForDuty(idx, duty, weekday) === DutyStatus.unclaimed"
                       >
                         {{WEEKDAYS[weekday].abb}}
                       </span>
 
-                      <v-icon v-else :color="iconColorForDuty(duty, weekday)">{{iconForDuty(duty, weekday)}}</v-icon>
+                      <v-icon v-else :color="iconColorForDuty(idx, duty, weekday)">{{iconForDuty(idx, duty, weekday)}}</v-icon>
                     </v-btn>
-                    <span>{{tooltipForDuty(duty, weekday)}}</span>
+                    <span>{{tooltipForDuty(idx, duty, weekday)}}</span>
                   </v-tooltip>
                 </template>
 
@@ -82,7 +82,7 @@
                   <v-card
                       dark
                       class="duty-button"
-                      :color="colorForDuty(duty, weekday)"
+                      :color="colorForDuty(idx, duty, weekday)"
                   ></v-card>
                 </template>
 
@@ -97,7 +97,7 @@
 <script>
 import { EDIT_SELECTED_DUTY } from '@/store'
 import { dutiesMixin } from '@/mixins'
-import { mapState, mapMutations } from 'vuex'
+import { mapState, mapMutations, mapGetters } from 'vuex'
 import { DutyStatus } from '@/definitions'
 
 export default {
@@ -146,8 +146,8 @@ export default {
   // For ALL methods, duty :: string name of duty (i.e. key in dutyMap); weekday :: int (Sunday = 0)
   methods: {
     // STYLING
-    colorForDuty (duty, weekday) {
-      const dutyStatus = this.statusForDuty(duty, weekday)
+    colorForDuty (dutyIdx, dutyName, weekday) {
+      const dutyStatus = this.statusForDuty(dutyIdx, dutyName, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -170,7 +170,7 @@ export default {
       }
     },
 
-    styleForDuty (duty, weekday) {
+    styleForDuty (dutyIdx, dutyName, weekday) {
       var opacity = 1
       if (!this.isDutySheetLive && this.isWeekdayPast(weekday)) {
         opacity = 0.75
@@ -179,21 +179,21 @@ export default {
       return { 'opacity': opacity }
     },
 
-    tooltipForDuty (duty, weekday) {
-      const dutyStatus = this.statusForDuty(duty, weekday)
+    tooltipForDuty (dutyIdx, dutyName, weekday) {
+      const dutyStatus = this.statusForDuty(dutyIdx, dutyName, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
           return null
 
         case DutyStatus.unclaimed:
-          return 'Claim ' + duty + ' (' + this.WEEKDAYS[weekday].abb + ')'
+          return 'Claim ' + dutyName + ' (' + this.WEEKDAYS[weekday].abb + ')'
 
         case DutyStatus.claimed:
-          return this.currentSheet[duty][weekday]['assignee']
+          return this.currentSheet[dutyIdx][dutyName][weekday]['assignee']
 
         case DutyStatus.completed:
-          var dutyObj = this.currentSheet[duty][weekday]
+          var dutyObj = this.currentSheet[dutyIdx][dutyName][weekday]
           return dutyObj.assignee + ' (checked off by ' + dutyObj.checkoff + ')'
 
         case DutyStatus.punted:
@@ -204,8 +204,8 @@ export default {
       }
     },
 
-    iconForDuty (duty, weekday) {
-      const dutyStatus = this.statusForDuty(duty, weekday)
+    iconForDuty (dutyIdx, dutyName, weekday) {
+      const dutyStatus = this.statusForDuty(dutyIdx, dutyName, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -228,8 +228,8 @@ export default {
       }
     },
 
-    iconColorForDuty (duty, weekday) {
-      const dutyStatus = this.statusForDuty(duty, weekday)
+    iconColorForDuty (dutyIdx, dutyName, weekday) {
+      const dutyStatus = this.statusForDuty(dutyIdx, dutyName, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -292,15 +292,13 @@ export default {
     // Store Computed
     ...mapState({
       selectedDuty: state => state.dutiesStore.selectedDuty,
-      dutyMap: state => state.dutiesStore.dutyMap,
       isDutySheetLive: state => state.dutiesStore.isDutySheetLive,
       currentSheet: state => state.dutiesStore.currentSheet
     }),
 
-    // Mix of local and store
-    dutyNames () {
-      return Object.keys(this.dutyMap)
-    }
+    ...mapGetters([
+      'dutyMap', 'dutyNames'
+    ])
   }
 }
 </script>

@@ -1,59 +1,17 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { EDIT_SELECTED_DUTY } from './mutation-types'
+import { SET_DUTY_TEMPLATES_REF } from './action-types'
+import { firebaseMutations, firebaseAction } from 'vuexfire'
 
 Vue.use(Vuex)
 
 const dutiesStore = {
   state: {
+    dutyTemplates: [],
     selectedDuty: null,
-    dutyMap: {
-      'Kitchen 1': {
-        0: true,
-        1: true,
-        2: true,
-        3: true,
-        4: true,
-        5: true
-      },
-      'Kitchen 2': {
-        0: true,
-        1: true,
-        2: true,
-        3: true,
-        4: true,
-        5: true
-      },
-      'Basement': {
-        0: true,
-        1: false,
-        2: true,
-        3: false,
-        4: true,
-        5: false
-      },
-      '2nd Bathrooms': {
-        0: true,
-        1: false,
-        2: true,
-        3: false,
-        4: true,
-        5: false
-      },
-      '3rd Bathrooms': {
-        0: true,
-        1: false,
-        2: true,
-        3: false,
-        4: true,
-        5: false
-      },
-      '4th Bathrooms': {
-        0: true
-      }
-    },
-    currentSheet: {
-      'Kitchen 1': {
+    currentSheet: [
+      {'Kitchen': {
         0: {
           'assignee': 'Juan',
           'checkoff': null
@@ -70,8 +28,8 @@ const dutiesStore = {
           'assignee': 'Malik',
           'checkoff': 'Juan'
         }
-      },
-      'Kitchen 2': {
+      }},
+      {'Kitchen': {
         3: {
           'assignee': 'Juan',
           'checkoff': null
@@ -84,8 +42,11 @@ const dutiesStore = {
           'assignee': 'Malik',
           'checkoff': 'Juan'
         }
-      },
-      'Basement': {
+      }},
+      {'Miscellaneous': {
+
+      }},
+      {'Basement': {
         0: {
           'assignee': 'Jorge',
           'checkoff': null
@@ -97,9 +58,13 @@ const dutiesStore = {
         4: {
           'assignee': 'Rianna',
           'checkoff': 'Mo'
+        },
+        5: {
+          'assignee': 'Lo',
+          'checkoff': 'Scotty'
         }
-      },
-      '2nd Bathrooms': {
+      }},
+      {'2nd Bathrooms': {
         2: {
           'assignee': 'YEET',
           'checkoff': 'Malk'
@@ -108,15 +73,9 @@ const dutiesStore = {
           'assignee': 'MOOOO',
           'checkoff': null
         }
-      },
-      '3rd Bathrooms': {
-        4: {
-          'assignee': 'MOOOO',
-          'checkoff': null
-        }
-      }
-    },
-    isDutySheetLive: true
+      }},
+    ],
+    isDutySheetLive: false
   },
   mutations: {
     [EDIT_SELECTED_DUTY] (state, duty) {
@@ -124,12 +83,63 @@ const dutiesStore = {
     }
   },
   actions: {
+    [SET_DUTY_TEMPLATES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
+      bindFirebaseRef('dutyTemplates', ref)
+    })
+  },
+  getters: {
+    dutyMap: state => {
+      var mapReal = []
+      state.dutyTemplates.forEach(value => {
+        var maxNumDuties = 0
+        Object.keys(value.schedule).forEach(weekday => {
+          maxNumDuties = Math.max(value.schedule[weekday], maxNumDuties)
+        })
 
+        var allDuties = []
+        for (let i = 0; i < maxNumDuties; i++) {
+          var localSchedule = {}
+          for (let j = 0; j < 7; j++) {
+            localSchedule[j] = false
+          }
+          allDuties.push({ [value.name]: localSchedule })
+        }
+
+        Object.keys(value.schedule).forEach(weekday => {
+          let numDuties = value.schedule[weekday]
+          for (let i = 0; i < numDuties; i++) {
+            allDuties[i][value.name][weekday] = true
+          }
+        })
+
+        mapReal = mapReal.concat(allDuties)
+      })
+
+      return mapReal
+    },
+
+    dutyNames: state => {
+      var names = []
+      state.dutyTemplates.forEach(value => {
+        var maxNumDuties = 0
+        Object.keys(value.schedule).forEach(weekday => {
+          maxNumDuties = Math.max(value.schedule[weekday], maxNumDuties)
+        })
+
+        for (let i = 0; i < maxNumDuties; i++) {
+          names.push(value.name)
+        }
+      })
+
+      return names
+    }
   }
 }
 
 export default new Vuex.Store({
   modules: {
     dutiesStore
-  }
+  },
+
+  mutations: firebaseMutations
 })

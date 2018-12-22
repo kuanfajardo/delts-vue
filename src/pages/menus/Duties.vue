@@ -26,11 +26,10 @@
 import PageHeader from '../../components/PageHeader'
 import DutiesPicker from '../../components/DutiesPicker'
 import DutiesAdminBar from '../../components/DutiesAdminBar'
-import DutiesFab from '../../components/DutiesFAB'
 
 export default {
   name: 'duties-page',
-  components: { DutiesFab, DutiesAdminBar, DutiesPicker, PageHeader },
+  components: { DutiesAdminBar, DutiesPicker, PageHeader },
   data () {
     return {
       tab: null,
