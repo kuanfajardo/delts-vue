@@ -136,14 +136,10 @@ export default {
           'name': 'Saturday',
           'abb': 'S'
         }
-      ],
-
-      // FROM API CALLS
-      weekdaysToUse: [0, 1, 2, 3, 4, 5]
+      ]
     }
   },
 
-  // For ALL methods, duty :: string name of duty (i.e. key in dutyMap); weekday :: int (Sunday = 0)
   methods: {
     // STYLING
     colorForDuty (dutyIdx, dutyName, weekday) {
@@ -297,7 +293,7 @@ export default {
     }),
 
     ...mapGetters([
-      'dutyMap', 'dutyNames'
+      'dutyNames', 'dutyMap', 'weekdaysToUse'
     ])
   }
 }

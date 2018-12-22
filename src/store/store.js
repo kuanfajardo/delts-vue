@@ -135,18 +135,45 @@ const dutiesStore = {
 
     dutyNames: state => {
       var names = []
-      state.dutyTemplates.forEach(value => {
+      state.dutyTemplates.forEach(template => {
         var maxNumDuties = 0
-        Object.keys(value.schedule).forEach(weekday => {
-          maxNumDuties = Math.max(value.schedule[weekday], maxNumDuties)
+        Object.keys(template.schedule).forEach(weekday => {
+          maxNumDuties = Math.max(template.schedule[weekday], maxNumDuties)
         })
 
         for (let i = 0; i < maxNumDuties; i++) {
-          names.push(value.name)
+          names.push(template.name)
         }
       })
 
       return names
+    },
+
+    weekdaysToUse: state => {
+      console.log('asking my dude')
+      var startDate = 6
+      var endDate = 0
+
+      state.dutyTemplates.forEach(template => {
+        Object.keys(template.schedule).forEach(weekday => {
+          if (template.schedule[weekday] <= 0) return
+
+          if (weekday < startDate) {
+            startDate = weekday
+          }
+
+          if (weekday > endDate) {
+            endDate = weekday
+          }
+        })
+      })
+
+      var weekdays = []
+      for (let i = startDate; i <= endDate; i++) {
+        weekdays.push(i)
+      }
+
+      return weekdays
     }
   }
 }
