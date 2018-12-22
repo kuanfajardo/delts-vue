@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { EDIT_SELECTED_DUTY } from './mutation-types'
-import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF } from './action-types'
+import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF } from './action-types'
 import { firebaseMutations, firebaseAction } from 'vuexfire'
 
 Vue.use(Vuex)
@@ -9,7 +9,9 @@ Vue.use(Vuex)
 const dutiesStore = {
   state: {
     dutyTemplates: [], // Will be bound to duty-templates collection
-    users: [], // Will be bound to users collection
+    users: [], // Will be bound to users collection,
+    allDuties: [], // Will be bound to duties collection,
+    weekDuties: [], // Will be bound to duties collection, filtered for this week
     selectedDuty: null,
     currentSheet: [
       {'Kitchen': {
@@ -90,6 +92,14 @@ const dutiesStore = {
 
     [SET_USERS_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
       bindFirebaseRef('users', ref)
+    }),
+
+    [SET_ALL_DUTIES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
+      bindFirebaseRef('allDuties', ref)
+    }),
+
+    [SET_WEEK_DUTIES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
+      bindFirebaseRef('weekDuties', ref)
     })
   },
   getters: {

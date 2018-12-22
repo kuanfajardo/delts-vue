@@ -1,4 +1,5 @@
 import firebase from 'firebase'
+import { getNextDayOfWeek, getLastDayOfWeek } from '@/definitions'
 
 let config = {
   apiKey: 'AIzaSyCYos8q_4IeiPVsuS-2xQkR8wvkXMYQ164',
@@ -15,6 +16,7 @@ firebase.initializeApp(config)
 const db = firebase.firestore()
 db.settings({ timestampsInSnapshots: true })
 
-export const dutiesRef = db.collection('duties')
+export const allDutiesRef = db.collection('duties')
+export const weekDutiesRef = db.collection('duties').where('date', '>=', getLastDayOfWeek(0)).where('date', '<', getNextDayOfWeek(0))
 export const dutyTemplatesRef = db.collection('duty-templates')
 export const usersRef = db.collection('users')

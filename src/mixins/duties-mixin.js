@@ -1,6 +1,6 @@
-import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF } from '@/store'
+import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF } from '../store'
 import { DutyStatus } from '@/definitions'
-import { dutyTemplatesRef, usersRef } from '@/plugins/firebase'
+import { dutyTemplatesRef, usersRef, allDutiesRef, weekDutiesRef } from '../plugins/firebase'
 
 export const dutiesMixin = {
   data () {
@@ -16,6 +16,7 @@ export const dutiesMixin = {
         return DutyStatus.unavailable
       }
 
+      // TODO: change this.$store.dutiesStore to something nice
       if (this.$store.state.dutiesStore.isDutySheetLive || this.isWeekdayFuture(weekday) || this.isWeekdayToday(weekday)) {
         const isClaimed = this.isDutyClaimed(dutyIdx, dutyName, weekday)
         return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
@@ -72,5 +73,7 @@ export const dutiesMixin = {
   created () {
     this.$store.dispatch(SET_DUTY_TEMPLATES_REF, dutyTemplatesRef)
     this.$store.dispatch(SET_USERS_REF, usersRef)
+    this.$store.dispatch(SET_ALL_DUTIES_REF, allDutiesRef)
+    this.$store.dispatch(SET_WEEK_DUTIES_REF, weekDutiesRef)
   }
 }
