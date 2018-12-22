@@ -6,17 +6,15 @@ export const DutyStatus = {
   'punted': 4
 }
 
-export function getLastDayOfWeek (dayOfWeek) {
-  const currentDate = new Date()
-  var resultDate = new Date(currentDate.getTime())
-  resultDate.setDate(currentDate.getDate() - 7 + (7 + dayOfWeek - currentDate.getDay()) % 7) // +7 to compensate for incorrect JS modulus w negative numbers
+export function getLastDayOfWeek (dayOfWeek, refDate = new Date()) {
+  var resultDate = new Date(refDate.getTime())
+  resultDate.setDate(refDate.getDate() - 7 + (7 + dayOfWeek - refDate.getDay()) % 7) // +7 to compensate for incorrect JS modulus w negative numbers
   return resultDate
 }
 
-export function getNextDayOfWeek (dayOfWeek) {
-  const currentDate = new Date()
-  var resultDate = new Date(currentDate.getTime())
-  resultDate.setDate(currentDate.getDate() + (7 + dayOfWeek - currentDate.getDay()) % 7) // +7 to compensate for incorrect JS modulus w negative numbers
+export function getNextDayOfWeek (dayOfWeek, refDate = new Date()) {
+  var resultDate = new Date(refDate.getTime())
+  resultDate.setDate(refDate.getDate() + (7 + dayOfWeek - refDate.getDay()) % 7) // +7 to compensate for incorrect JS modulus w negative numbers
   return resultDate
 }
 

@@ -42,6 +42,7 @@
 <script>
 import { dutiesMixin } from '../mixins/duties-mixin'
 import { mapState } from 'vuex'
+import api from '../api'
 
 export default {
   name: 'duties-admin-bar',
@@ -66,6 +67,8 @@ export default {
   methods: {
     liveButtonClicked () {
       alert('Live button clicked')
+      const refDate = new Date(2018, 11, 16)
+      api.generateDutySheet(refDate)
     },
 
     editDutySheetButtonClicked () {

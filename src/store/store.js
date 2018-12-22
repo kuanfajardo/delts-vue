@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import { EDIT_SELECTED_DUTY } from './mutation-types'
 import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF } from './action-types'
 import { firebaseMutations, firebaseAction } from 'vuexfire'
+import { dutyTemplatesRef } from '../plugins/firebase'
 
 Vue.use(Vuex)
 
@@ -67,6 +68,9 @@ const dutiesStore = {
           'checkoff': 'Scotty'
         }
       }},
+      {'3rd Bathrooms': {
+
+      }},
       {'2nd Bathrooms': {
         2: {
           'assignee': 'YEET',
@@ -76,7 +80,7 @@ const dutiesStore = {
           'assignee': 'MOOOO',
           'checkoff': null
         }
-      }},
+      }}
     ],
     isDutySheetLive: false
   },
@@ -117,7 +121,7 @@ const dutiesStore = {
           for (let j = 0; j < 7; j++) {
             localSchedule[j] = false
           }
-          allDuties.push({ 'name': template.name, 'schedule': localSchedule })
+          allDuties.push({ 'name': template.name, 'schedule': localSchedule, templateRef: dutyTemplatesRef.doc(template.id) })
         }
 
         Object.keys(template.schedule).forEach(weekday => {
