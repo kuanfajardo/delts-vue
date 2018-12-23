@@ -41,16 +41,6 @@ export const dutiesMixin = {
     isWeekdayPast (weekday) {
       const currentDate = new Date()
       return weekday < currentDate.getDay() - 2
-    },
-
-    isWeekdayToday (weekday) {
-      const currentDate = new Date()
-      return weekday === currentDate.getDay() - 2
-    },
-
-    isWeekdayFuture (weekday) {
-      const currentDate = new Date()
-      return weekday > currentDate.getDay() - 2
     }
   },
 

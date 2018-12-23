@@ -18,7 +18,9 @@
     </v-layout>
 
     <!-- Main Component -->
-    <component :is="mainComponent"></component>
+    <keep-alive>
+      <component :is="mainComponent"></component>
+    </keep-alive>
   </div>
 </template>
 

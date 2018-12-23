@@ -283,15 +283,13 @@ export default {
   computed: {
     // Local Computed
     isXSmall () {
-      return (this.$vuetify.breakpoint.xs)
+      return (this.$vuetify.breakpoint.smAndDown)
     },
 
     // Store Computed
     ...mapState({
       selectedDuty: state => state.dutiesStore.selectedDuty,
       isDutySheetLive: state => state.dutiesStore.isDutySheetLive,
-      allDuties: state => state.dutiesStore.allDuties,
-      weekDuties: state => state.dutiesStore.weekDuties
     }),
 
     ...mapGetters([

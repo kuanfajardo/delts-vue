@@ -45,8 +45,6 @@ const dutiesStore = {
   },
   getters: {
     dutyMap: (state, getters) => {
-      console.log('READING BITCHES')
-
       var mapReal = []
       state.dutyTemplates.forEach(template => {
         var maxNumDuties = 0
