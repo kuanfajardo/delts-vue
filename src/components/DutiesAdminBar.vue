@@ -24,7 +24,7 @@
           :label="overflowLabel"
           hide-details
           class="pa-0"
-          v-model="dd"
+          v-model="assignee"
         ></v-overflow-btn>
 
         <!-- Checkoff Actions -->
@@ -61,7 +61,7 @@ export default {
     return {
       showAdmin: true,
       checked_off: false,
-      dd: null
+      assignee: null,
     }
   },
 
@@ -108,8 +108,20 @@ export default {
   },
 
   watch: {
-    dd (newValue, oldValue) {
+    assignee (newValue, oldValue) {
       console.log(newValue)
+    },
+
+    selectedDuty (newValue, oldValue) {
+      if (newValue === null) {
+        this.assignee = null
+      } else {
+        if (newValue.brother !== null) {
+          this.assignee = newValue.brother.first + ' ' + newValue.brother.last
+        } else {
+          this.assignee = null
+        }
+      }
     }
   },
 }

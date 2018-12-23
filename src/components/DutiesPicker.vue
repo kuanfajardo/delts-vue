@@ -260,10 +260,10 @@ export default {
     dutyClicked (dutyIdx, weekday) {
       const dutyID = this.idForDuty(dutyIdx, weekday)
       if (this.selectedDuty !== null && this.selectedDuty.id === dutyID) {
-        this.deselectDuty(dutyID)
+        this.deselectDuty()
       } else {
         if (this.selectedDuty !== null) {
-          this.deselectDuty(this.selectedDuty.id)
+          this.deselectDuty()
         }
         this.selectDuty(dutyID)
       }
