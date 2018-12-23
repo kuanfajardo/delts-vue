@@ -46,11 +46,11 @@
                  v-for="weekday in weekdaysToUse"
                  :key="`dutySlot_${duty}${idx}_${weekday}`"
                  :id="duty + '_' + weekday"
-                 :style="{ 'border-bottom-color': colorForDuty(idx, duty, weekday) }"
+                 :style="{ 'border-bottom-color': colorForDuty(idx, weekday) }"
                  xs2
              >
                 <!-- Available Duty -->
-                <template v-if="isDutyAvailable(idx, duty, weekday)">
+                <template v-if="isDutyAvailable(idx, weekday)">
                   <v-tooltip bottom>
                     <!-- For XS screens, (1) weekday text in btn and (2) constrained width -->
                     <v-btn
@@ -59,19 +59,19 @@
                         dark
                         class="duty-button"
                         :class="{ 'xs' : isXSmall }"
-                        :style="styleForDuty(idx, duty, weekday)"
-                        :color="colorForDuty(idx, duty, weekday)"
+                        :style="styleForDuty(idx, weekday)"
+                        :color="colorForDuty(idx, weekday)"
                         @click.stop="dutyClicked(duty, weekday)"
                     >
                       <span
                           v-if="isXSmall
                           && isDutySheetLive
-                          && statusForDuty(idx, duty, weekday) === DutyStatus.unclaimed"
+                          && statusForDuty(idx, weekday) === DutyStatus.unclaimed"
                       >
                         {{WEEKDAYS[weekday].abb}}
                       </span>
 
-                      <v-icon v-else :color="iconColorForDuty(idx, duty, weekday)">{{iconForDuty(idx, duty, weekday)}}</v-icon>
+                      <v-icon v-else :color="iconColorForDuty(idx, weekday)">{{iconForDuty(idx, weekday)}}</v-icon>
                     </v-btn>
                     <span>{{tooltipForDuty(idx, duty, weekday)}}</span>
                   </v-tooltip>
@@ -82,7 +82,7 @@
                   <v-card
                       dark
                       class="duty-button"
-                      :color="colorForDuty(idx, duty, weekday)"
+                      :color="colorForDuty(idx, weekday)"
                   ></v-card>
                 </template>
 
@@ -95,7 +95,7 @@
 </template>
 
 <script>
-import { EDIT_SELECTED_DUTY } from '@/store'
+import { EDIT_SELECTED_DUTY } from '../store'
 import { dutiesMixin } from '@/mixins'
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import { DutyStatus } from '@/definitions'
@@ -142,8 +142,8 @@ export default {
 
   methods: {
     // STYLING
-    colorForDuty (dutyIdx, dutyName, weekday) {
-      const dutyStatus = this.statusForDuty(dutyIdx, dutyName, weekday)
+    colorForDuty (dutyIdx, weekday) {
+      const dutyStatus = this.statusForDuty(dutyIdx, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -166,7 +166,7 @@ export default {
       }
     },
 
-    styleForDuty (dutyIdx, dutyName, weekday) {
+    styleForDuty (dutyIdx, weekday) {
       var opacity = 1
       if (!this.isDutySheetLive && this.isWeekdayPast(weekday)) {
         opacity = 0.75
@@ -176,7 +176,7 @@ export default {
     },
 
     tooltipForDuty (dutyIdx, dutyName, weekday) {
-      const dutyStatus = this.statusForDuty(dutyIdx, dutyName, weekday)
+      const dutyStatus = this.statusForDuty(dutyIdx, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -186,11 +186,11 @@ export default {
           return 'Claim ' + dutyName + ' (' + this.WEEKDAYS[weekday].abb + ')'
 
         case DutyStatus.claimed:
-          return this.currentSheet[dutyIdx][dutyName][weekday]['assignee']
+          return this.dutyMap[dutyIdx]['schedule'][weekday].brother.first
 
         case DutyStatus.completed:
-          var dutyObj = this.currentSheet[dutyIdx][dutyName][weekday]
-          return dutyObj.assignee + ' (checked off by ' + dutyObj.checkoff + ')'
+          var dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
+          return dutyObj.brother.first + ' (checked off by ' + dutyObj.checker.first + ')'
 
         case DutyStatus.punted:
           return 'Punted by ' + ''
@@ -200,8 +200,8 @@ export default {
       }
     },
 
-    iconForDuty (dutyIdx, dutyName, weekday) {
-      const dutyStatus = this.statusForDuty(dutyIdx, dutyName, weekday)
+    iconForDuty (dutyIdx, weekday) {
+      const dutyStatus = this.statusForDuty(dutyIdx, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -224,8 +224,8 @@ export default {
       }
     },
 
-    iconColorForDuty (dutyIdx, dutyName, weekday) {
-      const dutyStatus = this.statusForDuty(dutyIdx, dutyName, weekday)
+    iconColorForDuty (dutyIdx, weekday) {
+      const dutyStatus = this.statusForDuty(dutyIdx, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -258,6 +258,7 @@ export default {
         }
         this.selectDuty(duty, weekday)
       }
+      console.log(this.dutyMap)
     },
 
     // STATE MUTATIONS (and UI?)
@@ -289,7 +290,8 @@ export default {
     ...mapState({
       selectedDuty: state => state.dutiesStore.selectedDuty,
       isDutySheetLive: state => state.dutiesStore.isDutySheetLive,
-      currentSheet: state => state.dutiesStore.currentSheet
+      allDuties: state => state.dutiesStore.allDuties,
+      weekDuties: state => state.dutiesStore.weekDuties
     }),
 
     ...mapGetters([

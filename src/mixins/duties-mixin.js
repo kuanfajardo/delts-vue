@@ -9,48 +9,32 @@ export const dutiesMixin = {
 
   methods: {
     // STATUS
-    statusForDuty (dutyIdx, dutyName, weekday) {
-      const isAvailable = this.isDutyAvailable(dutyIdx, dutyName, weekday)
-
+    statusForDuty (dutyIdx, weekday) {
+      const isAvailable = this.isDutyAvailable(dutyIdx, weekday)
       if (!isAvailable) {
         return DutyStatus.unavailable
       }
 
       // TODO: change this.$store.dutiesStore to something nice
-      if (this.$store.state.dutiesStore.isDutySheetLive || this.isWeekdayFuture(weekday) || this.isWeekdayToday(weekday)) {
-        const isClaimed = this.isDutyClaimed(dutyIdx, dutyName, weekday)
+      if (this.$store.state.dutiesStore.isDutySheetLive || !this.isWeekdayPast(weekday)) {
+        const isClaimed = this.isDutyClaimed(dutyIdx, weekday)
         return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
       } else {
-        const isCheckedOff = this.isDutyCheckedOff(dutyIdx, dutyName, weekday)
+        const isCheckedOff = this.isDutyCheckedOff(dutyIdx, weekday)
         return isCheckedOff ? DutyStatus.completed : DutyStatus.punted
       }
     },
 
-    isDutyAvailable (dutyIdx, dutyName, weekday) {
-      var isAvailable = this.$store.getters.dutyMap[dutyIdx]['schedule'][weekday]
-      if (typeof isAvailable === 'undefined') {
-        isAvailable = false
-      }
-
-      return isAvailable
+    isDutyAvailable (dutyIdx, weekday) {
+      return this.$store.getters.dutyMap[dutyIdx]['schedule'][weekday] !== null
     },
 
-    isDutyClaimed (dutyIdx, dutyName, weekday) {
-      var isClaimed = false
-      if (weekday in this.$store.state.dutiesStore.currentSheet[dutyIdx][dutyName]) {
-        isClaimed = true
-      }
-
-      return isClaimed
+    isDutyClaimed (dutyIdx, weekday) {
+      return this.$store.getters.dutyMap[dutyIdx]['schedule'][weekday].brother !== null
     },
 
-    isDutyCheckedOff (dutyIdx, dutyName, weekday) {
-      var isCheckedOff = false
-      if (weekday in this.$store.state.dutiesStore.currentSheet[dutyIdx][dutyName]) {
-        isCheckedOff = this.$store.state.dutiesStore.currentSheet[dutyIdx][dutyName][weekday]['checkoff'] !== null
-      }
-
-      return isCheckedOff
+    isDutyCheckedOff (dutyIdx, weekday) {
+      return this.$store.getters.dutyMap[dutyIdx]['schedule'][weekday].checktime !== null
     },
 
     // WEEKDAY

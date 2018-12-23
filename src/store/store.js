@@ -4,6 +4,7 @@ import { EDIT_SELECTED_DUTY } from './mutation-types'
 import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF } from './action-types'
 import { firebaseMutations, firebaseAction } from 'vuexfire'
 import { dutyTemplatesRef } from '../plugins/firebase'
+import { getAllIndexes } from '../definitions'
 
 Vue.use(Vuex)
 
@@ -14,80 +15,16 @@ const dutiesStore = {
     allDuties: [], // Will be bound to duties collection,
     weekDuties: [], // Will be bound to duties collection, filtered for this week
     selectedDuty: null,
-    currentSheet: [
-      {'Kitchen': {
-        0: {
-          'assignee': 'Juan',
-          'checkoff': null
-        },
-        3: {
-          'assignee': 'Juan',
-          'checkoff': null
-        },
-        4: {
-          'assignee': 'Juan',
-          'checkoff': null
-        },
-        5: {
-          'assignee': 'Malik',
-          'checkoff': 'Juan'
-        }
-      }},
-      {'Kitchen': {
-        3: {
-          'assignee': 'Juan',
-          'checkoff': null
-        },
-        4: {
-          'assignee': 'Juan',
-          'checkoff': null
-        },
-        5: {
-          'assignee': 'Malik',
-          'checkoff': 'Juan'
-        }
-      }},
-      {'Miscellaneous': {
-
-      }},
-      {'Basement': {
-        0: {
-          'assignee': 'Jorge',
-          'checkoff': null
-        },
-        2: {
-          'assignee': 'Nonye',
-          'checkoff': 'Malik'
-        },
-        4: {
-          'assignee': 'Rianna',
-          'checkoff': 'Mo'
-        },
-        5: {
-          'assignee': 'Lo',
-          'checkoff': 'Scotty'
-        }
-      }},
-      {'3rd Bathrooms': {
-
-      }},
-      {'2nd Bathrooms': {
-        2: {
-          'assignee': 'YEET',
-          'checkoff': 'Malk'
-        },
-        4: {
-          'assignee': 'MOOOO',
-          'checkoff': null
-        }
-      }}
-    ],
     isDutySheetLive: false
   },
   mutations: {
     [EDIT_SELECTED_DUTY] (state, duty) {
       state.selectedDuty = duty
-    }
+    },
+
+    // [UPDATE_CACHED_DUTY_MAP] (state, newMap) {
+    //   state.cachedDutyMap = newMap
+    // }
   },
   actions: {
     [SET_DUTY_TEMPLATES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
@@ -107,7 +44,9 @@ const dutiesStore = {
     })
   },
   getters: {
-    dutyMap: state => {
+    dutyMap: (state, getters) => {
+      console.log('READING BITCHES')
+
       var mapReal = []
       state.dutyTemplates.forEach(template => {
         var maxNumDuties = 0
@@ -119,19 +58,26 @@ const dutiesStore = {
         for (let i = 0; i < maxNumDuties; i++) {
           var localSchedule = {}
           for (let j = 0; j < 7; j++) {
-            localSchedule[j] = false
+            localSchedule[j] = null
           }
           allDuties.push({ 'name': template.name, 'schedule': localSchedule, templateRef: dutyTemplatesRef.doc(template.id) })
         }
 
-        Object.keys(template.schedule).forEach(weekday => {
-          let numDuties = template.schedule[weekday]
-          for (let i = 0; i < numDuties; i++) {
-            allDuties[i]['schedule'][weekday] = true
-          }
-        })
-
         mapReal = mapReal.concat(allDuties)
+      })
+
+      state.weekDuties.forEach(duty => {
+        const dutyDate = new Date(duty.date.seconds * 1000) // * 1000 to get ms
+        const dutyWeekday = dutyDate.getDay()
+
+        const templateIdxs = getAllIndexes(getters.dutyTemplateIDs, duty.duty.id)
+        for (const templateIdx of templateIdxs) {
+          // Place in correct spot for templates with multiple slots / day (i.e. Kitchen)
+          if (mapReal[templateIdx]['schedule'][dutyWeekday] === null) {
+            mapReal[templateIdx]['schedule'][dutyWeekday] = duty
+            break
+          }
+        }
       })
 
       return mapReal
@@ -153,8 +99,25 @@ const dutiesStore = {
       return names
     },
 
+    dutyTemplateIDs: state => {
+      var ids = []
+      state.dutyTemplates.forEach(template => {
+        var maxNumDuties = 0
+        Object.keys(template.schedule).forEach(weekday => {
+          maxNumDuties = Math.max(template.schedule[weekday], maxNumDuties)
+        })
+
+        for (let i = 0; i < maxNumDuties; i++) {
+          ids.push(template.id)
+        }
+      })
+
+      return ids
+    },
+
     weekdaysToUse: state => {
       console.log('asking my dude')
+
       var startDate = 6
       var endDate = 0
 

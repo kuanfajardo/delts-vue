@@ -1,10 +1,11 @@
-export const DutyStatus = {
+// TODO: make symbols: https://stackoverflow.com/questions/44447847/enums-in-javascript-with-es6
+export const DutyStatus = Object.freeze({
   'unavailable': 0,
   'unclaimed': 1,
   'claimed': 2,
   'completed': 3,
   'punted': 4
-}
+})
 
 export function getLastDayOfWeek (dayOfWeek, refDate = new Date()) {
   // Get next day-of-week and subtract a week
@@ -30,6 +31,16 @@ export function getNextDayOfWeek (dayOfWeek, refDate = new Date()) {
   resultDate.setHours(0, 0, 0, 0)
 
   return resultDate
+}
+
+export function getAllIndexes (arr, val) {
+  var indexes = []
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] === val) {
+      indexes.push(i)
+    }
+  }
+  return indexes
 }
 
 //
