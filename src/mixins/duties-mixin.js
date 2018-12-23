@@ -9,38 +9,46 @@ export const dutiesMixin = {
 
   methods: {
     // STATUS
-    statusForDuty (dutyIdx, weekday) {
-      const isAvailable = this.isDutyAvailable(dutyIdx, weekday)
+    statusForDuty (dutyID) {
+      const isAvailable = this.isDutyAvailable(dutyID)
       if (!isAvailable) {
         return DutyStatus.unavailable
       }
 
+      const dutyObj = this.$store.getters.dutyObjForID(dutyID)
+      const dutyDate = new Date(dutyObj.date.seconds * 1000) // * 1000 to get ms
+      const dutyWeekday = dutyDate.getDay()
+
       // TODO: change this.$store.dutiesStore to something nice
-      if (this.$store.state.dutiesStore.isDutySheetLive || !this.isWeekdayPast(weekday)) {
-        const isClaimed = this.isDutyClaimed(dutyIdx, weekday)
+      if (this.$store.state.dutiesStore.isDutySheetLive || !this.isWeekdayPast(dutyWeekday)) {
+        const isClaimed = this.isDutyClaimed(dutyObj)
         return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
       } else {
-        const isCheckedOff = this.isDutyCheckedOff(dutyIdx, weekday)
+        const isCheckedOff = this.isDutyCheckedOff(dutyObj)
         return isCheckedOff ? DutyStatus.completed : DutyStatus.punted
       }
     },
 
-    isDutyAvailable (dutyIdx, weekday) {
-      return this.$store.getters.dutyMap[dutyIdx]['schedule'][weekday] !== null
+    isDutyAvailable (dutyID) {
+      const dutyObj = this.$store.getters.dutyObjForID(dutyID)
+      if (typeof dutyObj === 'undefined') {
+        return false
+      }
+      return dutyObj !== null
     },
 
-    isDutyClaimed (dutyIdx, weekday) {
-      return this.$store.getters.dutyMap[dutyIdx]['schedule'][weekday].brother !== null
+    isDutyClaimed (dutyObj) {
+      return dutyObj.brother !== null
     },
 
-    isDutyCheckedOff (dutyIdx, weekday) {
-      return this.$store.getters.dutyMap[dutyIdx]['schedule'][weekday].checktime !== null
+    isDutyCheckedOff (dutyObj) {
+      return dutyObj.checktime !== null
     },
 
     // WEEKDAY
     isWeekdayPast (weekday) {
       const currentDate = new Date()
-      return weekday < currentDate.getDay() - 2
+      return weekday < currentDate.getDay() + 4
     }
   },
 

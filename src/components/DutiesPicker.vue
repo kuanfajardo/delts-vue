@@ -50,7 +50,7 @@
                  xs2
              >
                 <!-- Available Duty -->
-                <template v-if="isDutyAvailable(idx, weekday)">
+                <template v-if="isDutyAvailable(idForDuty(idx, weekday))">
                   <v-tooltip bottom>
                     <!-- For XS screens, (1) weekday text in btn and (2) constrained width -->
                     <v-btn
@@ -61,12 +61,12 @@
                         :class="{ 'xs' : isXSmall }"
                         :style="styleForDuty(idx, weekday)"
                         :color="colorForDuty(idx, weekday)"
-                        @click.stop="dutyClicked(idForDuty(idx, weekday))"
+                        @click.stop="dutyClicked(idx, weekday)"
                     >
                       <span
                           v-if="isXSmall
                           && isDutySheetLive
-                          && statusForDuty(idx, weekday) === DutyStatus.unclaimed"
+                          && statusForDuty(idForDuty(idx, weekday)) === DutyStatus.unclaimed"
                       >
                         {{WEEKDAYS[weekday].abb}}
                       </span>
@@ -143,7 +143,7 @@ export default {
   methods: {
     // STYLING
     colorForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDuty(dutyIdx, weekday)
+      const dutyStatus = this.statusForDuty(this.idForDuty(dutyIdx, weekday))
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -176,7 +176,7 @@ export default {
     },
 
     tooltipForDuty (dutyIdx, dutyName, weekday) {
-      const dutyStatus = this.statusForDuty(dutyIdx, weekday)
+      const dutyStatus = this.statusForDuty(this.idForDuty(dutyIdx, weekday))
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -201,7 +201,7 @@ export default {
     },
 
     iconForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDuty(dutyIdx, weekday)
+      const dutyStatus = this.statusForDuty(this.idForDuty(dutyIdx, weekday))
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -225,7 +225,7 @@ export default {
     },
 
     iconColorForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDuty(dutyIdx, weekday)
+      const dutyStatus = this.statusForDuty(this.idForDuty(dutyIdx, weekday))
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -257,7 +257,8 @@ export default {
     },
 
     // ACTIONS
-    dutyClicked (dutyID) {
+    dutyClicked (dutyIdx, weekday) {
+      const dutyID = this.idForDuty(dutyIdx, weekday)
       if (this.selectedDuty !== null && this.selectedDuty.id === dutyID) {
         this.deselectDuty(dutyID)
       } else {
@@ -266,20 +267,16 @@ export default {
         }
         this.selectDuty(dutyID)
       }
-      // console.log('F')
-      // console.log(this.dutyMap)
     },
 
     // STATE MUTATIONS (and UI?)
     selectDuty (dutyID) {
       document.getElementById(dutyID).classList.add('selected')
-      this.EDIT_SELECTED_DUTY({
-        id: dutyID
-      })
+      this.EDIT_SELECTED_DUTY(this.dutyObjForID(dutyID))
     },
 
-    deselectDuty (dutyID) {
-      document.getElementById(dutyID).classList.remove('selected')
+    deselectDuty () {
+      document.getElementById(this.selectedDuty.id).classList.remove('selected')
       this.EDIT_SELECTED_DUTY(null)
     },
 
@@ -301,9 +298,22 @@ export default {
     }),
 
     ...mapGetters([
-      'dutyNames', 'dutyMap', 'weekdaysToUse'
+      'dutyNames', 'dutyMap', 'weekdaysToUse', 'dutyIDs', 'dutyObjForID'
     ])
-  }
+  },
+
+  created () {
+    if (this.selectedDuty !== null) {
+      this.deselectDuty()
+    }
+  },
+
+  watch: {
+    isXSmall (newValue, oldValue) {
+      console.log('xsmall changed')
+      console.log(this.$vuetify.breakpoint.name)
+    }
+  },
 }
 </script>
 

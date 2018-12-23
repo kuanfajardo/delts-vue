@@ -16,24 +16,33 @@
       ></v-divider>
 
       <!-- Edit Duty Actions -->
-      <v-overflow-btn
-        :items="dropdownNames"
-        label="Edit Assignee"
-        hide-details
-        class="pa-0"
-
-      ></v-overflow-btn>
-
-      <!-- Checkoff Actions -->
       <template v-if="selectedDuty !== null">
+        <v-overflow-btn
+          editable
+          clearable
+          :items="dropdownNames"
+          :label="overflowLabel"
+          hide-details
+          class="pa-0"
+          v-model="dd"
+        ></v-overflow-btn>
+
+        <!-- Checkoff Actions -->
         <v-btn v-if="checked_off" color="error">Undo Checkoff
           <v-icon dark right>cancel</v-icon>
         </v-btn>
 
-         <v-btn v-else dark color="#27af6a">Checkoff
+         <v-btn v-else :dark="showCheckoffButton" :disabled="!showCheckoffButton" color="#27af6a">Checkoff
           <v-icon right>check_circle</v-icon>
         </v-btn>
       </template>
+      <template v-else>
+        <v-spacer></v-spacer>
+        <v-btn class="elevation-0">
+          Select a Duty to Edit
+        </v-btn>
+        <v-spacer></v-spacer>
+    </template>
     </template>
     <!-- TODO: Menus for other tabs -->
   </v-toolbar>
@@ -46,17 +55,13 @@ import api from '../api'
 
 export default {
   name: 'duties-admin-bar',
+  mixins: [dutiesMixin],
 
   data () {
     return {
       showAdmin: true,
       checked_off: false,
-      dropdownNames: [
-        { text: 'Juan' },
-        { text: 'Malik' },
-        { text: 'Mo' },
-        { text: 'Andre' }
-      ]
+      dd: null
     }
   },
 
@@ -78,14 +83,35 @@ export default {
 
   computed: {
     ...mapState({
-      selectedDuty: state => state.dutiesStore.selectedDuty
+      selectedDuty: state => state.dutiesStore.selectedDuty,
+      users: state => state.dutiesStore.users
     }),
 
     showCheckoffButton () {
       if (this.selectedDuty === null) return false
-      return dutiesMixin.methods.statusForDuty(this.selectedDuty.name, this.selectedDuty.weekday) === dutiesMixin.data().DutyStatus.claimed
+      return true
+    },
+
+    dropdownNames () {
+      return this.users.map(user => {
+        return { text: user.first + ' ' + user.last }
+      })
+    },
+
+    overflowLabel () {
+      if (this.selectedDuty.brother !== null) {
+        return this.selectedDuty.brother.first + ' ' + this.selectedDuty.brother.last
+      } else {
+        return 'Edit Assignee'
+      }
     }
-  }
+  },
+
+  watch: {
+    dd (newValue, oldValue) {
+      console.log(newValue)
+    }
+  },
 }
 </script>
 

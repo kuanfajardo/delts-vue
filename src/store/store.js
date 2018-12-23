@@ -13,19 +13,17 @@ const dutiesStore = {
     dutyTemplates: [], // Will be bound to duty-templates collection
     users: [], // Will be bound to users collection,
     allDuties: [], // Will be bound to duties collection,
-    weekDuties: [], // Will be bound to duties collection, filtered for this week
-    selectedDuty: null,
+    weekDuties: [], // Will be bound to duties collection, filtered for this week,
+    selectedDuty: null, // Actual duty firestore object
     isDutySheetLive: false
   },
+
   mutations: {
     [EDIT_SELECTED_DUTY] (state, duty) {
       state.selectedDuty = duty
-    },
-
-    // [UPDATE_CACHED_DUTY_MAP] (state, newMap) {
-    //   state.cachedDutyMap = newMap
-    // }
+    }
   },
+
   actions: {
     [SET_DUTY_TEMPLATES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
       bindFirebaseRef('dutyTemplates', ref)
@@ -43,6 +41,7 @@ const dutiesStore = {
       bindFirebaseRef('weekDuties', ref)
     })
   },
+
   getters: {
     dutyMap: (state, getters) => {
       var mapReal = []
@@ -114,8 +113,6 @@ const dutiesStore = {
     },
 
     weekdaysToUse: state => {
-      console.log('asking my dude')
-
       var startDate = 6
       var endDate = 0
 
@@ -139,6 +136,12 @@ const dutiesStore = {
       }
 
       return weekdays
+    },
+
+    dutyObjForID: (state) => (dutyID) => {
+      return state.weekDuties.find(duty => {
+        return duty.id === dutyID
+      })
     }
   }
 }
