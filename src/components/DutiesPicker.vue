@@ -45,7 +45,7 @@
              <v-flex
                  v-for="weekday in weekdaysToUse"
                  :key="`dutySlot_${duty}${idx}_${weekday}`"
-                 :id="duty + '_' + weekday"
+                 :id="idForDuty(idx, weekday)"
                  :style="{ 'border-bottom-color': colorForDuty(idx, weekday) }"
                  xs2
              >
@@ -61,7 +61,7 @@
                         :class="{ 'xs' : isXSmall }"
                         :style="styleForDuty(idx, weekday)"
                         :color="colorForDuty(idx, weekday)"
-                        @click.stop="dutyClicked(duty, weekday)"
+                        @click.stop="dutyClicked(idForDuty(idx, weekday))"
                     >
                       <span
                           v-if="isXSmall
@@ -248,30 +248,38 @@ export default {
       }
     },
 
+    idForDuty (dutyIdx, weekday) {
+      try {
+        return this.dutyMap[dutyIdx]['schedule'][weekday].id
+      } catch (e) {
+        return 'temp'
+      }
+    },
+
     // ACTIONS
-    dutyClicked (duty, weekday) {
-      if (this.selectedDuty !== null && this.selectedDuty.name === duty && this.selectedDuty.weekday === weekday) {
-        this.deselectDuty(duty, weekday)
+    dutyClicked (dutyID) {
+      if (this.selectedDuty !== null && this.selectedDuty.id === dutyID) {
+        this.deselectDuty(dutyID)
       } else {
         if (this.selectedDuty !== null) {
-          this.deselectDuty(this.selectedDuty.name, this.selectedDuty.weekday)
+          this.deselectDuty(this.selectedDuty.id)
         }
-        this.selectDuty(duty, weekday)
+        this.selectDuty(dutyID)
       }
-      console.log(this.dutyMap)
+      // console.log('F')
+      // console.log(this.dutyMap)
     },
 
     // STATE MUTATIONS (and UI?)
-    selectDuty (duty, weekday) {
-      document.getElementById(duty + '_' + weekday).classList.add('selected')
+    selectDuty (dutyID) {
+      document.getElementById(dutyID).classList.add('selected')
       this.EDIT_SELECTED_DUTY({
-        'name': duty,
-        'weekday': weekday
+        id: dutyID
       })
     },
 
-    deselectDuty (duty, weekday) {
-      document.getElementById(duty + '_' + weekday).classList.remove('selected')
+    deselectDuty (dutyID) {
+      document.getElementById(dutyID).classList.remove('selected')
       this.EDIT_SELECTED_DUTY(null)
     },
 
