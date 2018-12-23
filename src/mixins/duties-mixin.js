@@ -10,6 +10,10 @@ export const dutiesMixin = {
   methods: {
     // STATUS
     statusForDuty (dutyID) {
+      if (dutyID === null) {
+        return DutyStatus.unavailable
+      }
+
       const isAvailable = this.isDutyAvailable(dutyID)
       if (!isAvailable) {
         return DutyStatus.unavailable
@@ -30,10 +34,11 @@ export const dutiesMixin = {
     },
 
     isDutyAvailable (dutyID) {
-      const dutyObj = this.$store.getters.dutyObjForID(dutyID)
-      if (typeof dutyObj === 'undefined') {
+      if (dutyID === null) {
         return false
       }
+      
+      const dutyObj = this.$store.getters.dutyObjForID(dutyID)
       return dutyObj !== null
     },
 

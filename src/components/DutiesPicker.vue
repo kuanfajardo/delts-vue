@@ -252,7 +252,7 @@ export default {
       try {
         return this.dutyMap[dutyIdx]['schedule'][weekday].id
       } catch (e) {
-        return 'temp'
+        return null
       }
     },
 
