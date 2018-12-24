@@ -190,7 +190,8 @@ export default {
 
         case DutyStatus.completed:
           var dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
-          return dutyObj.brother.first + ' (checked off by ' + dutyObj.checker.first + ')'
+          const checker = dutyObj.checker === null ? 'System' : dutyObj.checker.first
+          return dutyObj.brother.first + ' (checked off by ' + checker + ')'
 
         case DutyStatus.punted:
           return 'Punted by ' + ''
