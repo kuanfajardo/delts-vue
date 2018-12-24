@@ -9,22 +9,16 @@ export const dutiesMixin = {
 
   methods: {
     // STATUS
-    statusForDuty (dutyID) {
-      if (dutyID === null) {
-        return DutyStatus.unavailable
-      }
+    statusForDuty (dutyObj) {
+      if (!this.isDutyAvailable(dutyObj)) return DutyStatus.unavailable
 
-      const isAvailable = this.isDutyAvailable(dutyID)
-      if (!isAvailable) {
-        return DutyStatus.unavailable
-      }
-
-      const dutyObj = this.$store.getters.dutyObjForID(dutyID)
       const dutyDate = new Date(dutyObj.date.seconds * 1000) // * 1000 to get ms
-      const dutyWeekday = dutyDate.getDay()
+      const currentDate = new Date()
+      // TODO: remove + 4 lol
+      const isWeekdayPast = dutyDate.getDay() < currentDate.getDay() + 4
 
       // TODO: change this.$store.dutiesStore to something nice
-      if (this.$store.state.dutiesStore.isDutySheetLive || !this.isWeekdayPast(dutyWeekday)) {
+      if (this.$store.state.dutiesStore.isDutySheetLive || !isWeekdayPast) {
         const isClaimed = this.isDutyClaimed(dutyObj)
         return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
       } else {
@@ -33,12 +27,7 @@ export const dutiesMixin = {
       }
     },
 
-    isDutyAvailable (dutyID) {
-      if (dutyID === null) {
-        return false
-      }
-      
-      const dutyObj = this.$store.getters.dutyObjForID(dutyID)
+    isDutyAvailable (dutyObj) {
       return dutyObj !== null
     },
 

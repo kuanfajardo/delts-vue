@@ -84,8 +84,7 @@ export default {
     }),
 
     colorForActionButton () {
-      if (this.selectedDuty === null) return null
-      const dutyStatus = this.statusForDuty(this.selectedDuty.id)
+      const dutyStatus = this.statusForDuty(this.selectedDuty)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -104,8 +103,7 @@ export default {
     },
 
     textForActionButton () {
-      if (this.selectedDuty === null) return null
-      const dutyStatus = this.statusForDuty(this.selectedDuty.id)
+      const dutyStatus = this.statusForDuty(this.selectedDuty)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -124,8 +122,7 @@ export default {
     },
 
     iconForActionButton () {
-      if (this.selectedDuty === null) return null
-      const dutyStatus = this.statusForDuty(this.selectedDuty.id)
+      const dutyStatus = this.statusForDuty(this.selectedDuty)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -144,8 +141,7 @@ export default {
     },
 
     showActionButton () {
-      if (this.selectedDuty === null) return false
-      const dutyStatus = this.statusForDuty(this.selectedDuty.id)
+      const dutyStatus = this.statusForDuty(this.selectedDuty)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:

@@ -50,7 +50,7 @@
                  xs2
              >
                 <!-- Available Duty -->
-                <template v-if="isDutyAvailable(idForDuty(idx, weekday))">
+                <template v-if="isDutyIDAvailable(idx, weekday)">
                   <v-tooltip bottom>
                     <!-- For XS screens, (1) weekday text in btn and (2) constrained width -->
                     <v-btn
@@ -66,7 +66,7 @@
                       <span
                           v-if="isXSmall
                           && isDutySheetLive
-                          && statusForDuty(idForDuty(idx, weekday)) === DutyStatus.unclaimed"
+                          && statusForDutyID(idx, weekday) === DutyStatus.unclaimed"
                       >
                         {{WEEKDAYS[weekday].abb}}
                       </span>
@@ -141,9 +141,19 @@ export default {
   },
 
   methods: {
+    // STATUS
+    // TODO: find better method names lol
+    statusForDutyID (dutyIdx, weekday) {
+      return this.statusForDuty(this.dutyObjForID(this.idForDuty(dutyIdx, weekday)))
+    },
+
+    isDutyIDAvailable (dutyIdx, weekday) {
+      return this.isDutyAvailable(this.dutyObjForID(this.idForDuty(dutyIdx, weekday)))
+    },
+
     // STYLING
     colorForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDuty(this.idForDuty(dutyIdx, weekday))
+      const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -176,7 +186,7 @@ export default {
     },
 
     tooltipForDuty (dutyIdx, dutyName, weekday) {
-      const dutyStatus = this.statusForDuty(this.idForDuty(dutyIdx, weekday))
+      const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -202,7 +212,7 @@ export default {
     },
 
     iconForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDuty(this.idForDuty(dutyIdx, weekday))
+      const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -226,7 +236,7 @@ export default {
     },
 
     iconColorForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDuty(this.idForDuty(dutyIdx, weekday))
+      const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:

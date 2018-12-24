@@ -139,9 +139,11 @@ const dutiesStore = {
     },
 
     dutyObjForID: (state) => (dutyID) => {
-      return state.weekDuties.find(duty => {
+      const dutyObj = state.weekDuties.find(duty => {
         return duty.id === dutyID
       })
+
+      return typeof dutyObj === 'undefined' ? null : dutyObj
     }
   }
 }
