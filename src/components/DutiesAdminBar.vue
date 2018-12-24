@@ -27,13 +27,8 @@
           v-model="assignee"
         ></v-overflow-btn>
 
-        <!-- Checkoff Actions -->
-        <v-btn v-if="checked_off" color="error">Undo Checkoff
-          <v-icon dark right>cancel</v-icon>
-        </v-btn>
-
-         <v-btn v-else :dark="showCheckoffButton" :disabled="!showCheckoffButton" color="#27af6a">Checkoff
-          <v-icon right>check_circle</v-icon>
+        <v-btn v-if="showActionButton" dark :color="colorForActionButton">{{ textForActionButton }}
+          <v-icon right>{{ iconForActionButton }}</v-icon>
         </v-btn>
       </template>
       <template v-else>
@@ -52,6 +47,7 @@
 import { dutiesMixin } from '../mixins/duties-mixin'
 import { mapState } from 'vuex'
 import api from '../api'
+import { DutyStatus } from '../definitions'
 
 export default {
   name: 'duties-admin-bar',
@@ -61,7 +57,7 @@ export default {
     return {
       showAdmin: true,
       checked_off: false,
-      assignee: null,
+      assignee: null
     }
   },
 
@@ -87,9 +83,84 @@ export default {
       users: state => state.dutiesStore.users
     }),
 
-    showCheckoffButton () {
+    colorForActionButton () {
+      if (this.selectedDuty === null) return null
+      const dutyStatus = this.statusForDuty(this.selectedDuty.id)
+
+      switch (dutyStatus) {
+        case DutyStatus.unavailable:
+          return null
+        case DutyStatus.unclaimed:
+          return null
+        case DutyStatus.claimed:
+          return '#27af6a'
+        case DutyStatus.completed:
+          return 'error'
+        case DutyStatus.punted:
+          return '#27af6a'
+        default:
+          return null
+      }
+    },
+
+    textForActionButton () {
+      if (this.selectedDuty === null) return null
+      const dutyStatus = this.statusForDuty(this.selectedDuty.id)
+
+      switch (dutyStatus) {
+        case DutyStatus.unavailable:
+          return null
+        case DutyStatus.unclaimed:
+          return null
+        case DutyStatus.claimed:
+          return 'Checkoff'
+        case DutyStatus.completed:
+          return 'Undo Checkoff'
+        case DutyStatus.punted:
+          return 'Checkoff'
+        default:
+          return null
+      }
+    },
+
+    iconForActionButton () {
+      if (this.selectedDuty === null) return null
+      const dutyStatus = this.statusForDuty(this.selectedDuty.id)
+
+      switch (dutyStatus) {
+        case DutyStatus.unavailable:
+          return null
+        case DutyStatus.unclaimed:
+          return null
+        case DutyStatus.claimed:
+          return 'check_circle'
+        case DutyStatus.completed:
+          return 'block'
+        case DutyStatus.punted:
+          return 'check_circle'
+        default:
+          return null
+      }
+    },
+
+    showActionButton () {
       if (this.selectedDuty === null) return false
-      return true
+      const dutyStatus = this.statusForDuty(this.selectedDuty.id)
+
+      switch (dutyStatus) {
+        case DutyStatus.unavailable:
+          return false
+        case DutyStatus.unclaimed:
+          return false
+        case DutyStatus.claimed:
+          return true
+        case DutyStatus.completed:
+          return true
+        case DutyStatus.punted:
+          return true
+        default:
+          return false
+      }
     },
 
     dropdownNames () {
