@@ -27,7 +27,13 @@
           v-model="assignee"
         ></v-overflow-btn>
 
-        <v-btn v-if="showActionButton" dark :color="colorForActionButton">{{ textForActionButton }}
+        <v-btn
+            v-if="showActionButton"
+            dark
+            :color="colorForActionButton"
+            @click.stop="actionButtonClicked"
+        >
+          {{ textForActionButton }}
           <v-icon right>{{ iconForActionButton }}</v-icon>
         </v-btn>
       </template>
@@ -74,6 +80,26 @@ export default {
 
     editDutySheetButtonClicked () {
       alert('Edit duty sheet button clicked')
+    },
+
+    actionButtonClicked () {
+      switch (this.selectedDutyStatus) {
+        case DutyStatus.unavailable:
+        case DutyStatus.unclaimed:
+          // Shouldn't even be possible!
+          return null
+        case DutyStatus.claimed:
+        case DutyStatus.punted:
+          // Checkoff
+          alert('checkoff')
+          break
+        case DutyStatus.completed:
+          // Undo Checkoff
+          alert('undo checkoff')
+          break
+        default:
+          return null
+      }
     }
   },
 
@@ -83,76 +109,74 @@ export default {
       users: state => state.dutiesStore.users
     }),
 
-    colorForActionButton () {
-      const dutyStatus = this.statusForDuty(this.selectedDuty)
+    selectedDutyStatus () {
+      return this.statusForDuty(this.selectedDuty)
+    },
 
-      switch (dutyStatus) {
+    colorForActionButton () {
+      switch (this.selectedDutyStatus) {
         case DutyStatus.unavailable:
-          return null
         case DutyStatus.unclaimed:
+          // No button
           return null
         case DutyStatus.claimed:
+        case DutyStatus.punted:
+          // Checkoff
           return '#27af6a'
         case DutyStatus.completed:
+          // Undo Checkoff
           return 'error'
-        case DutyStatus.punted:
-          return '#27af6a'
         default:
           return null
       }
     },
 
     textForActionButton () {
-      const dutyStatus = this.statusForDuty(this.selectedDuty)
-
-      switch (dutyStatus) {
+      switch (this.selectedDutyStatus) {
         case DutyStatus.unavailable:
-          return null
         case DutyStatus.unclaimed:
+          // No button
           return null
         case DutyStatus.claimed:
+        case DutyStatus.punted:
+          // Checkoff
           return 'Checkoff'
         case DutyStatus.completed:
+          // Undo Checkoff
           return 'Undo Checkoff'
-        case DutyStatus.punted:
-          return 'Checkoff'
         default:
           return null
       }
     },
 
     iconForActionButton () {
-      const dutyStatus = this.statusForDuty(this.selectedDuty)
-
-      switch (dutyStatus) {
+      switch (this.selectedDutyStatus) {
         case DutyStatus.unavailable:
-          return null
         case DutyStatus.unclaimed:
+          // No button
           return null
         case DutyStatus.claimed:
+        case DutyStatus.punted:
+          // Checkoff
           return 'check_circle'
         case DutyStatus.completed:
+          // Undo Checkoff
           return 'block'
-        case DutyStatus.punted:
-          return 'check_circle'
         default:
           return null
       }
     },
 
     showActionButton () {
-      const dutyStatus = this.statusForDuty(this.selectedDuty)
-
-      switch (dutyStatus) {
+      switch (this.selectedDutyStatus) {
         case DutyStatus.unavailable:
-          return false
         case DutyStatus.unclaimed:
+          // No button
           return false
         case DutyStatus.claimed:
-          return true
         case DutyStatus.completed:
-          return true
         case DutyStatus.punted:
+          // Yes button :D
           return true
         default:
           return false
