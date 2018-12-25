@@ -14,7 +14,9 @@
 
     <!-- Header -->
     <v-layout row class="align-center layout px-4 pt-4 app--page-header">
+      <v-spacer></v-spacer>
       <duties-admin-bar :tab="tab"></duties-admin-bar>
+      <v-spacer></v-spacer>
     </v-layout>
 
     <!-- Main Component -->

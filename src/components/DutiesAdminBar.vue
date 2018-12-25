@@ -1,5 +1,10 @@
 <template>
-  <v-toolbar v-if="showAdmin"  id="admin-bar" class="mb-3 mt-2" style="opacity: 1">
+  <v-toolbar
+      v-if="showAdmin"
+      id="admin-bar"
+      class="mb-3 mt-2"
+      style="opacity: 1"
+  >
     <template v-if="tab === 0">
       <!-- General Actions-->
       <v-btn color="primary" @click.stop="liveButtonClicked">Go Live
@@ -20,8 +25,10 @@
         <v-overflow-btn
           editable
           clearable
+          :disabled="isOverflowLoading"
           :items="dropdownNames"
           :label="overflowLabel"
+          :loading="isOverflowLoading"
           hide-details
           class="pa-0"
           v-model="assignee"
@@ -66,8 +73,9 @@ export default {
       showAdmin: true,
       assignee: null,
       // Used to distinguish changes in assignee due to (1) selecting a different duty (should be ignored), and
-      // (2) actually changing the assignee via the dropdown button (should take action)
-      ignoreAssigneeUpdate: false
+      // (2) actually changing the assignee via the overflow button (should take action)
+      ignoreAssigneeUpdate: false,
+      isOverflowLoading: false,
     }
   },
 
@@ -145,6 +153,8 @@ export default {
       if (this.selectedDuty === null) return
 
       console.log('Changing assignee for duty ' + this.selectedDuty.id)
+      this.isOverflowLoading = true
+
       api.updateAssigneeForDuty(this.selectedDuty, this.assignee, (error) => {
         if (error === null) {
           console.log('Success updating assignee for duty ' + this.selectedDuty.id)
@@ -154,6 +164,8 @@ export default {
           console.log('Failure updating assignee for duty ' + this.selectedDuty.id)
           this.$_glob.root.$emit(appEvents.apiFailure, 'UPDATE ASSIGNEE success')
         }
+
+        this.isOverflowLoading = false
       })
     },
 
@@ -307,8 +319,6 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   #admin-bar {
-    margin-left: 12.5%;
-    margin-right: 12.5%;
-    max-width: 75%;
+    width: 800px;
   }
 </style>
