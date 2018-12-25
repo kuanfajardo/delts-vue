@@ -16,8 +16,8 @@
                 xs2
             >
               <v-card
-                  light
-                  color="#E0E0E0"
+                  :dark="isWeekdayToday(weekday)"
+                  :color="isWeekdayToday(weekday) ? 'surface darken-4' : 'surface darken-2'"
               >
                 <v-card-text class="px-0">{{WEEKDAYS[weekday].name}}</v-card-text>
               </v-card>
@@ -31,7 +31,7 @@
 
         <!-- Duty Name -->
         <v-flex xs2 :key="`dutyHeader_${duty}_${idx}`">
-          <v-card light color="#E0E0E0">
+          <v-card light color="surface darken-2">
             <v-card-text class="px-0">{{duty}}</v-card-text>
           </v-card>
         </v-flex>
@@ -157,22 +157,22 @@ export default {
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
-          return '#707070'
+          return 'surface darken-3'
 
         case DutyStatus.unclaimed:
-          return this.isDutySheetLive ? 'primary' : '#8a95ff' //'#685dee'
+          return this.isDutySheetLive ? 'primary' : 'warning'
 
         case DutyStatus.claimed:
-          return this.isDutySheetLive ? '#eeeeee' : 'primary'
+          return this.isDutySheetLive ? 'surface darken-1' : 'primary'
 
         case DutyStatus.completed:
-          return '#27af6a'
+          return 'success'
 
         case DutyStatus.punted:
-          return '#E57373'
+          return 'error'
 
         default:
-          return '#000000'
+          return null
       }
     },
 
@@ -243,19 +243,19 @@ export default {
           return null
 
         case DutyStatus.unclaimed:
-          return '#ffffff'
+          return this.isDutySheetLive ? 'onPrimary' : 'onWarning'
 
         case DutyStatus.claimed:
-          return this.isDutySheetLive ? '#797a7a' : '#ffffff'
+          return this.isDutySheetLive ? 'onSurface darken-1' : 'onPrimary'
 
         case DutyStatus.completed:
-          return '#ffffff'
+          return 'onSuccess'
 
         case DutyStatus.punted:
-          return '#ffffff'
+          return 'onError'
 
         default:
-          return '#000000'
+          return null
       }
     },
 

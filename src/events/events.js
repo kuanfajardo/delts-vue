@@ -38,7 +38,7 @@ export default [
     callback: function (e) {
       this.snackbar = {
         show: true,
-        color: 'green',
+        color: 'success',
         text: 'Logout successfully.',
         timeout: 3000
       }
@@ -54,7 +54,7 @@ export default [
       console.log('TGFRFERDC')
       this.snackbar = {
         show: true,
-        color: 'green',
+        color: 'success',
         text: msg,
         timeout: 1500
       }

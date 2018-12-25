@@ -6,7 +6,7 @@
         <v-icon right>visibility</v-icon>
       </v-btn>
 
-      <v-btn dark color="teal" @click.stop="editDutySheetButtonClicked">Edit Duty Sheet
+      <v-btn dark color="secondary" @click.stop="editDutySheetButtonClicked">Edit Duty Sheet
         <v-icon dark right>edit</v-icon>
       </v-btn>
 
@@ -165,7 +165,7 @@ export default {
         case DutyStatus.claimed:
         case DutyStatus.punted:
           // Checkoff
-          return '#27af6a'
+          return 'success'
         case DutyStatus.completed:
           // Undo Checkoff
           return 'error'
