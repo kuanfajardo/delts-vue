@@ -55,6 +55,7 @@ import { mapState, mapMutations, mapGetters } from 'vuex'
 import api from '../api'
 import { DutyStatus } from '../definitions'
 import { EDIT_SELECTED_DUTY } from '../store'
+import { eventNames as appEvents } from '../events'
 
 export default {
   name: 'duties-admin-bar',
@@ -112,8 +113,10 @@ export default {
         if (error === null) {
           console.log('Success checking off duty ' + this.selectedDuty.id)
           this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id))
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'CHECKOFF success')
         } else {
           console.log('Failure checking off duty ' + this.selectedDuty.id + '. ' + error.message)
+          this.$_glob.root.$emit(appEvents.apiFailure, 'CHECKOFF failed')
           throw error
         }
       })
@@ -126,8 +129,10 @@ export default {
         if (error === null) {
           console.log('Success undoing checkoff for duty ' + this.selectedDuty.id)
           this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id))
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'UNDO CHECKOFF success')
         } else {
           console.log('Failure undoing checkoff for duty ' + this.selectedDuty.id + '. ' + error.message)
+          this.$_glob.root.$emit(appEvents.apiFailure, 'UNDO CHECKOFF failed')
         }
       })
     },
