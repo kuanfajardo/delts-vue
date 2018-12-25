@@ -1,5 +1,5 @@
 import firebase from 'firebase'
-import { getNextDayOfWeek, getLastDayOfWeek } from '@/definitions'
+import { getNextDayOfWeek, getLastDayOfWeek } from '../definitions'
 
 let config = {
   apiKey: 'AIzaSyCYos8q_4IeiPVsuS-2xQkR8wvkXMYQ164',
@@ -19,11 +19,11 @@ db.settings({ timestampsInSnapshots: true })
 export const allDutiesRef = db.collection('duties')
 
 // TODO: Remove!! Only for debugging
-const refDate = new Date(2018, 11, 21)
+export const today = new Date(2018, 11, 19)
 
 export const weekDutiesRef = db.collection('duties')
-  .where('date', '>=', getLastDayOfWeek(0, refDate))
-  .where('date', '<', getNextDayOfWeek(0, refDate))
+  .where('date', '>=', getLastDayOfWeek(0, today))
+  .where('date', '<', getNextDayOfWeek(0, today))
   .orderBy('date')
   .orderBy('duty')
 export const dutyTemplatesRef = db.collection('duty-templates')

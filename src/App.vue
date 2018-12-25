@@ -41,6 +41,7 @@
 <script>
 import appEvents from './events'
 import AppNavigation from './components/AppNavigation'
+import { today } from './plugins/firebase'
 
 export default {
   name: 'App',
@@ -61,7 +62,7 @@ export default {
       this.$on(item.name, item.callback)
     })
     this.$_glob.root = this
-    this.$_glob.today = new Date(2018, 11, 19)
+    this.$_glob.today = today
   }
 }
 </script>
