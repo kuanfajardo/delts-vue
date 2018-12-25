@@ -12,13 +12,10 @@ export const dutiesMixin = {
     statusForDuty (dutyObj) {
       if (!this.isDutyAvailable(dutyObj)) return DutyStatus.unavailable
 
-      const dutyDate = new Date(dutyObj.date.seconds * 1000) // * 1000 to get ms
-      const currentDate = new Date()
-      // TODO: remove + 4 lol
-      const isWeekdayPast = dutyDate.getDay() < currentDate.getDay() + 4
+      const dutyWeekday = new Date(dutyObj.date.seconds * 1000).getDay() // * 1000 to get ms
 
       // TODO: change this.$store.dutiesStore to something nice
-      if (this.$store.state.dutiesStore.isDutySheetLive || !isWeekdayPast) {
+      if (this.$store.state.dutiesStore.isDutySheetLive || (this.isWeekdayFuture(dutyWeekday))) {
         const isClaimed = this.isDutyClaimed(dutyObj)
         return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
       } else {
@@ -39,10 +36,24 @@ export const dutiesMixin = {
       return dutyObj.checktime !== null
     },
 
+    // TODO: consolidate into one function
     // WEEKDAY
     isWeekdayPast (weekday) {
+      // TODO: use currentDate
       const currentDate = new Date()
-      return weekday < currentDate.getDay() + 4
+      return weekday < this.$_glob.today.getDay()
+    },
+
+    isWeekdayToday (weekday) {
+      // TODO: use currentDate
+      const currentDate = new Date()
+      return weekday === this.$_glob.today.getDay()
+    },
+
+    isWeekdayFuture (weekday) {
+      // TODO: use currentDate
+      const currentDate = new Date()
+      return weekday > this.$_glob.today.getDay()
     }
   },
 

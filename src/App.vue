@@ -61,6 +61,7 @@ export default {
       this.$on(item.name, item.callback)
     })
     this.$_glob.root = this
+    this.$_glob.today = new Date(2018, 11, 19)
   }
 }
 </script>

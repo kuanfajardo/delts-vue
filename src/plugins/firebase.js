@@ -17,9 +17,13 @@ const db = firebase.firestore()
 db.settings({ timestampsInSnapshots: true })
 
 export const allDutiesRef = db.collection('duties')
+
+// TODO: Remove!! Only for debugging
+const refDate = new Date(2018, 11, 21)
+
 export const weekDutiesRef = db.collection('duties')
-  .where('date', '>=', getLastDayOfWeek(0))
-  .where('date', '<', getNextDayOfWeek(0))
+  .where('date', '>=', getLastDayOfWeek(0, refDate))
+  .where('date', '<', getNextDayOfWeek(0, refDate))
   .orderBy('date')
   .orderBy('duty')
 export const dutyTemplatesRef = db.collection('duty-templates')
