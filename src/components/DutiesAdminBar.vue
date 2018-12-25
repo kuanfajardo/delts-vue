@@ -24,19 +24,20 @@
       <template v-if="selectedDuty !== null">
         <v-overflow-btn
           editable
-          clearable
-          :disabled="isOverflowLoading"
+          :disabled="isOverflowBusy"
           :items="dropdownNames"
           :label="overflowLabel"
-          :loading="isOverflowLoading"
+          :loading="isOverflowBusy"
           hide-details
           class="pa-0"
           v-model="assignee"
         ></v-overflow-btn>
 
+        <!-- Action Button -->
         <v-btn
             v-if="showActionButton"
             dark
+            :loading="isActionButtonBusy"
             :color="colorForActionButton"
             @click.stop="actionButtonClicked"
         >
@@ -75,7 +76,8 @@ export default {
       // Used to distinguish changes in assignee due to (1) selecting a different duty (should be ignored), and
       // (2) actually changing the assignee via the overflow button (should take action)
       ignoreAssigneeUpdate: false,
-      isOverflowLoading: false,
+      isOverflowBusy: false,
+      isActionButtonBusy: false
     }
   },
 
@@ -120,6 +122,8 @@ export default {
       if (this.selectedDuty === null) return
 
       console.log('Checking off duty ' + this.selectedDuty.id)
+      this.isActionButtonBusy = true
+
       api.checkoffDuty(this.selectedDuty, (error) => {
         if (error === null) {
           console.log('Success checking off duty ' + this.selectedDuty.id)
@@ -130,6 +134,8 @@ export default {
           this.$_glob.root.$emit(appEvents.apiFailure, 'CHECKOFF failed')
           throw error
         }
+
+        this.isActionButtonBusy = false
       })
     },
 
@@ -137,6 +143,8 @@ export default {
       if (this.selectedDuty === null) return
 
       console.log('Undoing checkoff for duty ' + this.selectedDuty.id)
+      this.isActionButtonBusy = true
+
       api.undoCheckoffForDuty(this.selectedDuty, (error) => {
         if (error === null) {
           console.log('Success undoing checkoff for duty ' + this.selectedDuty.id)
@@ -146,6 +154,8 @@ export default {
           console.log('Failure undoing checkoff for duty ' + this.selectedDuty.id + '. ' + error.message)
           this.$_glob.root.$emit(appEvents.apiFailure, 'UNDO CHECKOFF failed')
         }
+
+        this.isActionButtonBusy = false
       })
     },
 
@@ -153,7 +163,7 @@ export default {
       if (this.selectedDuty === null) return
 
       console.log('Changing assignee for duty ' + this.selectedDuty.id)
-      this.isOverflowLoading = true
+      this.isOverflowBusy = true
 
       api.updateAssigneeForDuty(this.selectedDuty, this.assignee, (error) => {
         if (error === null) {
@@ -165,7 +175,7 @@ export default {
           this.$_glob.root.$emit(appEvents.apiFailure, 'UPDATE ASSIGNEE success')
         }
 
-        this.isOverflowLoading = false
+        this.isOverflowBusy = false
       })
     },
 
@@ -319,6 +329,6 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   #admin-bar {
-    width: 800px;
+    width: 825px;
   }
 </style>
