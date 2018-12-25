@@ -64,8 +64,10 @@ export default {
   data () {
     return {
       showAdmin: true,
-      checked_off: false,
-      assignee: null
+      assignee: null,
+      // Used to distinguish changes in assignee due to (1) selecting a different duty (should be ignored), and
+      // (2) actually changing the assignee via the dropdown button (should take action)
+      ignoreAssigneeUpdate: false
     }
   },
 
@@ -98,7 +100,7 @@ export default {
           break
         case DutyStatus.completed:
           // Undo Checkoff
-          this.undoCheckoffSelectedDuty()
+          this.undoCheckoffForSelectedDuty()
           break
         default:
           return null
@@ -108,6 +110,7 @@ export default {
     // TODO: Add emits for snackbars!
     checkoffSelectedDuty () {
       if (this.selectedDuty === null) return
+
       console.log('Checking off duty ' + this.selectedDuty.id)
       api.checkoffDuty(this.selectedDuty, (error) => {
         if (error === null) {
@@ -122,8 +125,9 @@ export default {
       })
     },
 
-    undoCheckoffSelectedDuty () {
+    undoCheckoffForSelectedDuty () {
       if (this.selectedDuty === null) return
+
       console.log('Undoing checkoff for duty ' + this.selectedDuty.id)
       api.undoCheckoffForDuty(this.selectedDuty, (error) => {
         if (error === null) {
@@ -133,6 +137,22 @@ export default {
         } else {
           console.log('Failure undoing checkoff for duty ' + this.selectedDuty.id + '. ' + error.message)
           this.$_glob.root.$emit(appEvents.apiFailure, 'UNDO CHECKOFF failed')
+        }
+      })
+    },
+
+    updateAssigneeForSelectedDuty () {
+      if (this.selectedDuty === null) return
+
+      console.log('Changing assignee for duty ' + this.selectedDuty.id)
+      api.updateAssigneeForDuty(this.selectedDuty, this.assignee, (error) => {
+        if (error === null) {
+          console.log('Success updating assignee for duty ' + this.selectedDuty.id)
+          this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id))
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'UPDATE ASSIGNEE success')
+        } else {
+          console.log('Failure updating assignee for duty ' + this.selectedDuty.id)
+          this.$_glob.root.$emit(appEvents.apiFailure, 'UPDATE ASSIGNEE success')
         }
       })
     },
@@ -228,7 +248,7 @@ export default {
 
     dropdownNames () {
       return this.users.map(user => {
-        return { text: user.first + ' ' + user.last }
+        return { text: user.first + ' ' + user.last, value: user }
       })
     },
 
@@ -243,10 +263,14 @@ export default {
 
   watch: {
     assignee (newValue, oldValue) {
-      console.log(newValue)
+      if (!this.ignoreAssigneeUpdate) {
+        this.updateAssigneeForSelectedDuty()
+      }
+      this.ignoreAssigneeUpdate = false
     },
 
     selectedDuty (newValue, oldValue) {
+      this.ignoreAssigneeUpdate = true
       if (newValue === null) {
         this.assignee = null
       } else {
@@ -257,7 +281,7 @@ export default {
         }
       }
     }
-  },
+  }
 }
 </script>
 

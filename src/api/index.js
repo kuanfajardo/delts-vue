@@ -47,11 +47,23 @@ export default {
     fb.allDutiesRef.doc(dutyObj.id).update({
       checker: null,
       checktime: null
-    }).then(() => {
+    }).then(() => { // Success
       callback(null)
-    }, (error) => {
+    }, (error) => { // Failure
       callback(new Error(error))
-    }).catch((error) => {
+    }).catch((error) => { // Error in callback
+      throw error
+    })
+  },
+
+  updateAssigneeForDuty (dutyObj, assigneeObj, callback) {
+    fb.allDutiesRef.doc(dutyObj.id).update({
+      brother: fb.usersRef.doc(assigneeObj.id)
+    }).then(() => { // Success
+      callback(null)
+    }, (error) => { // Failure
+      callback(new Error(error))
+    }).catch((error) => { // Error in callback
       throw error
     })
   }

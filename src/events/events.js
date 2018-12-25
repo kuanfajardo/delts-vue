@@ -51,7 +51,6 @@ export default [
     name: events.apiSuccess,
     // @msg msg to display
     callback: function (msg) {
-      console.log('TGFRFERDC')
       this.snackbar = {
         show: true,
         color: 'success',
@@ -64,7 +63,6 @@ export default [
     name: events.apiFailure,
     // @msg msg to display
     callback: function (msg) {
-      console.log('127687dcf')
       this.snackbar = {
         show: true,
         color: 'error',
