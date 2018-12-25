@@ -13,6 +13,7 @@ Vue.config.productionTip = false
 let app
 
 Vue.use(VeeValidate, { fieldsBagName: 'formFields' })
+Vue.prototype.$_glob = {}
 
 firebase.auth().onAuthStateChanged(function (user) {
   if (!app) {

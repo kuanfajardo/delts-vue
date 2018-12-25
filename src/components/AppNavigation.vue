@@ -98,7 +98,7 @@ export default {
           title: 'Logout',
           click: (e) => {
             auth.signOut(() => {
-              window.getApp.$emit(appEvents.logout)
+              this.$_glob.$emit(appEvents.logout)
             })
           }
         }

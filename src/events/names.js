@@ -1,4 +1,4 @@
-export default {
+export const eventNames = {
   loginSuccess: 'APP_LOGIN_SUCCESS',
   loginFailure: 'APP_LOGIN_FAILURE',
   loginFirstTimeUser: 'APP_LOGIN_FIRST_TIME',
@@ -7,5 +7,7 @@ export default {
   badRequest: 'APP_BAD_REQUEST',
   accessDenied: 'APP_ACCESS_DENIED',
   resourceDeleted: 'APP_RESOURCE_DELETED',
-  resourceUpdated: 'APP_RESOURCE_UPDATED'
+  resourceUpdated: 'APP_RESOURCE_UPDATED',
+  apiSuccess: 'API_SUCCESS',
+  apiFailure: 'API_FAILURE'
 }

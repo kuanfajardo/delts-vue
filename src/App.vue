@@ -60,7 +60,7 @@ export default {
     appEvents.forEach(item => {
       this.$on(item.name, item.callback)
     })
-    window.getApp = this
+    this.$_glob.root = this
   }
 }
 </script>

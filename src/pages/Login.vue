@@ -42,14 +42,13 @@
 
 <script>
 import auth from '@/auth/'
-import appEvents from '@/events/names'
+import { eventNames as appEvents } from '../events'
 
 export default {
   data: () => ({
     loading: false,
     email: '',
-    pass: '',
-
+    pass: ''
   }),
 
   methods: {
@@ -60,13 +59,13 @@ export default {
         if (user) {
           let isVerified = false // TODO: call server to check if verified
           if (isVerified) {
-            window.getApp.$emit(appEvents.loginSuccess)
+            this.$_glob.root.$emit(appEvents.loginSuccess)
           } else {
-            window.getApp.$emit(appEvents.loginFirstTimeUser)
+            this.$_glob.root.$emit(appEvents.loginFirstTimeUser)
           }
         } else {
           console.log(error)
-          window.getApp.$emit(appEvents.loginFailure)
+          this.$_glob.root.$emit(appEvents.loginFailure)
         }
         this.loading = false
       })
