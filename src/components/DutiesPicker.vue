@@ -99,6 +99,7 @@ import { EDIT_SELECTED_DUTY } from '../store'
 import { dutiesMixin } from '@/mixins'
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import { DutyStatus } from '@/definitions'
+import { dutyKeys, userKeys } from '../api'
 
 export default {
   name: 'duties-picker',
@@ -187,6 +188,7 @@ export default {
 
     tooltipForDuty (dutyIdx, dutyName, weekday) {
       const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
+      const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
@@ -196,15 +198,15 @@ export default {
           return 'Claim ' + dutyName + ' (' + this.WEEKDAYS[weekday].abb + ')'
 
         case DutyStatus.claimed:
-          return this.dutyMap[dutyIdx]['schedule'][weekday].brother.first
+          return dutyObj[dutyKeys.assignee][userKeys.firstName]
 
         case DutyStatus.completed:
-          var dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
-          const checker = dutyObj.checker === null ? 'System' : dutyObj.checker.first
-          return dutyObj.brother.first + ' (checked off by ' + checker + ')'
+          const checker = dutyObj[dutyKeys.checker] === null ? 'System' : dutyObj[dutyKeys.checker][userKeys.firstName]
+          return dutyObj[dutyKeys.assignee][userKeys.firstName] + ' (checked off by ' + checker + ')'
 
         case DutyStatus.punted:
-          return 'Punted by ' + ''
+          const assignee = dutyObj[dutyKeys.assignee] === null ? 'System' : dutyObj[dutyKeys.assignee][userKeys.firstName]
+          return 'Punted by ' + assignee
 
         default:
           return null

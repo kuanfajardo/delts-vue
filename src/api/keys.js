@@ -1,3 +1,4 @@
+// TODO: Cast firestore stuff into objects. Internally, objects use key constants, but externally can use (.) notation
 export const userKeys = {
   course: 'course',
   email: 'email',

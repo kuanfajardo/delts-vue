@@ -52,7 +52,7 @@
 <script>
 import { dutiesMixin } from '../mixins/duties-mixin'
 import { mapState, mapMutations, mapGetters } from 'vuex'
-import api from '../api'
+import api, { userKeys, dutyKeys } from '../api'
 import { DutyStatus } from '../definitions'
 import { EDIT_SELECTED_DUTY } from '../store'
 import { eventNames as appEvents } from '../events'
@@ -248,13 +248,18 @@ export default {
 
     dropdownNames () {
       return this.users.map(user => {
-        return { text: user.first + ' ' + user.last, value: user }
+        return {
+          text: user[userKeys.firstName] + ' ' + user[userKeys.lastName],
+          value: user
+        }
       })
     },
 
     overflowLabel () {
-      if (this.selectedDuty.brother !== null) {
-        return this.selectedDuty.brother.first + ' ' + this.selectedDuty.brother.last
+      if (this.selectedDuty[dutyKeys.assignee] !== null) {
+        // TODO: helper for full name
+        return this.selectedDuty[dutyKeys.assignee][userKeys.firstName] + ' ' +
+          this.selectedDuty[dutyKeys.assignee][userKeys.lastName]
       } else {
         return 'Edit Assignee'
       }
@@ -275,7 +280,10 @@ export default {
         this.assignee = null
       } else {
         if (newValue.brother !== null) {
-          this.assignee = newValue.brother.first + ' ' + newValue.brother.last
+          this.assignee = {
+            text: newValue[dutyKeys.assignee][userKeys.firstName] + ' ' + newValue[dutyKeys.assignee][userKeys.lastName],
+            value: newValue
+          }
         } else {
           this.assignee = null
         }
