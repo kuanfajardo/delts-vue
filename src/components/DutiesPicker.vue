@@ -27,7 +27,7 @@
       </template>
 
       <!-- DUTY SHEET (V-FOR over each ROW) -->
-      <template v-for="(duty, idx) in dutyNames">
+      <template v-for="(duty, idx) in dutyTemplateNames">
 
         <!-- Duty Name -->
         <v-flex xs2 :key="`dutyHeader_${duty}_${idx}`">
@@ -309,7 +309,7 @@ export default {
     }),
 
     ...mapGetters([
-      'dutyNames', 'dutyMap', 'weekdaysToUse', 'dutyIDs', 'dutyObjForID'
+      'dutyTemplateNames', 'dutyMap', 'weekdaysToUse', 'dutyIDs', 'dutyObjForID'
     ])
   },
 

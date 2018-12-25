@@ -5,6 +5,7 @@ import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUT
 import { firebaseMutations, firebaseAction } from 'vuexfire'
 import { dutyTemplatesRef } from '../plugins/firebase'
 import { getAllIndexes } from '../definitions'
+import { dutyTemplateKeys, dutyKeys } from '../api'
 
 Vue.use(Vuex)
 
@@ -47,8 +48,8 @@ const dutiesStore = {
       var mapReal = []
       state.dutyTemplates.forEach(template => {
         var maxNumDuties = 0
-        Object.keys(template.schedule).forEach(weekday => {
-          maxNumDuties = Math.max(template.schedule[weekday], maxNumDuties)
+        Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
+          maxNumDuties = Math.max(template[dutyTemplateKeys.schedule][weekday], maxNumDuties)
         })
 
         var allDuties = []
@@ -57,17 +58,20 @@ const dutiesStore = {
           for (let j = 0; j < 7; j++) {
             localSchedule[j] = null
           }
-          allDuties.push({ 'name': template.name, 'schedule': localSchedule, templateRef: dutyTemplatesRef.doc(template.id) })
+          allDuties.push({
+            name: template[dutyTemplateKeys.name],
+            schedule: localSchedule,
+            templateRef: dutyTemplatesRef.doc(template.id) })
         }
 
         mapReal = mapReal.concat(allDuties)
       })
 
       state.weekDuties.forEach(duty => {
-        const dutyDate = new Date(duty.date.seconds * 1000) // * 1000 to get ms
+        const dutyDate = new Date(duty[dutyKeys.date].seconds * 1000) // * 1000 to get ms
         const dutyWeekday = dutyDate.getDay()
 
-        const templateIdxs = getAllIndexes(getters.dutyTemplateIDs, duty.duty.id)
+        const templateIdxs = getAllIndexes(getters.dutyTemplateIDs, duty[dutyKeys.template].id)
         for (const templateIdx of templateIdxs) {
           // Place in correct spot for templates with multiple slots / day (i.e. Kitchen)
           if (mapReal[templateIdx]['schedule'][dutyWeekday] === null) {
@@ -80,16 +84,16 @@ const dutiesStore = {
       return mapReal
     },
 
-    dutyNames: state => {
+    dutyTemplateNames: state => {
       var names = []
       state.dutyTemplates.forEach(template => {
         var maxNumDuties = 0
-        Object.keys(template.schedule).forEach(weekday => {
-          maxNumDuties = Math.max(template.schedule[weekday], maxNumDuties)
+        Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
+          maxNumDuties = Math.max(template[dutyTemplateKeys.schedule][weekday], maxNumDuties)
         })
 
         for (let i = 0; i < maxNumDuties; i++) {
-          names.push(template.name)
+          names.push(template[dutyTemplateKeys.name])
         }
       })
 
@@ -100,8 +104,8 @@ const dutiesStore = {
       var ids = []
       state.dutyTemplates.forEach(template => {
         var maxNumDuties = 0
-        Object.keys(template.schedule).forEach(weekday => {
-          maxNumDuties = Math.max(template.schedule[weekday], maxNumDuties)
+        Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
+          maxNumDuties = Math.max(template[dutyTemplateKeys.schedule][weekday], maxNumDuties)
         })
 
         for (let i = 0; i < maxNumDuties; i++) {
@@ -117,8 +121,8 @@ const dutiesStore = {
       var endDate = 0
 
       state.dutyTemplates.forEach(template => {
-        Object.keys(template.schedule).forEach(weekday => {
-          if (template.schedule[weekday] <= 0) return
+        Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
+          if (template[dutyTemplateKeys.schedule][weekday] <= 0) return
 
           if (weekday < startDate) {
             startDate = weekday
