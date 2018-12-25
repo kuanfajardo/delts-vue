@@ -271,21 +271,32 @@ export default {
       if (!this.ignoreAssigneeUpdate) {
         this.updateAssigneeForSelectedDuty()
       }
+      // Start listening to changes again.
       this.ignoreAssigneeUpdate = false
     },
 
     selectedDuty (newValue, oldValue) {
+      // Ignore changes to assignee due while changing it in response to a change in the selected duty. This will be
+      // reverted at the end of the watcher function for this.assignee (see above).
       this.ignoreAssigneeUpdate = true
-      if (newValue === null) {
+      if (newValue === null) { // Deselecting a duty
         this.assignee = null
       } else {
-        if (newValue.brother !== null) {
+        if (newValue[dutyKeys.assignee] !== null) { // Selecting a claimed duty
           this.assignee = {
             text: newValue[dutyKeys.assignee][userKeys.firstName] + ' ' + newValue[dutyKeys.assignee][userKeys.lastName],
-            value: newValue
+            value: newValue[dutyKeys.assignee]
           }
-        } else {
+        } else { // Selecting an unclaimed duty
           this.assignee = null
+
+          // If selecting an unclaimed duty from either another unclaimed duty or no duty at all, this.assignee is
+          // already null! This means that the above line won't trigger the assignee watcher, and therefore
+          // this.ignoreAssigneeUpdate will stay true. In this case, we must manually start listening to changes in
+          // this.assignee.
+          if (oldValue === null || oldValue[dutyKeys.assignee] === null) {
+            this.ignoreAssigneeUpdate = false
+          }
         }
       }
     }
