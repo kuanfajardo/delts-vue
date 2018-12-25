@@ -315,7 +315,8 @@ export default {
 
   created () {
     if (this.selectedDuty !== null) {
-      this.deselectDuty()
+      // Can't call this.deselectDuty() b/c DOM elements have not been instantiated yet, so will fail
+      this.EDIT_SELECTED_DUTY(null)
     }
   },
 
