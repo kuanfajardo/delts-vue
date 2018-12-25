@@ -1,7 +1,9 @@
 import * as fb from '../plugins/firebase'
 import { getNextDayOfWeek } from '../definitions'
 import store from '../store'
+import firebase from 'firebase'
 
+// TODO: split into public and private
 export default {
   // CREATE
   generateDutySheet (startOfWeek) {
@@ -20,11 +22,39 @@ export default {
         }
       })
     })
-  }
+  },
 
   // READ
 
   // UPDATE
+  // TODO: make all properties of objects in firestore (i.e. 'checker' or 'check-time' constants!
+  checkoffDuty (dutyObj, callback) {
+    // TODO: move to better place?
+    const currentUserID = firebase.auth().currentUser.uid
+    fb.allDutiesRef.doc(dutyObj.id).update({
+      checker: fb.usersRef.doc(currentUserID),
+      checktime: new Date()
+    }).then(() => { // Success
+      callback(null)
+    }, (error) => { // Failure
+      callback(new Error(error))
+    }).catch((error) => { // Error in callback
+      throw error
+    })
+  },
+
+  undoCheckoffForDuty (dutyObj, callback) {
+    fb.allDutiesRef.doc(dutyObj.id).update({
+      checker: null,
+      checktime: null
+    }).then(() => {
+      callback(null)
+    }, (error) => {
+      callback(new Error(error))
+    }).catch((error) => {
+      throw error
+    })
+  }
 
   // DELETE
 }

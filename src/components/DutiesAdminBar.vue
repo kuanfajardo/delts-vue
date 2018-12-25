@@ -51,9 +51,10 @@
 
 <script>
 import { dutiesMixin } from '../mixins/duties-mixin'
-import { mapState } from 'vuex'
+import { mapState, mapMutations, mapGetters } from 'vuex'
 import api from '../api'
 import { DutyStatus } from '../definitions'
+import { EDIT_SELECTED_DUTY } from '../store'
 
 export default {
   name: 'duties-admin-bar',
@@ -74,6 +75,7 @@ export default {
   methods: {
     liveButtonClicked () {
       alert('Live button clicked')
+      // TODO: eventually change to current date in cron job
       const refDate = new Date(2018, 11, 16)
       api.generateDutySheet(refDate)
     },
@@ -91,16 +93,48 @@ export default {
         case DutyStatus.claimed:
         case DutyStatus.punted:
           // Checkoff
-          alert('checkoff')
+          this.checkoffSelectedDuty()
           break
         case DutyStatus.completed:
           // Undo Checkoff
-          alert('undo checkoff')
+          this.undoCheckoffSelectedDuty()
           break
         default:
           return null
       }
-    }
+    },
+
+    // TODO: Add emits for snackbars!
+    checkoffSelectedDuty () {
+      if (this.selectedDuty === null) return
+      console.log('Checking off duty ' + this.selectedDuty.id)
+      api.checkoffDuty(this.selectedDuty, (error) => {
+        if (error === null) {
+          console.log('Success checking off duty ' + this.selectedDuty.id)
+          this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id))
+        } else {
+          console.log('Failure checking off duty ' + this.selectedDuty.id + '. ' + error.message)
+          throw error
+        }
+      })
+    },
+
+    undoCheckoffSelectedDuty () {
+      if (this.selectedDuty === null) return
+      console.log('Undoing checkoff for duty ' + this.selectedDuty.id)
+      api.undoCheckoffForDuty(this.selectedDuty, (error) => {
+        if (error === null) {
+          console.log('Success undoing checkoff for duty ' + this.selectedDuty.id)
+          this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id))
+        } else {
+          console.log('Failure undoing checkoff for duty ' + this.selectedDuty.id + '. ' + error.message)
+        }
+      })
+    },
+
+    ...mapMutations({
+      EDIT_SELECTED_DUTY
+    })
   },
 
   computed: {
@@ -108,6 +142,10 @@ export default {
       selectedDuty: state => state.dutiesStore.selectedDuty,
       users: state => state.dutiesStore.users
     }),
+
+    ...mapGetters([
+      'dutyObjForID'
+    ]),
 
     selectedDutyStatus () {
       return this.statusForDuty(this.selectedDuty)
