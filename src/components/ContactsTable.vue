@@ -31,29 +31,46 @@
         </v-btn>
         <v-card class="ma-auto">
           <v-card-title>
-            <span class="headline">{{ formTitle }}</span>
+            <div class="mt-2 ml-2 mb-0">
+              <span class="headline pb-2">{{ formTitle }}</span>
+              <div class="mt-1">{{ formSubheader }}</div>
+            </div>
           </v-card-title>
 
-          <v-container grid-list-md>
+          <v-container grid-list-md class="pb-2 pt-0">
             <v-layout wrap>
-              <v-flex xs12 sm6 md4>
+              <v-flex v-if="isDialogEdit" xs12 sm6 md4>
                 <v-text-field v-model="editMap[userKeys.firstName]" label="First"></v-text-field>
               </v-flex>
+              <v-flex v-if="isDialogEdit" xs12 sm6 md4>
+                <v-text-field v-model="editMap[userKeys.lastName]" label="Last"></v-text-field>
+              </v-flex>
+              <v-flex xs12 sm6 :md4="isDialogEdit" :md12="!isDialogEdit">
+                <v-text-field v-model="editMap[userKeys.email]" label="Email"></v-text-field>
+              </v-flex>
+              <template v-if="isDialogEdit">
               <v-flex xs12 sm6 md4>
                 <v-text-field v-model="editMap[userKeys.phone]" label="Phone" mask="phone"></v-text-field>
               </v-flex>
               <v-flex xs12 sm6 md4>
-                <v-text-field v-model="editMap[userKeys.email]" label="Email"></v-text-field>
+                <v-select :items="courses" v-model="editMap[userKeys.course]" label="Course"></v-select>
               </v-flex>
               <v-flex xs12 sm6 md4>
-                <v-text-field v-model="editMap[userKeys.facebook]" label="Facebook"></v-text-field>
+                <v-select :items="years" v-model="editMap[userKeys.year]" label="Class Year"></v-select>
+              </v-flex>
+              <v-flex xs12 sm6 md4>
+                <v-text-field v-model="editMap[userKeys.givenName]" label="Given Name"></v-text-field>
               </v-flex>
               <v-flex xs12 sm6 md4>
                 <v-text-field v-model="editMap[userKeys.snapchat]" label="Snapchat"></v-text-field>
               </v-flex>
               <v-flex xs12 sm6 md4>
-                <v-text-field v-model="editMap[userKeys.state]" label="State"></v-text-field>
+                 <v-select :items="states" v-model="editMap[userKeys.state]" label="State"></v-select>
               </v-flex>
+              <v-flex xs12>
+                <v-text-field v-model="editMap[userKeys.facebook]" label="Facebook"></v-text-field>
+              </v-flex>
+              </template>
             </v-layout>
           </v-container>
 
@@ -62,7 +79,7 @@
           <v-card-actions color="white">
             <v-spacer></v-spacer>
             <v-btn flat color="error" @click.native="close">Cancel</v-btn>
-            <v-btn flat color="primary" @click.native="save">Save</v-btn>
+            <v-btn flat color="primary" @click.native="save">{{ isDialogEdit ? 'Save' : 'Invite'}}</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -161,6 +178,42 @@
               ></v-text-field>
           </v-edit-dialog>
         </td>
+         <td class="text-xs-center">
+           <v-edit-dialog
+              :return-value.sync="props.item.course"
+              large
+              lazy
+              @save="inlineSave(props.item)"
+            >
+              {{ props.item.course }}
+              <div slot="input" class="mt-3 title">Update Course</div>
+              <v-select
+                :items="courses"
+                slot="input"
+                v-model="props.item.course"
+                label="Course"
+                autofocus
+             ></v-select>
+          </v-edit-dialog>
+        </td>
+         <td class="text-xs-center">
+           <v-edit-dialog
+              :return-value.sync="props.item.year"
+              large
+              lazy
+              @save="inlineSave(props.item)"
+            >
+              {{ props.item.year }}
+              <div slot="input" class="mt-3 title">Update Year</div>
+             <v-select
+              :items="years"
+              slot="input"
+              v-model="props.item.year"
+              label="Class Year"
+              autofocus
+            ></v-select>
+          </v-edit-dialog>
+        </td>
         <td class="text-xs-center">
           <a :href="props.item.facebook">
             {{ typeof props.item.facebook !== 'undefined' ? 'Link' : '' }}
@@ -194,14 +247,13 @@
             >
               {{ props.item.state }}
               <div slot="input" class="mt-3 title">Update State</div>
-              <v-text-field
+              <v-select
+                :items="states"
                 slot="input"
                 v-model="props.item.state"
-                label="Edit"
-                single-line
-                counter
+                label="State"
                 autofocus
-              ></v-text-field>
+              ></v-select>
           </v-edit-dialog>
         </td>
       </template>
@@ -213,6 +265,7 @@
 import { mapState } from 'vuex'
 import api, { userKeys } from '../api'
 import { eventNames as appEvents } from '../events'
+import { stateAbbreviations, classYears, courseNumbers } from '../definitions'
 
 export default {
   name: 'contacts-table',
@@ -223,22 +276,32 @@ export default {
       dialog: false,
       selected: [],
       headers: [
-        { text: 'First', align: 'left', sortable: true, value: userKeys.firstName },
-        { text: 'Last', align: 'left', sortable: true, value: userKeys.lastName },
+        { text: 'First', align: 'left', value: userKeys.firstName },
+        { text: 'Last', align: 'left', value: userKeys.lastName },
         { text: 'Phone', align: 'left', value: userKeys.phone, sortable: false },
         { text: 'Email', value: userKeys.email },
+        { text: 'Course', value: userKeys.course },
+        { text: 'Year', value: userKeys.year },
         { text: 'Facebook', value: userKeys.facebook },
         { text: 'Snapchat', value: userKeys.snapchat },
-        { text: 'State', value: userKeys.state },
+        { text: 'State', value: userKeys.state }
       ],
       isDialogEdit: false,
       editMap: {},
+      states: stateAbbreviations,
+      years: classYears(),
+      courses: courseNumbers.concat('Undecided')
     }
   },
 
   computed: {
     formTitle () {
-      return this.isDialogEdit ? 'Edit User' : 'New User'
+      return this.isDialogEdit ? 'Edit User' : 'Invite New User'
+    },
+
+    formSubheader () {
+      return this.isDialogEdit ? '' :
+        'The new user will receive an email asking them to sign up and fill in the rest of their details.'
     },
 
     deleteButtonTitle () {
@@ -289,9 +352,8 @@ export default {
     close () {
       this.dialog = false
       this.selected = []
-      this.isDialogEdit = false
-
       setTimeout(() => {
+        this.isDialogEdit = false
         this.editMap = {}
       }, 300)
     },
