@@ -369,8 +369,16 @@ export default {
           }
         })
       } else { // New
-
+        api.createNewUser(this.editMap.email, (error) => {
+          if (error === null) {
+            this.$_glob.root.$emit(appEvents.apiSuccess, 'USER CREATE success')
+          } else {
+            console.log(error)
+            this.$_glob.root.$emit(appEvents.apiFailure, 'USER CREATE failed')
+          }
+        })
       }
+
       this.close()
     },
 

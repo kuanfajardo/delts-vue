@@ -26,6 +26,31 @@ export default {
     })
   },
 
+  createNewUser (email, callback) {
+    const defaultPassword = 'tempPass'
+    firebase.auth().createUserWithEmailAndPassword(email, defaultPassword)
+      .then(() => {
+        // If successful, send sign-in email
+        const actionCodeSettings = {
+          url: 'http://localhost:8080/#/register',
+          handleCodeInApp: true
+        }
+
+        firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings)
+          .then(() => {
+            callback(null)
+          }, (error) => {
+            callback(new Error(error))
+          }).catch((error) => {
+            throw error
+          })
+      }, (error) => {
+        callback(new Error(error))
+      }).catch((error) => {
+        throw error
+      })
+  },
+
   // READ
 
   // UPDATE
@@ -82,6 +107,9 @@ export default {
   }
 
   // DELETE
+
+  // OTHER
+
 }
 
 export * from './keys'
