@@ -103,16 +103,16 @@
         </td>
         <td>
           <v-edit-dialog
-              :return-value.sync="props.item.first"
+              :return-value.sync="props.item[userKeys.firstName]"
               large
               lazy
               @save="inlineSave(props.item)"
             >
-              {{ props.item.first }}
+              {{ props.item[userKeys.firstName] }}
               <div slot="input" class="mt-3 title">Update First Name</div>
               <v-text-field
                 slot="input"
-                v-model="props.item.first"
+                v-model="props.item[userKeys.firstName]"
                 label="Edit"
                 single-line
                 counter
@@ -122,16 +122,16 @@
         </td>
         <td>
           <v-edit-dialog
-              :return-value.sync="props.item.last"
+              :return-value.sync="props.item[userKeys.lastName]"
               large
               lazy
               @save="inlineSave(props.item)"
             >
-              {{ props.item.last }}
+              {{ props.item[userKeys.lastName] }}
               <div slot="input" class="mt-3 title">Update First Last</div>
               <v-text-field
                 slot="input"
-                v-model="props.item.last"
+                v-model="props.item[userKeys.lastName]"
                 label="Edit"
                 single-line
                 counter
@@ -141,17 +141,17 @@
         </td>
         <td class="text-xs-right">
           <v-edit-dialog
-              :return-value.sync="props.item.phone"
+              :return-value.sync="props.item[userKeys.phone]"
               large
               lazy
               @save="inlineSave(props.item)"
             >
-              {{ props.item.phone }}
+              {{ props.item[userKeys.phone] }}
               <div slot="input" class="mt-3 title">Update Phone</div>
               <v-text-field
                 slot="input"
                 mask="phone"
-                v-model="props.item.phone"
+                v-model="props.item[userKeys.phone]"
                 label="Edit"
                 single-line
                 counter
@@ -161,16 +161,16 @@
         </td>
         <td class="text-xs-center">
            <v-edit-dialog
-              :return-value.sync="props.item.email"
+              :return-value.sync="props.item[userKeys.email]"
               large
               lazy
               @save="inlineSave(props.item)"
             >
-              {{ props.item.email }}
+              {{ props.item[userKeys.email] }}
               <div slot="input" class="mt-3 title">Update Email</div>
               <v-text-field
                 slot="input"
-                v-model="props.item.email"
+                v-model="props.item[userKeys.email]"
                 label="Edit"
                 single-line
                 counter
@@ -180,17 +180,17 @@
         </td>
          <td class="text-xs-center">
            <v-edit-dialog
-              :return-value.sync="props.item.course"
+              :return-value.sync="props.item[userKeys.course]"
               large
               lazy
               @save="inlineSave(props.item)"
             >
-              {{ props.item.course }}
+              {{ props.item[userKeys.course] }}
               <div slot="input" class="mt-3 title">Update Course</div>
               <v-select
                 :items="courses"
                 slot="input"
-                v-model="props.item.course"
+                v-model="props.item[userKeys.course]"
                 label="Course"
                 autofocus
              ></v-select>
@@ -198,39 +198,39 @@
         </td>
          <td class="text-xs-center">
            <v-edit-dialog
-              :return-value.sync="props.item.year"
+              :return-value.sync="props.item[userKeys.year]"
               large
               lazy
               @save="inlineSave(props.item)"
             >
-              {{ props.item.year }}
+              {{ props.item[userKeys.year] }}
               <div slot="input" class="mt-3 title">Update Year</div>
              <v-select
               :items="years"
               slot="input"
-              v-model="props.item.year"
+              v-model="props.item[userKeys.year]"
               label="Class Year"
               autofocus
             ></v-select>
           </v-edit-dialog>
         </td>
         <td class="text-xs-center">
-          <a :href="props.item.facebook">
-            {{ typeof props.item.facebook !== 'undefined' ? 'Link' : '' }}
+          <a :href="props.item[userKeys.facebook]">
+            {{ typeof props.item[userKeys.facebook] !== 'undefined' ? 'Link' : '' }}
           </a>
         </td>
         <td class="text-xs-center">
            <v-edit-dialog
-              :return-value.sync="props.item.snapchat"
+              :return-value.sync="props.item[userKeys.snapchat]"
               large
               lazy
               @save="inlineSave(props.item)"
             >
-              {{ props.item.snapchat }}
+              {{ props.item[userKeys.snapchat] }}
               <div slot="input" class="mt-3 title">Update Snapchat</div>
               <v-text-field
                 slot="input"
-                v-model="props.item.snapchat"
+                v-model="props.item[userKeys.snapchat]"
                 label="Edit"
                 single-line
                 counter
@@ -240,17 +240,17 @@
         </td>
         <td class="text-xs-center">
            <v-edit-dialog
-              :return-value.sync="props.item.state"
+              :return-value.sync="props.item[userKeys.state]"
               large
               lazy
               @save="inlineSave(props.item)"
             >
-              {{ props.item.state }}
+              {{ props.item[userKeys.state] }}
               <div slot="input" class="mt-3 title">Update State</div>
               <v-select
                 :items="states"
                 slot="input"
-                v-model="props.item.state"
+                v-model="props.item[userKeys.state]"
                 label="State"
                 autofocus
               ></v-select>
@@ -369,7 +369,7 @@ export default {
           }
         })
       } else { // New
-        api.createNewUser(this.editMap.email, (error) => {
+        api.createNewUser(this.editMap[userKeys.email], (error) => {
           if (error === null) {
             this.$_glob.root.$emit(appEvents.apiSuccess, 'USER CREATE success')
           } else {
