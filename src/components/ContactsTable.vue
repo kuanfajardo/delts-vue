@@ -9,58 +9,200 @@
         hide-details
       ></v-text-field>
       <v-spacer></v-spacer>
-      <v-dialog v-model="dialog" max-width="500px">
-        <v-btn slot="activator" color="primary" class="mb-2">New User</v-btn>
-        <v-card>
+      <v-dialog
+          v-model="dialog"
+          max-width="500px"
+      >
+        <v-btn
+            slot="activator"
+            color="primary"
+            class="mb-2"
+        >
+          New User
+        </v-btn>
+        <v-btn
+            v-if="selected.length === 1"
+            slot="activator"
+            color="primary"
+            class="mb-2"
+            @click.stop="editSelectedItem"
+        >
+          Edit User
+        </v-btn>
+        <v-card class="ma-auto">
           <v-card-title>
             <span class="headline">{{ formTitle }}</span>
           </v-card-title>
 
-          <v-card-text>
-            <v-container grid-list-md>
-              <v-layout wrap>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedUser.name" label="Name"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedUser.phone" label="Phone"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedUser.email" label="Email"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedUser.fb" label="Facebook"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedUser.snap" label="Snapchat"></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editedUser.state" label="State"></v-text-field>
-                </v-flex>
-              </v-layout>
-            </v-container>
-          </v-card-text>
-        </v-card>
+          <v-container grid-list-md>
+            <v-layout wrap>
+              <v-flex xs12 sm6 md4>
+                <v-text-field v-model="editMap[userKeys.firstName]" label="First"></v-text-field>
+              </v-flex>
+              <v-flex xs12 sm6 md4>
+                <v-text-field v-model="editMap[userKeys.phone]" label="Phone" mask="phone"></v-text-field>
+              </v-flex>
+              <v-flex xs12 sm6 md4>
+                <v-text-field v-model="editMap[userKeys.email]" label="Email"></v-text-field>
+              </v-flex>
+              <v-flex xs12 sm6 md4>
+                <v-text-field v-model="editMap[userKeys.facebook]" label="Facebook"></v-text-field>
+              </v-flex>
+              <v-flex xs12 sm6 md4>
+                <v-text-field v-model="editMap[userKeys.snapchat]" label="Snapchat"></v-text-field>
+              </v-flex>
+              <v-flex xs12 sm6 md4>
+                <v-text-field v-model="editMap[userKeys.state]" label="State"></v-text-field>
+              </v-flex>
+            </v-layout>
+          </v-container>
 
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn flat @click.native="close">Cancel</v-btn>
-          <v-btn color="primary" flat @click.native="save">Save</v-btn>
-        </v-card-actions>
+          <v-divider></v-divider>
+
+          <v-card-actions color="white">
+            <v-spacer></v-spacer>
+            <v-btn flat color="error" @click.native="close">Cancel</v-btn>
+            <v-btn flat color="primary" @click.native="save">Save</v-btn>
+          </v-card-actions>
+        </v-card>
       </v-dialog>
+      <v-btn
+          v-if="selected.length > 0"
+          color="error"
+          @click.stop="deleteSelectedItems"
+      >
+        {{ deleteButtonTitle }}
+      </v-btn>
     </v-toolbar>
 
-    <v-data-table :headers="headers" :items="users" :search="search" class="elevation-1">
+    <v-data-table v-model="selected" :headers="headers" :items="users" :search="search" class="elevation-1" select-all>
       <template slot="items" slot-scope="props">
-        <td>{{ props.item.name }}</td>
-        <td class="text-xs-center">{{ props.item.phone }}</td>
-        <td class="text-xs-center">{{ props.item.email }}</td>
-        <td class="text-xs-center">{{ props.item.fb }}</td>
-        <td class="text-xs-center">{{ props.item.snap }}</td>
-        <td class="text-xs-center">{{ props.item.state }}</td>
-        <td class="justify-center layout px-0">
-          <v-icon small class="mr-2" @click="editItem(props.item)">edit</v-icon>
-          <v-icon small class="mr-2" @click="deleteItem(props.item)">delete</v-icon>
+        <td>
+          <v-checkbox
+            v-model="props.selected"
+            primary
+            hide-details
+          ></v-checkbox>
+        </td>
+        <td>
+          <v-edit-dialog
+              :return-value.sync="props.item.first"
+              large
+              lazy
+              @save="inlineSave(props.item)"
+            >
+              {{ props.item.first }}
+              <div slot="input" class="mt-3 title">Update First Name</div>
+              <v-text-field
+                slot="input"
+                v-model="props.item.first"
+                label="Edit"
+                single-line
+                counter
+                autofocus
+              ></v-text-field>
+          </v-edit-dialog>
+        </td>
+        <td>
+          <v-edit-dialog
+              :return-value.sync="props.item.last"
+              large
+              lazy
+              @save="inlineSave(props.item)"
+            >
+              {{ props.item.last }}
+              <div slot="input" class="mt-3 title">Update First Last</div>
+              <v-text-field
+                slot="input"
+                v-model="props.item.last"
+                label="Edit"
+                single-line
+                counter
+                autofocus
+              ></v-text-field>
+          </v-edit-dialog>
+        </td>
+        <td class="text-xs-right">
+          <v-edit-dialog
+              :return-value.sync="props.item.phone"
+              large
+              lazy
+              @save="inlineSave(props.item)"
+            >
+              {{ props.item.phone }}
+              <div slot="input" class="mt-3 title">Update Phone</div>
+              <v-text-field
+                slot="input"
+                mask="phone"
+                v-model="props.item.phone"
+                label="Edit"
+                single-line
+                counter
+                autofocus
+              ></v-text-field>
+          </v-edit-dialog>
+        </td>
+        <td class="text-xs-center">
+           <v-edit-dialog
+              :return-value.sync="props.item.email"
+              large
+              lazy
+              @save="inlineSave(props.item)"
+            >
+              {{ props.item.email }}
+              <div slot="input" class="mt-3 title">Update Email</div>
+              <v-text-field
+                slot="input"
+                v-model="props.item.email"
+                label="Edit"
+                single-line
+                counter
+                autofocus
+              ></v-text-field>
+          </v-edit-dialog>
+        </td>
+        <td class="text-xs-center">
+          <a :href="props.item.facebook">
+            {{ typeof props.item.facebook !== 'undefined' ? 'Link' : '' }}
+          </a>
+        </td>
+        <td class="text-xs-center">
+           <v-edit-dialog
+              :return-value.sync="props.item.snapchat"
+              large
+              lazy
+              @save="inlineSave(props.item)"
+            >
+              {{ props.item.snapchat }}
+              <div slot="input" class="mt-3 title">Update Snapchat</div>
+              <v-text-field
+                slot="input"
+                v-model="props.item.snapchat"
+                label="Edit"
+                single-line
+                counter
+                autofocus
+              ></v-text-field>
+          </v-edit-dialog>
+        </td>
+        <td class="text-xs-center">
+           <v-edit-dialog
+              :return-value.sync="props.item.state"
+              large
+              lazy
+              @save="inlineSave(props.item)"
+            >
+              {{ props.item.state }}
+              <div slot="input" class="mt-3 title">Update State</div>
+              <v-text-field
+                slot="input"
+                v-model="props.item.state"
+                label="Edit"
+                single-line
+                counter
+                autofocus
+              ></v-text-field>
+          </v-edit-dialog>
         </td>
       </template>
     </v-data-table>
@@ -68,6 +210,9 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+import api, { userKeys } from '../api'
+import { eventNames as appEvents } from '../events'
 
 export default {
   name: 'contacts-table',
@@ -76,40 +221,37 @@ export default {
     return {
       search: '',
       dialog: false,
+      selected: [],
       headers: [
-        { text: 'Name', align: 'left', sortable: false, value: 'name' },
-        { text: 'Phone', align: 'left', value: 'phone', sortable: false },
-        { text: 'Email', value: 'email' },
-        { text: 'Facebook', value: 'fb' },
-        { text: 'Snapchat', value: 'snap' },
-        { text: 'State', value: 'state' },
-        { text: 'Actions', value: 'name', sortable: false }
+        { text: 'First', align: 'left', sortable: true, value: userKeys.firstName },
+        { text: 'Last', align: 'left', sortable: true, value: userKeys.lastName },
+        { text: 'Phone', align: 'left', value: userKeys.phone, sortable: false },
+        { text: 'Email', value: userKeys.email },
+        { text: 'Facebook', value: userKeys.facebook },
+        { text: 'Snapchat', value: userKeys.snapchat },
+        { text: 'State', value: userKeys.state },
       ],
-      users: [],
-      editedIndex: -1,
-      editedUser: {
-        name: '',
-        phone: '000-000-0000',
-        email: '',
-        fb: '',
-        snap: '',
-        state: ''
-      },
-      defaultUser: {
-        name: '',
-        phone: '',
-        email: '',
-        fb: '',
-        snap: '',
-        state: ''
-      }
+      isDialogEdit: false,
+      editMap: {},
     }
   },
 
   computed: {
     formTitle () {
-      return this.editedIndex === -1 ? 'New User' : 'Edit User'
-    }
+      return this.isDialogEdit ? 'Edit User' : 'New User'
+    },
+
+    deleteButtonTitle () {
+      return this.selected.length > 1 ? 'Delete Users' : 'Delete User'
+    },
+
+    userKeys () {
+      return userKeys
+    },
+
+    ...mapState([
+      'users'
+    ])
   },
 
   watch: {
@@ -118,44 +260,19 @@ export default {
     }
   },
 
-  created () {
-    this.initialize()
-  },
-
   methods: {
-    initialize () {
-      this.users = [
-        {
-          name: 'Juan Fajardo',
-          phone: '954-204-6060',
-          email: 'jfajardo@mit.edu',
-          fb: 'kuanfajardo',
-          snap: 'juanfajardo',
-          state: 'Florida'
-        },
-        {
-          name: 'Malik Coville',
-          phone: '954-204-6060',
-          email: 'jfajardo@mit.edu',
-          fb: 'kuanfajardo',
-          snap: 'juanfajardo',
-          state: 'Florida'
-        },
-        {
-          name: 'Tim Plump',
-          phone: '954-204-6060',
-          email: 'timplump@mit.edu',
-          fb: 'kuanfajardo',
-          snap: 'timoteomo3',
-          state: 'New Jersey'
-        }
-      ]
-    },
+    // TOOLBAR ACTIONS
 
-    editItem (item) {
-      this.editedIndex = this.users.indexOf(item)
-      this.editedUser = Object.assign({}, item)
+    editSelectedItem () {
+      if (this.selected.length !== 1) return
+
+      this.isDialogEdit = true
       this.dialog = true
+
+      // We use a separate edit map in order to avoid changing the user obj. As long as all the properties on
+      // userToEdit are primitive, this is a deep copy.
+      const userToEdit = this.selected[0]
+      this.editMap = Object.assign({}, userToEdit)
     },
 
     deleteItem (item) {
@@ -163,21 +280,49 @@ export default {
       confirm('Are you sure you want to delete this item?') && this.users.splice(index, 1)
     },
 
+    deleteSelectedItems () {
+      confirm('Are you sure you want to delete ' + this.selected.length + ' items?')
+    },
+
+    // DIALOG ACTIONS
+
     close () {
       this.dialog = false
+      this.selected = []
+      this.isDialogEdit = false
+
       setTimeout(() => {
-        this.editedUser = Object.assign({}, this.defaultUser)
-        this.editedIndex = -1
+        this.editMap = {}
       }, 300)
     },
 
     save () {
-      if (this.editedIndex > -1) {
-        Object.assign(this.users[this.editedIndex], this.editedUser)
-      } else {
-        this.users.push(this.editedUser)
+      if (this.isDialogEdit) { // Update
+        const editedUserObj = this.selected[0]
+        api.updateUser(editedUserObj, this.editMap, (error) => {
+          if (error === null) {
+            this.$_glob.root.$emit(appEvents.apiSuccess, 'USER UPDATE success')
+          } else {
+            this.$_glob.root.$emit(appEvents.apiFailure, 'USER UPDATE failed')
+          }
+        })
+      } else { // New
+
       }
       this.close()
+    },
+
+    // INLINE ACTIONS
+    inlineSave (userObj) {
+      api.updateUser(userObj, userObj, (error) => {
+        if (error === null) {
+          console.log('User ' + userObj.id + ' updated successfully')
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'USER UPDATE success')
+        } else {
+          console.log('User ' + userObj.id + ' updated successfully')
+          this.$_glob.root.$emit(appEvents.apiFailure, 'USER UPDATE failed')
+        }
+      })
     }
   }
 }

@@ -12,8 +12,8 @@ Vue.use(Vuex)
 const dutiesStore = {
   state: {
     dutyTemplates: [], // Will be bound to duty-templates collection
-    users: [], // Will be bound to users collection,
     allDuties: [], // Will be bound to duties collection,
+    // TODO: do a batched read for this! https://firebase.google.com/docs/firestore/manage-data/transactions
     weekDuties: [], // Will be bound to duties collection, filtered for this week,
     selectedDuty: null, // Actual duty firestore object
     isDutySheetLive: false
@@ -28,10 +28,6 @@ const dutiesStore = {
   actions: {
     [SET_DUTY_TEMPLATES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
       bindFirebaseRef('dutyTemplates', ref)
-    }),
-
-    [SET_USERS_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
-      bindFirebaseRef('users', ref)
     }),
 
     [SET_ALL_DUTIES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
@@ -153,6 +149,16 @@ const dutiesStore = {
 }
 
 export default new Vuex.Store({
+  state: {
+    users: [] // Will be bound to users collection
+  },
+
+  actions: {
+    [SET_USERS_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
+      bindFirebaseRef('users', ref)
+    })
+  },
+
   modules: {
     dutiesStore
   },

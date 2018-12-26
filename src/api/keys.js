@@ -9,6 +9,7 @@ export const userKeys = {
   lastName: 'last',
   phone: 'phone',
   snapchat: 'snapchat',
+  state: 'state',
   verified: 'verified',
   year: 'year'
 }

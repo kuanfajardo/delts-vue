@@ -187,7 +187,7 @@ export default {
   computed: {
     ...mapState({
       selectedDuty: state => state.dutiesStore.selectedDuty,
-      users: state => state.dutiesStore.users
+      users: state => state.users
     }),
 
     ...mapGetters([

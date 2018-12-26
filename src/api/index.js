@@ -29,7 +29,6 @@ export default {
   // READ
 
   // UPDATE
-  // TODO: make all properties of objects in firestore (i.e. 'checker' or 'check-time' constants!
   checkoffDuty (dutyObj, callback) {
     // TODO: move to better place?
     const currentUserID = firebase.auth().currentUser.uid
@@ -68,6 +67,18 @@ export default {
     }).catch((error) => { // Error in callback
       throw error
     })
+  },
+
+  updateUser (userObj, updateData, callback) {
+    fb.usersRef.doc(userObj.id)
+      .update(updateData)
+      .then(() => { // Success
+        callback(null)
+      }, (error) => { // Failure
+        callback(new Error(error))
+      }).catch((error) => { // Error in callback
+        throw error
+      })
   }
 
   // DELETE
