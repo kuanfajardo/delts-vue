@@ -3,7 +3,7 @@ import Vue from 'vue'
 import './plugins/vuetify'
 import App from './App.vue'
 import router from './router/'
-import store from './store'
+import store, {SET_CURRENT_USER} from './store'
 import VeeValidate from 'vee-validate'
 import firebase from 'firebase'
 import './plugins/firebase'
@@ -15,7 +15,8 @@ let app
 Vue.use(VeeValidate, { fieldsBagName: 'formFields' })
 Vue.prototype.$_glob = {}
 
-firebase.auth().onAuthStateChanged(function (user) { // TODO: what is this lol
+firebase.auth().onAuthStateChanged(function (user) { // TODO: Move to another file (maybe auth?)
+  store.commit(SET_CURRENT_USER, user)
   if (!app) {
     app = new Vue({
       router,

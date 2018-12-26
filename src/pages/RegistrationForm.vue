@@ -235,7 +235,7 @@ export default {
         valid => {
           if (valid) {
             // TODO: Push user data to server
-            this.$_glob.$emit(appEvents.loginSuccess)
+            this.$_glob.root.$emit(appEvents.loginSuccess)
           }
         }
       )

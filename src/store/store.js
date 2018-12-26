@@ -1,21 +1,27 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { EDIT_SELECTED_DUTY } from './mutation-types'
+
+import { EDIT_SELECTED_DUTY, SET_CURRENT_USER } from './mutation-types'
 import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF } from './action-types'
+
 import { firebaseMutations, firebaseAction } from 'vuexfire'
+
 import { dutyTemplatesRef } from '../plugins/firebase'
-import { getAllIndexes } from '../definitions'
-import { dutyTemplateKeys, dutyKeys } from '../api'
+import { getAllIndexes, PermissionSets, comparePermissions, containsAllPermission } from '../definitions'
+import { dutyTemplateKeys, dutyKeys, userKeys } from '../api'
 
 Vue.use(Vuex)
 
 const dutiesStore = {
   state: {
+    /* BOUND TO FIRESTORE */
     dutyTemplates: [], // Will be bound to duty-templates collection
     allDuties: [], // Will be bound to duties collection,
     // TODO: do a batched read for this! https://firebase.google.com/docs/firestore/manage-data/transactions
     weekDuties: [], // Will be bound to duties collection, filtered for this week,
-    selectedDuty: null, // Actual duty firestore object
+
+    /* LOCAL */
+    selectedDuty: null, // Actual firestore object
     isDutySheetLive: false
   },
 
@@ -143,14 +149,18 @@ const dutiesStore = {
         return duty.id === dutyID
       })
 
-      return typeof dutyObj === 'undefined' ? null : dutyObj
+      return dutyObj || null
     }
   }
 }
 
 export default new Vuex.Store({
   state: {
-    users: [] // Will be bound to users collection
+    /* BOUND TO FIRESTORE */
+    users: [], // Will be bound to users collection
+
+    /* LOCAL */
+    currentUser: null
   },
 
   actions: {
@@ -163,5 +173,40 @@ export default new Vuex.Store({
     dutiesStore
   },
 
-  mutations: firebaseMutations
+  mutations: {
+    [SET_CURRENT_USER] (state, user) {
+      state.currentUser = user
+      console.log(user)
+    },
+
+    ...firebaseMutations
+  },
+
+  getters: {
+    currentFirestoreUser: (state) => {
+      if (!state.currentUser) return null
+
+      const uid = state.currentUser.uid
+      const userObj = state.users.find(user => {
+        return user.id === uid
+      })
+
+      return userObj || null
+    },
+
+    currentPermissionSet: (state, getters) => {
+      if (!getters.currentFirestoreUser) return PermissionSets.User
+      return getters.currentFirestoreUser[userKeys.permissionSet] || PermissionSets.User
+    },
+
+    // Returns if current user has ONE of the permissions in permissionSet
+    currentUserHasPermissions: (state, getters) => (permissionSet) => {
+      return comparePermissions(getters.currentPermissionSet, permissionSet)
+    },
+
+    // Returns if current user has ALL of the permissions in permissionSet
+    currentUserHasAllPermissions: (state, getters) => (permissionSet) => {
+      return containsAllPermission(getters.currentPermissionSet, permissionSet)
+    }
+  }
 })

@@ -64,7 +64,7 @@
 <script>
 import DrawerMenuList from './DrawerMenuList'
 import auth from '@/auth'
-import appEvents from '@/events/names'
+import { eventNames as appEvents } from '../events'
 
 export default {
   name: 'app-navigation',
@@ -98,7 +98,7 @@ export default {
           title: 'Logout',
           click: (e) => {
             auth.signOut(() => {
-              this.$_glob.$emit(appEvents.logout)
+              this.$_glob.root.$emit(appEvents.logout)
             })
           }
         }

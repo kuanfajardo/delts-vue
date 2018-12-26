@@ -1,11 +1,42 @@
-// TODO: make symbols: https://stackoverflow.com/questions/44447847/enums-in-javascript-with-es6
+// TODO: make enums symbols: https://stackoverflow.com/questions/44447847/enums-in-javascript-with-es6
 export const DutyStatus = Object.freeze({
-  'unavailable': 0,
-  'unclaimed': 1,
-  'claimed': 2,
-  'completed': 3,
-  'punted': 4
+  unavailable: 0,
+  unclaimed: 1,
+  claimed: 2,
+  completed: 3,
+  punted: 4
 })
+
+export const Permissions = Object.freeze({
+  None: 0,
+  Checker: 1,
+  Bouncing: 2,
+  Social: 4,
+  House: 8,
+  Admin: 16
+})
+
+export const PermissionSets = Object.freeze({
+  User: Permissions.None,
+  Checker: Permissions.Checker,
+  Bouncing: Permissions.Bouncing,
+  Social: Permissions.Social,
+  House: Permissions.Checker | Permissions.House,
+  Admin: Permissions.Checker | Permissions.Bouncing | Permissions.Social | Permissions.House | Permissions.Admin
+})
+
+export function comparePermissions (a, b) {
+  return (a & b) !== Permissions.None
+}
+
+/**
+ * Order matters! Test whether TEST \in HAS
+ * @param has
+ * @param test
+ */
+export function containsAllPermission (has, test) {
+  return (has & test) === test
+}
 
 export function getLastDayOfWeek (dayOfWeek, refDate = new Date()) {
   // Get next day-of-week and subtract a week
@@ -55,12 +86,14 @@ export function classYears () {
 
   return years
 }
+
 export const stateAbbreviations = [
   'AL', 'AK', 'AS', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FM', 'FL', 'GA', 'GU', 'HI', 'ID', 'IL', 'IN', 'IA',
   'KS', 'KY', 'LA', 'ME', 'MH', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC',
   'ND', 'MP', 'OH', 'OK', 'OR', 'PW', 'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VI', 'VA', 'WA', 'WV',
   'WI', 'WY'
 ]
+
 export const stateNames = [
   'Alabama',
   'Alaska',
@@ -122,6 +155,7 @@ export const stateNames = [
   'Wisconsin',
   'Wyoming'
 ]
+
 export const courseNumbers = [
   // Architecture & Planning
   '4',

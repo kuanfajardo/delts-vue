@@ -7,6 +7,7 @@ export const userKeys = {
   givenName: 'given',
   interests: 'interests',
   lastName: 'last',
+  permissionSet: 'permissionsMask',
   phone: 'phone',
   snapchat: 'snapchat',
   state: 'state',

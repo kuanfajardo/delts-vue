@@ -61,7 +61,7 @@
 import { dutiesMixin } from '../mixins/duties-mixin'
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import api, { userKeys, dutyKeys } from '../api'
-import { DutyStatus } from '../definitions'
+import { DutyStatus, Permissions } from '../definitions'
 import { EDIT_SELECTED_DUTY } from '../store'
 import { eventNames as appEvents } from '../events'
 
@@ -71,7 +71,6 @@ export default {
 
   data () {
     return {
-      showAdmin: true,
       assignee: null,
       // Used to distinguish changes in assignee due to (1) selecting a different duty (should be ignored), and
       // (2) actually changing the assignee via the overflow button (should take action)
@@ -166,6 +165,7 @@ export default {
       this.isOverflowBusy = true
 
       api.updateAssigneeForDuty(this.selectedDuty, this.assignee, (error) => {
+        // TODO: Change all checks for === null to just !error
         if (error === null) {
           console.log('Success updating assignee for duty ' + this.selectedDuty.id)
           this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id))
@@ -186,13 +186,20 @@ export default {
 
   computed: {
     ...mapState({
-      selectedDuty: state => state.dutiesStore.selectedDuty,
-      users: state => state.users
+      selectedDuty: state => state.dutiesStore.selectedDuty
     }),
 
-    ...mapGetters([
-      'dutyObjForID'
+    ...mapState([
+      'users', 'currentUser'
     ]),
+
+    ...mapGetters([
+      'dutyObjForID', 'currentUserHasPermissions'
+    ]),
+
+    showAdmin () {
+      return this.currentUserHasPermissions(Permissions.Checker | Permissions.House)
+    },
 
     selectedDutyStatus () {
       return this.statusForDuty(this.selectedDuty)
