@@ -41,7 +41,8 @@
 <script>
 import appEvents from './events'
 import AppNavigation from './components/AppNavigation'
-import { today } from './plugins/firebase'
+import { dutyTemplatesRef, usersRef, allDutiesRef, weekDutiesRef, today } from './plugins/firebase'
+import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF } from './store'
 
 export default {
   name: 'App',
@@ -57,12 +58,25 @@ export default {
     }
   },
 
+  // --------------- //
+  // APP ENTRY POINT //
+  // --------------- //
   created () {
+    // Create global reference to root component
+    this.$_glob.root = this
+    // Instantiate app event handlers
     appEvents.forEach(item => {
       this.$on(item.name, item.callback)
     })
-    this.$_glob.root = this
+
+    // TODO: Remove! Only for debug
     this.$_glob.today = today
+
+    // Set vuexfire bindings
+    this.$store.dispatch(SET_DUTY_TEMPLATES_REF, dutyTemplatesRef)
+    this.$store.dispatch(SET_USERS_REF, usersRef)
+    this.$store.dispatch(SET_ALL_DUTIES_REF, allDutiesRef)
+    this.$store.dispatch(SET_WEEK_DUTIES_REF, weekDutiesRef)
   }
 }
 </script>

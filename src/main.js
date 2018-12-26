@@ -15,7 +15,7 @@ let app
 Vue.use(VeeValidate, { fieldsBagName: 'formFields' })
 Vue.prototype.$_glob = {}
 
-firebase.auth().onAuthStateChanged(function (user) {
+firebase.auth().onAuthStateChanged(function (user) { // TODO: what is this lol
   if (!app) {
     app = new Vue({
       router,

@@ -1,6 +1,4 @@
-import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF } from '../store'
 import { DutyStatus } from '@/definitions'
-import { dutyTemplatesRef, usersRef, allDutiesRef, weekDutiesRef } from '../plugins/firebase'
 
 export const dutiesMixin = {
   data () {
@@ -55,12 +53,5 @@ export const dutiesMixin = {
       const currentDate = new Date()
       return weekday > this.$_glob.today.getDay()
     }
-  },
-
-  created () {
-    this.$store.dispatch(SET_DUTY_TEMPLATES_REF, dutyTemplatesRef)
-    this.$store.dispatch(SET_USERS_REF, usersRef)
-    this.$store.dispatch(SET_ALL_DUTIES_REF, allDutiesRef)
-    this.$store.dispatch(SET_WEEK_DUTIES_REF, weekDutiesRef)
   }
 }
