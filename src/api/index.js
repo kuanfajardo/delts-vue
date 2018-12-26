@@ -51,6 +51,11 @@ export default {
       })
   },
 
+  deleteUser (userObj, callback) {
+    // TODO: Add Admin SDK to delete user
+    callback(new Error('Delete User not implemented yet'))
+  },
+
   // READ
 
   // UPDATE

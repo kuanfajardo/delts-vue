@@ -1,6 +1,7 @@
 <template>
   <div class="contacts-table">
     <v-toolbar class="elevation-1">
+      <!-- SEARCH BOX -->
       <v-text-field
         v-model="search"
         append-icon="search"
@@ -8,11 +9,16 @@
         single-line
         hide-details
       ></v-text-field>
+
       <v-spacer></v-spacer>
+
+      <!-- NEW / EDIT DIALOG -->
       <v-dialog
           v-model="dialog"
           max-width="500px"
       >
+
+        <!-- NEW USER BUTTON -->
         <v-btn
             slot="activator"
             color="primary"
@@ -20,6 +26,8 @@
         >
           New User
         </v-btn>
+
+        <!-- EDIT USER BUTTON -->
         <v-btn
             v-if="selected.length === 1"
             slot="activator"
@@ -29,6 +37,8 @@
         >
           Edit User
         </v-btn>
+
+        <!-- DIALOG CARD (EDIT/NEW) -->
         <v-card class="ma-auto">
           <v-card-title>
             <div class="mt-2 ml-2 mb-0">
@@ -37,6 +47,7 @@
             </div>
           </v-card-title>
 
+          <!-- FORM -->
           <v-container grid-list-md class="pb-2 pt-0">
             <v-layout wrap>
               <v-flex v-if="isDialogEdit" xs12 sm6 md4>
@@ -76,24 +87,72 @@
 
           <v-divider></v-divider>
 
+          <!-- DIALOG ACTIONS -->
           <v-card-actions color="white">
             <v-spacer></v-spacer>
+            <!-- CANCEL BUTTON -->
             <v-btn flat color="error" @click.native="close">Cancel</v-btn>
+            <!-- SAVE/INVITE BUTTON -->
             <v-btn flat color="primary" @click.native="save">{{ isDialogEdit ? 'Save' : 'Invite'}}</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
-      <v-btn
+
+      <!-- DELETE DIALOG -->
+      <v-dialog
           v-if="selected.length > 0"
+          v-model="deleteDialog"
+          persistent
+          max-width="450">
+
+        <!-- DELETE BUTTON-->
+        <v-btn
           color="error"
-          @click.stop="deleteSelectedItems"
-      >
-        {{ deleteButtonTitle }}
-      </v-btn>
+          slot="activator"
+        >
+          {{ deleteButtonTitle }}
+        </v-btn>
+
+        <!-- DIALOG CARD -->
+        <v-card class="ma-auto">
+          <v-card-title>
+            <div class="mt-2 ml-2 mb-0">
+              <span class="headline pb-2">Delete account</span>
+            </div>
+          </v-card-title>
+           <v-alert
+            type="error"
+            color="accent"
+            class="mx-4"
+            :value="true"
+          >
+            After you delete an account, it's permanently deleted. Accounts can't be undeleted.
+          </v-alert>
+
+          <v-card-text>
+            {{ 'Are you sure you want to delete ' + selected.length + ' users? \n' +
+            selected.map(user => { return user[userKeys.firstName] + ' ' + user[userKeys.lastName]}).join(', ') }}
+          </v-card-text>
+
+          <v-divider></v-divider>
+
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <!-- CANCEL BUTTON -->
+            <v-btn color="primary" @click.stop="deleteDialog = false">Cancel</v-btn>
+            <!-- DELETE BUTTON -->
+            <v-btn color="accent" flat @click.stop="deleteSelectedItems">Delete</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-toolbar>
 
+    <!-- DATA TABLE -->
+    <!-- TODO: Make "row" a component to be able to reuse -->
     <v-data-table v-model="selected" :headers="headers" :items="users" :search="search" class="elevation-1" select-all>
       <template slot="items" slot-scope="props">
+
+        <!-- SELECTION CHECKBOXES -->
         <td>
           <v-checkbox
             v-model="props.selected"
@@ -101,6 +160,8 @@
             hide-details
           ></v-checkbox>
         </td>
+
+        <!-- FIRST NAME -->
         <td>
           <v-edit-dialog
               :return-value.sync="props.item[userKeys.firstName]"
@@ -120,6 +181,8 @@
               ></v-text-field>
           </v-edit-dialog>
         </td>
+
+        <!-- LAST NAME -->
         <td>
           <v-edit-dialog
               :return-value.sync="props.item[userKeys.lastName]"
@@ -139,6 +202,8 @@
               ></v-text-field>
           </v-edit-dialog>
         </td>
+
+        <!-- PHONE -->
         <td class="text-xs-right">
           <v-edit-dialog
               :return-value.sync="props.item[userKeys.phone]"
@@ -159,8 +224,10 @@
               ></v-text-field>
           </v-edit-dialog>
         </td>
+
+        <!-- EMAIL -->
         <td class="text-xs-center">
-           <v-edit-dialog
+          <v-edit-dialog
               :return-value.sync="props.item[userKeys.email]"
               large
               lazy
@@ -178,8 +245,10 @@
               ></v-text-field>
           </v-edit-dialog>
         </td>
-         <td class="text-xs-center">
-           <v-edit-dialog
+
+        <!-- COURSE NUMBER -->
+        <td class="text-xs-center">
+          <v-edit-dialog
               :return-value.sync="props.item[userKeys.course]"
               large
               lazy
@@ -196,8 +265,10 @@
              ></v-select>
           </v-edit-dialog>
         </td>
-         <td class="text-xs-center">
-           <v-edit-dialog
+
+        <!-- CLASS YEAR -->
+        <td class="text-xs-center">
+          <v-edit-dialog
               :return-value.sync="props.item[userKeys.year]"
               large
               lazy
@@ -214,13 +285,17 @@
             ></v-select>
           </v-edit-dialog>
         </td>
+
+        <!-- FACEBOOK LINK -->
         <td class="text-xs-center">
           <a :href="props.item[userKeys.facebook]">
             {{ typeof props.item[userKeys.facebook] !== 'undefined' ? 'Link' : '' }}
           </a>
         </td>
+
+        <!-- SNAPCHAT HANDLE -->
         <td class="text-xs-center">
-           <v-edit-dialog
+          <v-edit-dialog
               :return-value.sync="props.item[userKeys.snapchat]"
               large
               lazy
@@ -238,8 +313,10 @@
               ></v-text-field>
           </v-edit-dialog>
         </td>
+
+        <!-- HOMETOWN STATE -->
         <td class="text-xs-center">
-           <v-edit-dialog
+          <v-edit-dialog
               :return-value.sync="props.item[userKeys.state]"
               large
               lazy
@@ -273,7 +350,8 @@ export default {
   data () {
     return {
       search: '',
-      dialog: false,
+      dialog: false, // Edit / new dialog
+      deleteDialog: false, // Delete dialog
       selected: [],
       headers: [
         { text: 'First', align: 'left', value: userKeys.firstName },
@@ -300,8 +378,8 @@ export default {
     },
 
     formSubheader () {
-      return this.isDialogEdit ? '' :
-        'The new user will receive an email asking them to sign up and fill in the rest of their details.'
+      return this.isDialogEdit ? ''
+        : 'The new user will receive an email asking them to sign up and fill in the rest of their details.'
     },
 
     deleteButtonTitle () {
@@ -317,15 +395,8 @@ export default {
     ])
   },
 
-  watch: {
-    dialog (val) {
-      val || this.close()
-    }
-  },
-
   methods: {
     // TOOLBAR ACTIONS
-
     editSelectedItem () {
       if (this.selected.length !== 1) return
 
@@ -338,26 +409,25 @@ export default {
       this.editMap = Object.assign({}, userToEdit)
     },
 
-    deleteItem (item) {
-      const index = this.users.indexOf(item)
-      confirm('Are you sure you want to delete this item?') && this.users.splice(index, 1)
-    },
-
+    // DELETE DIALOG ACTIONS
     deleteSelectedItems () {
-      confirm('Are you sure you want to delete ' + this.selected.length + ' items?')
+      this.deleteDialog = false
+      for (const item of this.selected) {
+        this.deleteItem(item)
+      }
     },
 
-    // DIALOG ACTIONS
-
-    close () {
-      this.dialog = false
-      this.selected = []
-      setTimeout(() => {
-        this.isDialogEdit = false
-        this.editMap = {}
-      }, 300)
+    deleteItem (item) {
+      api.deleteUser(item, (error) => {
+        if (error === null) {
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'USER DELETE success')
+        } else {
+          this.$_glob.root.$emit(appEvents.apiFailure, 'USER DELETE failed')
+        }
+      })
     },
 
+    // EDIT/NEW DIALOG ACTIONS
     save () {
       if (this.isDialogEdit) { // Update
         const editedUserObj = this.selected[0]
@@ -380,6 +450,15 @@ export default {
       }
 
       this.close()
+    },
+
+    close () {
+      this.dialog = false
+      this.selected = []
+      setTimeout(() => {
+        this.isDialogEdit = false
+        this.editMap = {}
+      }, 300)
     },
 
     // INLINE ACTIONS
