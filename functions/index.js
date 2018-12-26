@@ -1,8 +1,24 @@
+// The Cloud Functions for Firebase SDK to create Cloud Functions and setup triggers.
 const functions = require('firebase-functions');
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
+// The Firebase Admin SDK to access Firestore
+const admin = require('firebase-admin');
+admin.initializeApp();
+
+const db = admin.firestore()
+db.settings({ timestampsInSnapshots: true })
+
+exports.addUserToFirestore = functions.auth.user().onCreate((user) => {
+  return db.collection('users').doc(user.uid).set({
+    'email': user.email
+  }).then(() => {
+    return console.log('Added user ' + user.uid + ' to Firestore.')
+  })
+})
+
+exports.removeUserFromFirestore = functions.auth.user().onDelete((user) => {
+  return db.collection('users').doc(user.uid).delete()
+    .then(() => {
+      return console.log('Deleted user ' + user.uid + ' from Firestore.')
+    })
+})
