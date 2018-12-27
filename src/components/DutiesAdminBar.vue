@@ -93,10 +93,16 @@ export default {
 
   methods: {
     liveButtonClicked () {
-      alert('Live button clicked')
-      // TODO: eventually change to current date in cron job
-      const refDate = new Date(2018, 11, 16)
-      api.generateDutySheet(refDate)
+      // TODO: Change to real date
+      api.generateDutySheet(this.$_glob.today, (error) => {
+        if (error === null) {
+          console.log('Success in generating duty sheet starting on ' + this.$_glob.today)
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'SHEET GENERATION success')
+        } else {
+          console.log('Failure in generating duty sheet starting on ' + this.$_glob.today)
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'SHEET GENERATION failed')
+        }
+      })
     },
 
     editDutySheetButtonClicked () {

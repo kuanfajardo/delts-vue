@@ -13,7 +13,7 @@ let config = {
 firebase.initializeApp(config)
 
 // Firestore setup
-const db = firebase.firestore()
+export const db = firebase.firestore()
 db.settings({ timestampsInSnapshots: true })
 
 export const allDutiesRef = db.collection('duties')
