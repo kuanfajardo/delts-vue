@@ -7,23 +7,45 @@ import firebase from 'firebase'
 // TODO: split into public and private
 export default {
   // CREATE
-  generateDutySheet (startOfWeek) {
-    store.state.dutyTemplates.forEach(template => {
+  generateDutySheet (startOfWeek, callback) {
+    startOfWeek.setHours(0, 0, 0, 0)
+    const startOfWeekDay = startOfWeek.getDay()
+
+    var dutySheetBatch = fb.db.batch()
+
+    store.state.dutiesStore.dutyTemplates.forEach(template => {
       Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
         for (let i = 0; i < template[dutyTemplateKeys.schedule][weekday]; i++) {
+          var dutyDate
+          if (weekday == startOfWeekDay) { // {weekday} is string, {startOfWeekDay} is number, need ==
+            console.log('same day mofos')
+            dutyDate = new Date(startOfWeek.getTime())
+          } else {
+            dutyDate = getNextDayOfWeek(weekday, startOfWeek)
+          }
+
           const dutyObj = {
             [dutyKeys.assignee]: null,
             [dutyKeys.checkTime]: null,
             [dutyKeys.checker]: null,
-            [dutyKeys.date]: getNextDayOfWeek(weekday, startOfWeek),
+            [dutyKeys.date]: dutyDate,
             [dutyKeys.template]: fb.dutyTemplatesRef.doc(template.id)
           }
 
-          // TODO: add promise handlers
-          fb.allDutiesRef.add(dutyObj)
+          var newDutyRef = fb.allDutiesRef.doc()
+          dutySheetBatch.set(newDutyRef, dutyObj)
         }
       })
     })
+
+    dutySheetBatch.commit()
+      .then(() => { // Success
+        callback(null)
+      }, (error) => { // Failure
+        callback(new Error(error))
+      }).catch((error) => { // Error in callback
+        throw error
+      })
   },
 
   createNewUser (email, callback) {
