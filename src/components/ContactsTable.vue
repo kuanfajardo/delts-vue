@@ -12,94 +12,95 @@
 
       <v-spacer></v-spacer>
 
-      <!-- NEW / EDIT DIALOG -->
-      <v-dialog
-          v-model="dialog"
-          max-width="500px"
-      >
-
-        <!-- NEW USER BUTTON -->
-        <v-btn
-            slot="activator"
-            color="primary"
-            class="mb-2"
+      <template v-if="isContactsAdmin">
+        <!-- NEW / EDIT DIALOG -->
+        <v-dialog
+            v-model="dialog"
+            max-width="500px"
         >
-          New User
-        </v-btn>
 
-        <!-- EDIT USER BUTTON -->
-        <v-btn
-            v-if="selected.length === 1"
-            slot="activator"
-            color="primary"
-            class="mb-2"
-            @click.stop="editSelectedItem"
-        >
-          Edit User
-        </v-btn>
+          <!-- NEW USER BUTTON -->
+          <v-btn
+              slot="activator"
+              color="primary"
+              class="mb-2"
+          >
+            New User
+          </v-btn>
 
-        <!-- DIALOG CARD (EDIT/NEW) -->
-        <v-card class="ma-auto">
-          <v-card-title>
-            <div class="mt-2 ml-2 mb-0">
-              <span class="headline pb-2">{{ formTitle }}</span>
-              <div class="mt-1">{{ formSubheader }}</div>
-            </div>
-          </v-card-title>
+          <!-- EDIT USER BUTTON -->
+          <v-btn
+              v-if="selected.length === 1"
+              slot="activator"
+              color="primary"
+              class="mb-2"
+              @click.stop="editSelectedItem"
+          >
+            Edit User
+          </v-btn>
 
-          <!-- FORM -->
-          <v-container grid-list-md class="pb-2 pt-0">
-            <v-layout wrap>
-              <v-flex v-if="isDialogEdit" xs12 sm6 md4>
-                <v-text-field v-model="editMap[userKeys.firstName]" label="First"></v-text-field>
-              </v-flex>
-              <v-flex v-if="isDialogEdit" xs12 sm6 md4>
-                <v-text-field v-model="editMap[userKeys.lastName]" label="Last"></v-text-field>
-              </v-flex>
-              <v-flex xs12 sm6 :md4="isDialogEdit" :md12="!isDialogEdit">
-                <v-text-field v-model="editMap[userKeys.email]" label="Email"></v-text-field>
-              </v-flex>
-              <template v-if="isDialogEdit">
-              <v-flex xs12 sm6 md4>
-                <v-text-field v-model="editMap[userKeys.phone]" label="Phone" mask="phone"></v-text-field>
-              </v-flex>
-              <v-flex xs12 sm6 md4>
-                <v-select :items="courses" v-model="editMap[userKeys.course]" label="Course"></v-select>
-              </v-flex>
-              <v-flex xs12 sm6 md4>
-                <v-select :items="years" v-model="editMap[userKeys.year]" label="Class Year"></v-select>
-              </v-flex>
-              <v-flex xs12 sm6 md4>
-                <v-text-field v-model="editMap[userKeys.givenName]" label="Given Name"></v-text-field>
-              </v-flex>
-              <v-flex xs12 sm6 md4>
-                <v-text-field v-model="editMap[userKeys.snapchat]" label="Snapchat"></v-text-field>
-              </v-flex>
-              <v-flex xs12 sm6 md4>
-                 <v-select :items="states" v-model="editMap[userKeys.state]" label="State"></v-select>
-              </v-flex>
-              <v-flex xs12>
-                <v-text-field v-model="editMap[userKeys.facebook]" label="Facebook"></v-text-field>
-              </v-flex>
-              </template>
-            </v-layout>
-          </v-container>
+          <!-- DIALOG CARD (EDIT/NEW) -->
+          <v-card class="ma-auto">
+            <v-card-title>
+              <div class="mt-2 ml-2 mb-0">
+                <span class="headline pb-2">{{ formTitle }}</span>
+                <div class="mt-1">{{ formSubheader }}</div>
+              </div>
+            </v-card-title>
 
-          <v-divider></v-divider>
+            <!-- FORM -->
+            <v-container grid-list-md class="pb-2 pt-0">
+              <v-layout wrap>
+                <v-flex v-if="isDialogEdit" xs12 sm6 md4>
+                  <v-text-field v-model="editMap[userKeys.firstName]" label="First"></v-text-field>
+                </v-flex>
+                <v-flex v-if="isDialogEdit" xs12 sm6 md4>
+                  <v-text-field v-model="editMap[userKeys.lastName]" label="Last"></v-text-field>
+                </v-flex>
+                <v-flex xs12 sm6 :md4="isDialogEdit" :md12="!isDialogEdit">
+                  <v-text-field v-model="editMap[userKeys.email]" label="Email"></v-text-field>
+                </v-flex>
+                <template v-if="isDialogEdit">
+                <v-flex xs12 sm6 md4>
+                  <v-text-field v-model="editMap[userKeys.phone]" label="Phone" mask="phone"></v-text-field>
+                </v-flex>
+                <v-flex xs12 sm6 md4>
+                  <v-select :items="courses" v-model="editMap[userKeys.course]" label="Course"></v-select>
+                </v-flex>
+                <v-flex xs12 sm6 md4>
+                  <v-select :items="years" v-model="editMap[userKeys.year]" label="Class Year"></v-select>
+                </v-flex>
+                <v-flex xs12 sm6 md4>
+                  <v-text-field v-model="editMap[userKeys.givenName]" label="Given Name"></v-text-field>
+                </v-flex>
+                <v-flex xs12 sm6 md4>
+                  <v-text-field v-model="editMap[userKeys.snapchat]" label="Snapchat"></v-text-field>
+                </v-flex>
+                <v-flex xs12 sm6 md4>
+                   <v-select :items="states" v-model="editMap[userKeys.state]" label="State"></v-select>
+                </v-flex>
+                <v-flex xs12>
+                  <v-text-field v-model="editMap[userKeys.facebook]" label="Facebook"></v-text-field>
+                </v-flex>
+                </template>
+              </v-layout>
+            </v-container>
 
-          <!-- DIALOG ACTIONS -->
-          <v-card-actions color="white">
-            <v-spacer></v-spacer>
-            <!-- CANCEL BUTTON -->
-            <v-btn flat color="error" @click.native="close">Cancel</v-btn>
-            <!-- SAVE/INVITE BUTTON -->
-            <v-btn flat color="primary" @click.native="save">{{ isDialogEdit ? 'Save' : 'Invite'}}</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+            <v-divider></v-divider>
 
-      <!-- DELETE DIALOG -->
-      <v-dialog
+            <!-- DIALOG ACTIONS -->
+            <v-card-actions color="white">
+              <v-spacer></v-spacer>
+              <!-- CANCEL BUTTON -->
+              <v-btn flat color="error" @click.native="close">Cancel</v-btn>
+              <!-- SAVE/INVITE BUTTON -->
+              <v-btn flat color="primary" @click.native="save">{{ isDialogEdit ? 'Save' : 'Invite'}}</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- DELETE DIALOG -->
+        <v-dialog
           v-if="selected.length > 0"
           v-model="deleteDialog"
           persistent
@@ -145,15 +146,23 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+      </template>
     </v-toolbar>
 
     <!-- DATA TABLE -->
     <!-- TODO: Make "row" a component to be able to reuse -->
-    <v-data-table v-model="selected" :headers="headers" :items="users" :search="search" class="elevation-1" select-all>
+    <v-data-table
+        v-model="selected"
+        :headers="headers"
+        :items="users"
+        :search="search"
+        class="elevation-1"
+        :select-all="isContactsAdmin">
+
       <template slot="items" slot-scope="props">
 
         <!-- SELECTION CHECKBOXES -->
-        <td>
+        <td v-if="isContactsAdmin">
           <v-checkbox
             v-model="props.selected"
             primary
@@ -162,129 +171,63 @@
         </td>
 
         <!-- FIRST NAME -->
-        <td>
-          <v-edit-dialog
-              :return-value.sync="props.item[userKeys.firstName]"
-              large
-              lazy
-              @save="inlineSave(props.item)"
-            >
-              {{ props.item[userKeys.firstName] }}
-              <div slot="input" class="mt-3 title">Update First Name</div>
-              <v-text-field
-                slot="input"
-                v-model="props.item[userKeys.firstName]"
-                label="Edit"
-                single-line
-                counter
-                autofocus
-              ></v-text-field>
-          </v-edit-dialog>
-        </td>
+        <contacts-table-row
+            :edit-item="props.item"
+            :edit-field="userKeys.firstName"
+            title="First Name"
+            :save="inlineSave"
+            :editable="isContactsAdmin">
+        </contacts-table-row>
 
         <!-- LAST NAME -->
-        <td>
-          <v-edit-dialog
-              :return-value.sync="props.item[userKeys.lastName]"
-              large
-              lazy
-              @save="inlineSave(props.item)"
-            >
-              {{ props.item[userKeys.lastName] }}
-              <div slot="input" class="mt-3 title">Update First Last</div>
-              <v-text-field
-                slot="input"
-                v-model="props.item[userKeys.lastName]"
-                label="Edit"
-                single-line
-                counter
-                autofocus
-              ></v-text-field>
-          </v-edit-dialog>
-        </td>
+        <contacts-table-row
+            :edit-item="props.item"
+            :edit-field="userKeys.lastName"
+            title="Last Name"
+            :save="inlineSave"
+            :editable="isContactsAdmin">
+        </contacts-table-row>
 
         <!-- PHONE -->
-        <td class="text-xs-right">
-          <v-edit-dialog
-              :return-value.sync="props.item[userKeys.phone]"
-              large
-              lazy
-              @save="inlineSave(props.item)"
-            >
-              {{ props.item[userKeys.phone] }}
-              <div slot="input" class="mt-3 title">Update Phone</div>
-              <v-text-field
-                slot="input"
-                mask="phone"
-                v-model="props.item[userKeys.phone]"
-                label="Edit"
-                single-line
-                counter
-                autofocus
-              ></v-text-field>
-          </v-edit-dialog>
-        </td>
+        <contacts-table-row
+            :edit-item="props.item"
+            :edit-field="userKeys.phone"
+            mask="phone"
+            title="Phone"
+            :save="inlineSave"
+            :editable="isContactsAdmin">
+        </contacts-table-row>
 
         <!-- EMAIL -->
-        <td class="text-xs-center">
-          <v-edit-dialog
-              :return-value.sync="props.item[userKeys.email]"
-              large
-              lazy
-              @save="inlineSave(props.item)"
-            >
-              {{ props.item[userKeys.email] }}
-              <div slot="input" class="mt-3 title">Update Email</div>
-              <v-text-field
-                slot="input"
-                v-model="props.item[userKeys.email]"
-                label="Edit"
-                single-line
-                counter
-                autofocus
-              ></v-text-field>
-          </v-edit-dialog>
-        </td>
+        <contacts-table-row
+            :edit-item="props.item"
+            :edit-field="userKeys.email"
+            title="Email"
+            :save="inlineSave"
+            :editable="isContactsAdmin">
+        </contacts-table-row>
 
         <!-- COURSE NUMBER -->
-        <td class="text-xs-center">
-          <v-edit-dialog
-              :return-value.sync="props.item[userKeys.course]"
-              large
-              lazy
-              @save="inlineSave(props.item)"
-            >
-              {{ props.item[userKeys.course] }}
-              <div slot="input" class="mt-3 title">Update Course</div>
-              <v-select
-                :items="courses"
-                slot="input"
-                v-model="props.item[userKeys.course]"
-                label="Course"
-                autofocus
-             ></v-select>
-          </v-edit-dialog>
-        </td>
+        <contacts-table-row
+            :edit-item="props.item"
+            :edit-field="userKeys.course"
+            title="Course"
+            dialog-type="select"
+            :items="courses"
+            :save="inlineSave"
+            :editable="isContactsAdmin">
+        </contacts-table-row>
 
         <!-- CLASS YEAR -->
-        <td class="text-xs-center">
-          <v-edit-dialog
-              :return-value.sync="props.item[userKeys.year]"
-              large
-              lazy
-              @save="inlineSave(props.item)"
-            >
-              {{ props.item[userKeys.year] }}
-              <div slot="input" class="mt-3 title">Update Year</div>
-             <v-select
-              :items="years"
-              slot="input"
-              v-model="props.item[userKeys.year]"
-              label="Class Year"
-              autofocus
-            ></v-select>
-          </v-edit-dialog>
-        </td>
+        <contacts-table-row
+            :edit-item="props.item"
+            :edit-field="userKeys.year"
+            title="Class Year"
+            dialog-type="select"
+            :items="years"
+            :save="inlineSave"
+            :editable="isContactsAdmin">
+        </contacts-table-row>
 
         <!-- FACEBOOK LINK -->
         <td class="text-xs-center">
@@ -294,59 +237,39 @@
         </td>
 
         <!-- SNAPCHAT HANDLE -->
-        <td class="text-xs-center">
-          <v-edit-dialog
-              :return-value.sync="props.item[userKeys.snapchat]"
-              large
-              lazy
-              @save="inlineSave(props.item)"
-            >
-              {{ props.item[userKeys.snapchat] }}
-              <div slot="input" class="mt-3 title">Update Snapchat</div>
-              <v-text-field
-                slot="input"
-                v-model="props.item[userKeys.snapchat]"
-                label="Edit"
-                single-line
-                counter
-                autofocus
-              ></v-text-field>
-          </v-edit-dialog>
-        </td>
+        <contacts-table-row
+            :edit-item="props.item"
+            :edit-field="userKeys.snapchat"
+            title="Snapchat"
+            :save="inlineSave"
+            :editable="isContactsAdmin">
+        </contacts-table-row>
 
         <!-- HOMETOWN STATE -->
-        <td class="text-xs-center">
-          <v-edit-dialog
-              :return-value.sync="props.item[userKeys.state]"
-              large
-              lazy
-              @save="inlineSave(props.item)"
-            >
-              {{ props.item[userKeys.state] }}
-              <div slot="input" class="mt-3 title">Update State</div>
-              <v-select
-                :items="states"
-                slot="input"
-                v-model="props.item[userKeys.state]"
-                label="State"
-                autofocus
-              ></v-select>
-          </v-edit-dialog>
-        </td>
+        <contacts-table-row
+            :edit-item="props.item"
+            :edit-field="userKeys.state"
+            title="Home State"
+            dialog-type="select"
+            :items="states"
+            :save="inlineSave"
+            :editable="isContactsAdmin">
+        </contacts-table-row>
       </template>
     </v-data-table>
   </div>
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import api, { userKeys } from '../api'
 import { eventNames as appEvents } from '../events'
-import { stateAbbreviations, classYears, courseNumbers } from '../definitions'
+import { stateAbbreviations, classYears, courseNumbers, Permissions } from '../definitions'
+import ContactsTableRow from './ContactsTableRow'
 
 export default {
   name: 'contacts-table',
-
+  components: { ContactsTableRow },
   data () {
     return {
       search: '',
@@ -390,8 +313,16 @@ export default {
       return userKeys
     },
 
+    isContactsAdmin () {
+      return this.currentUserHasPermissions(Permissions.Admin)
+    },
+
     ...mapState([
       'users'
+    ]),
+
+    ...mapGetters([
+      'currentUserHasPermissions'
     ])
   },
 
