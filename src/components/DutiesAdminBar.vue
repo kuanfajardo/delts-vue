@@ -9,8 +9,8 @@
     <template v-if="tab === 0">
       <!-- General Actions-->
       <template v-if="isFullDutiesAdmin">
-        <v-btn color="primary" @click.stop="liveButtonClicked">Go Live
-          <v-icon right>visibility</v-icon>
+        <v-btn :color="colorForLiveButton" @click.stop="liveButtonClicked">{{ textForLiveButton }}
+          <v-icon right>{{ iconForLiveButton }}</v-icon>
         </v-btn>
 
         <v-btn dark color="secondary" @click.stop="editDutySheetButtonClicked">Edit Duty Sheet
@@ -69,7 +69,7 @@ import { dutiesMixin } from '../mixins/duties-mixin'
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import api, { userKeys, dutyKeys } from '../api'
 import { DutyStatus } from '../definitions'
-import { EDIT_SELECTED_DUTY } from '../store'
+import { EDIT_SELECTED_DUTY, SET_DUTY_SHEET_LIVE } from '../store'
 import { eventNames as appEvents } from '../events'
 
 export default {
@@ -93,11 +93,27 @@ export default {
 
   methods: {
     liveButtonClicked () {
+      if (this.isDutySheetLive) {
+        console.log('closing sheet')
+        this.SET_DUTY_SHEET_LIVE(false)
+      } else {
+        if (this.dutySheetHasBeenGenerated) {
+          console.log('re-opening sheet')
+          this.SET_DUTY_SHEET_LIVE(true)
+        } else {
+          console.log('generating and opening sheet')
+          this.generateDutySheet()
+        }
+      }
+    },
+
+    generateDutySheet () {
       // TODO: Change to real date
       api.generateDutySheet(this.$_glob.today, (error) => {
         if (error === null) {
           console.log('Success in generating duty sheet starting on ' + this.$_glob.today)
           this.$_glob.root.$emit(appEvents.apiSuccess, 'SHEET GENERATION success')
+          this.SET_DUTY_SHEET_LIVE(true)
         } else {
           console.log('Failure in generating duty sheet starting on ' + this.$_glob.today)
           this.$_glob.root.$emit(appEvents.apiSuccess, 'SHEET GENERATION failed')
@@ -129,7 +145,6 @@ export default {
       }
     },
 
-    // TODO: Add emits for snackbars!
     checkoffSelectedDuty () {
       if (this.selectedDuty === null) return
 
@@ -193,7 +208,7 @@ export default {
     },
 
     ...mapMutations({
-      EDIT_SELECTED_DUTY
+      EDIT_SELECTED_DUTY, SET_DUTY_SHEET_LIVE
     })
   },
 
@@ -208,7 +223,7 @@ export default {
     ]),
 
     ...mapGetters([
-      'dutyObjForID'
+      'dutyObjForID', 'dutySheetHasBeenGenerated'
     ]),
 
     promptButtonText () {
@@ -218,6 +233,18 @@ export default {
 
     selectedDutyStatus () {
       return this.statusForDuty(this.selectedDuty)
+    },
+
+    colorForLiveButton () {
+      return this.isDutySheetLive ? 'accent' : 'primary'
+    },
+
+    textForLiveButton () {
+      return this.isDutySheetLive ? 'Close Sheet' : 'Go Live'
+    },
+
+    iconForLiveButton () {
+      return this.isDutySheetLive ? 'visibility_off' : 'visibility'
     },
 
     colorForActionButton () {

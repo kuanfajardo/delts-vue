@@ -165,7 +165,7 @@ export default {
           return 'surface darken-3'
 
         case DutyStatus.unclaimed:
-          if (this.isFullDutiesAdmin) return 'warning'
+          if (this.isFullDutiesAdmin) return this.isDutySheetLive ? 'primary' : 'warning'
           else return this.isDutySheetLive ? 'primary' : 'surface darken-1'
 
         case DutyStatus.claimed:

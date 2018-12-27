@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import { EDIT_SELECTED_DUTY, SET_CURRENT_USER } from './mutation-types'
+import { EDIT_SELECTED_DUTY, SET_CURRENT_USER, SET_DUTY_SHEET_LIVE } from './mutation-types'
 import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF } from './action-types'
 
 import { firebaseMutations, firebaseAction } from 'vuexfire'
@@ -28,6 +28,10 @@ const dutiesStore = {
   mutations: {
     [EDIT_SELECTED_DUTY] (state, duty) {
       state.selectedDuty = duty
+    },
+
+    [SET_DUTY_SHEET_LIVE] (state, live) {
+      state.isDutySheetLive = live
     }
   },
 
@@ -150,6 +154,10 @@ const dutiesStore = {
       })
 
       return dutyObj || null
+    },
+
+    dutySheetHasBeenGenerated: (state) => {
+      return state.weekDuties.length > 0
     }
   }
 }
