@@ -55,8 +55,8 @@ export function containsAllPermission (has, test) {
 
 export function getLastDayOfWeek (dayOfWeek, refDate = new Date()) {
   // Get next day-of-week and subtract a week
-  var resultDate = new Date(refDate.getTime())
-  resultDate.setDate(getNextDayOfWeek(dayOfWeek, refDate).getDate() - 7)
+  var resultDate = getNextDayOfWeek(dayOfWeek, refDate)
+  resultDate.setDate(resultDate.getDate() - 7)
 
   // Standardize all reference dates to have a time of 00:00:00:0000
   resultDate.setHours(0, 0, 0, 0)
