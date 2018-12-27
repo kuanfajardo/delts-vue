@@ -1,4 +1,4 @@
-import { dutyKeys, dutyTemplateKeys } from './keys'
+import { dutyKeys, dutyTemplateKeys, puntKeys } from './keys'
 import * as fb from '../plugins/firebase'
 import { getNextDayOfWeek } from '../definitions'
 import store from '../store'
@@ -74,9 +74,62 @@ export default {
       })
   },
 
-  deleteUser (userObj, callback) {
-    // TODO: Add Admin SDK to delete user
-    callback(new Error('Delete User not implemented yet'))
+  createNewPunt (punteeID, reason, callback) {
+    // TODO: make helpers for ref objects
+    // TODO: make helper for current user ref
+    // TODO: just centralize all ref calculations (probs in firebase.js)
+    // TODO: sanitize other api calls
+
+    if (typeof punteeID !== 'string') throw TypeError('{punteeID} should be a string')
+    if (typeof reason !== 'string') throw TypeError('{reason} should be a string')
+
+    const punteeRef = fb.usersRef.doc(punteeID)
+    const currentUserRef = fb.usersRef.doc(firebase.auth().currentUser.uid)
+    const puntObj = {
+      [puntKeys.assignee]: punteeRef,
+      [puntKeys.reason]: reason,
+      [puntKeys.puntTime]: new Date(),
+      [puntKeys.givenBy]: currentUserRef,
+      [puntKeys.makeUp]: null
+    }
+
+    fb.allPuntsRef.add(puntObj)
+      .then(() => { // Success
+        callback(null)
+      }, (error) => { // Failure
+        callback(new Error(error))
+      }).catch((error) => { // Error in callback
+        throw error
+      })
+  },
+
+  createNewPuntsBatch (punteeIDs, reason, callback) {
+    var puntsBatch = fb.db.batch()
+
+    const currentUserRef = fb.usersRef.doc(firebase.auth().currentUser.uid)
+    punteeIDs.forEach(punteeID => {
+      const punteeRef = fb.usersRef.doc(punteeID)
+
+      const puntObj = {
+        [puntKeys.assignee]: punteeRef,
+        [puntKeys.reason]: reason,
+        [puntKeys.puntTime]: new Date(),
+        [puntKeys.givenBy]: currentUserRef,
+        [puntKeys.makeUp]: null
+      }
+
+      var newPuntRef = fb.allPuntsRef.doc()
+      puntsBatch.set(newPuntRef, puntObj)
+    })
+
+    puntsBatch.commit()
+      .then(() => { // Success
+        callback(null)
+      }, (error) => { // Failure
+        callback(new Error(error))
+      }).catch((error) => { // Error in callback
+        throw error
+      })
   },
 
   // READ
@@ -133,9 +186,13 @@ export default {
       }).catch((error) => { // Error in callback
         throw error
       })
-  }
+  },
 
   // DELETE
+  deleteUser (userObj, callback) {
+    // TODO: Add Admin SDK to delete user
+    callback(new Error('Delete User not implemented yet'))
+  },
 
   // OTHER
 

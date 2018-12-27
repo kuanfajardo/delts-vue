@@ -15,11 +15,14 @@
         <!-- TIME -->
         <td>{{ props.item[PropKeys.puntTime] }}</td>
 
+        <!-- ASSIGNEE -->
+        <td>{{ props.item[PropKeys.assignee] }}</td>
+
         <!-- REASON -->
         <td>{{ props.item[PropKeys.reason] }}</td>
 
-        <!-- ASSIGNEE -->
-        <td>{{ props.item[PropKeys.assignee] }}</td>
+        <!-- GIVEN BY -->
+        <td>{{ props.item[PropKeys.givenBy] }}</td>
 
         <!-- STATUS -->
         <td>
@@ -33,11 +36,11 @@
           </v-btn>
         </td>
 
+        <!-- MAKEUP TIME -->
+        <td>{{ props.item[PropKeys.makeUpTime] }}</td>
+
         <!-- MAKEUP -->
         <td>{{ props.item[PropKeys.makeUp] }}</td>
-
-        <!-- CHECK TIME -->
-        <td>{{ props.item[PropKeys.givenBy] }}</td>
 
       </template>
     </v-data-table>
@@ -63,6 +66,7 @@ export default {
         reason: 'reason',
         assignee: 'assignee',
         makeUp: 'makeUp',
+        makeUpTime: 'makeUpTime',
         status: 'status',
         statusString: 'statusString',
         statusColor: 'statusColor',
@@ -71,11 +75,12 @@ export default {
 
       headers: [ // LOL can't use PropKeys
         { text: 'Time', align: 'left', value: 'puntTime' },
-        { text: 'Reason', align: 'left', value: 'reason' },
         { text: 'Assignee', align: 'left', value: 'assignee' },
-        { text: 'Status', value: 'statusString' },
-        { text: 'Make-Up', value: 'makeUp' },
+        { text: 'Reason', align: 'left', value: 'reason' },
         { text: 'Given By', value: 'givenBy' },
+        { text: 'Status', value: 'statusString' },
+        { text: 'Make-Up Time', value: 'makeUpTime' },
+        { text: 'Make-Up', value: 'makeUp' }
       ],
 
       pagination: {
@@ -101,6 +106,7 @@ export default {
           [this.PropKeys.statusString]: this.stringForPuntStatus(this.statusForPunt(punt)),
           [this.PropKeys.statusColor]: this.statusColorForItem(punt),
           [this.PropKeys.makeUp]: this.makeUpForItem(punt),
+          [this.PropKeys.makeUpTime]: this.makeUpTimeForItem(punt),
           [this.PropKeys.givenBy]: this.givenByForItem(punt)
         }
       })
@@ -151,6 +157,17 @@ export default {
       return ''
     },
 
+    makeUpTimeForItem (item) {
+      if (item[puntKeys.makeUp]) {
+        if (item[puntKeys.makeUp][puntMakeupKeys.completionTime]) {
+          return new Date(item[puntKeys.makeUp][puntMakeupKeys.completionTime].seconds * 1000).toDateString()
+        } else {
+          return ''
+        }
+      }
+      return ''
+    },
+
     givenByForItem (item) {
       if (item[puntKeys.givenBy]) {
         return item[puntKeys.givenBy][userKeys.firstName]
@@ -163,9 +180,9 @@ export default {
         case PuntStatus.Punted:
           return 'Punted'
         case PuntStatus.MakeUpClaimed:
-          return 'Unclaimed'
+          return 'Making Up'
         case PuntStatus.MadeUp:
-          return 'Claimed'
+          return 'Made Up'
         default:
           return ''
       }
