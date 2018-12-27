@@ -98,7 +98,7 @@
 import { EDIT_SELECTED_DUTY } from '../store'
 import { dutiesMixin } from '@/mixins'
 import { mapState, mapMutations, mapGetters } from 'vuex'
-import { DutyStatus } from '@/definitions'
+import { DutyStatus, Permissions } from '@/definitions'
 import { dutyKeys, userKeys } from '../api'
 
 export default {
@@ -108,6 +108,7 @@ export default {
   data () {
     return {
       // CONSTANTS
+      // TODO: move to defs
       WEEKDAYS: [
         {
           'name': 'Sunday',
@@ -155,32 +156,49 @@ export default {
     // STYLING
     colorForDuty (dutyIdx, weekday) {
       const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
+      const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
+      const isMyDuty = this.isDutyForCurrentUser(dutyObj)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
           return 'surface darken-3'
 
         case DutyStatus.unclaimed:
-          return this.isDutySheetLive ? 'primary' : 'warning'
+          if (this.isAnyAdmin) return 'warning'
+          else return this.isDutySheetLive ? 'primary' : 'surface darken-1'
 
         case DutyStatus.claimed:
-          return this.isDutySheetLive ? 'surface darken-1' : 'primary'
+          if (isMyDuty) return this.isDutySheetLive ? 'success' : 'primary'
+          else return 'surface darken-1'
 
         case DutyStatus.completed:
-          return 'success'
+          // Duty CAN'T be completed while sheet is live!!
+          if (this.isDutySheetLive) return null
+
+          if (this.isAnyAdmin) return 'success'
+          else return isMyDuty ? 'success' : 'surface darken-1'
 
         case DutyStatus.punted:
-          return 'error'
+          // Duty CAN'T be punted while sheet is live!!
+          if (this.isDutySheetLive) return null
+
+          if (this.isAnyAdmin) return 'error'
+          else return isMyDuty ? 'error' : 'surface darken-1'
 
         default:
           return null
       }
     },
 
+    // TODO: Remove if decide not needed
     styleForDuty (dutyIdx, weekday) {
-      var opacity = 1
-      if (!this.isDutySheetLive && this.isWeekdayPast(weekday)) {
-        opacity = 0.75
+      if (this.isAnyAdmin) {
+        var opacity = 1
+        if (!this.isDutySheetLive && this.isWeekdayPast(weekday)) {
+          opacity = 1
+        }
+      } else {
+        opacity = 1
       }
 
       return { 'opacity': opacity }
@@ -189,24 +207,41 @@ export default {
     tooltipForDuty (dutyIdx, dutyName, weekday) {
       const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
       const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
+      const isMyDuty = this.isDutyForCurrentUser(dutyObj)
+
+      const checker = dutyObj[dutyKeys.checker] === null ? 'System' : dutyObj[dutyKeys.checker][userKeys.firstName]
+      const assignee = dutyObj[dutyKeys.assignee] === null ? 'System' : dutyObj[dutyKeys.assignee][userKeys.firstName]
+
+      var infoString
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
           return null
 
         case DutyStatus.unclaimed:
-          return 'Claim ' + dutyName + ' (' + this.WEEKDAYS[weekday].abb + ')'
+          infoString = ' ' + dutyName + ' (' + this.WEEKDAYS[weekday].abb + ')'
+
+          if (this.isAnyAdmin) return 'Assign' + infoString
+          else return this.isDutySheetLive ? 'Claim' + infoString : 'Unclaimed'
 
         case DutyStatus.claimed:
-          return dutyObj[dutyKeys.assignee][userKeys.firstName]
+          return assignee
 
         case DutyStatus.completed:
-          const checker = dutyObj[dutyKeys.checker] === null ? 'System' : dutyObj[dutyKeys.checker][userKeys.firstName]
-          return dutyObj[dutyKeys.assignee][userKeys.firstName] + ' (checked off by ' + checker + ')'
+          // Duty CAN'T be completed while sheet is live!!
+          if (this.isDutySheetLive) return null
+
+          infoString = assignee + ' (checked off by ' + checker + ')'
+          if (this.isAnyAdmin) return infoString
+          else return isMyDuty ? infoString : assignee
 
         case DutyStatus.punted:
-          const assignee = dutyObj[dutyKeys.assignee] === null ? 'System' : dutyObj[dutyKeys.assignee][userKeys.firstName]
-          return 'Punted by ' + assignee
+          // Duty CAN'T be punted while sheet is live!!
+          if (this.isDutySheetLive) return null
+
+          infoString = 'Punted by ' + assignee
+          if (this.isAnyAdmin) return infoString
+          else return isMyDuty ? infoString : assignee
 
         default:
           return null
@@ -215,22 +250,33 @@ export default {
 
     iconForDuty (dutyIdx, weekday) {
       const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
+      const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
+      const isMyDuty = this.isDutyForCurrentUser(dutyObj)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
           return null
 
         case DutyStatus.unclaimed:
-          return this.isDutySheetLive ? 'assignment_ind' : 'warning'
+          if (this.isAnyAdmin) return this.isDutySheetLive ? 'assignment_ind' : 'warning'
+          else return 'assignment_ind'
 
         case DutyStatus.claimed:
           return 'how_to_reg'
 
         case DutyStatus.completed:
-          return 'check_circle'
+          // Duty CAN'T be completed while sheet is live!!
+          if (this.isDutySheetLive) return null
+
+          if (this.isAnyAdmin) return 'check_circle'
+          else return isMyDuty ? 'check_circle' : 'how_to_reg'
 
         case DutyStatus.punted:
-          return 'error'
+          // Duty CAN'T be punted while sheet is live!!
+          if (this.isDutySheetLive) return null
+
+          if (this.isAnyAdmin) return 'error'
+          else return isMyDuty ? 'error' : 'how_to_reg'
 
         default:
           return null
@@ -239,22 +285,34 @@ export default {
 
     iconColorForDuty (dutyIdx, weekday) {
       const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
+      const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
+      const isMyDuty = this.isDutyForCurrentUser(dutyObj)
 
       switch (dutyStatus) {
         case DutyStatus.unavailable:
           return null
 
         case DutyStatus.unclaimed:
-          return this.isDutySheetLive ? 'onPrimary' : 'onWarning'
+          if (this.isAnyAdmin) return 'onWarning'
+          else return this.isDutySheetLive ? 'onPrimary' : 'onSurface darken-1'
 
         case DutyStatus.claimed:
-          return this.isDutySheetLive ? 'onSurface darken-1' : 'onPrimary'
+          if (isMyDuty) return this.isDutySheetLive ? 'onSuccess' : 'onPrimary'
+          else return 'onSurface darken-1'
 
         case DutyStatus.completed:
-          return 'onSuccess'
+          // Duty CAN'T be completed while sheet is live!!
+          if (this.isDutySheetLive) return null
+
+          if (this.isAnyAdmin) return 'onSuccess'
+          else return isMyDuty ? 'onSuccess' : 'onSurface darken-1'
 
         case DutyStatus.punted:
-          return 'onError'
+          // Duty CAN'T be punted while sheet is live!!
+          if (this.isDutySheetLive) return null
+
+          if (this.isAnyAdmin) return 'onError'
+          else return isMyDuty ? 'onError' : 'onSurface darken-1'
 
         default:
           return null
@@ -311,8 +369,22 @@ export default {
     }),
 
     ...mapGetters([
-      'dutyTemplateNames', 'dutyMap', 'weekdaysToUse', 'dutyIDs', 'dutyObjForID'
-    ])
+      'dutyTemplateNames', 'dutyMap', 'weekdaysToUse', 'dutyIDs', 'dutyObjForID', 'currentUserHasPermissions'
+    ]),
+
+    // Local and Store Computed
+    dutySheetStyle () {
+      if (this.currentUserHasPermissions(Permissions.Checker)) {
+        return this.isDutySheetLive ? this.DutySheetStyle.AdminLive : this.DutySheetStyle.Admin
+      } else {
+        return this.isDutySheetLive ? this.DutySheetStyle.UserLive : this.DutySheetStyle.User
+      }
+    },
+
+    // TODO: move to duties mixin (along with the check in duties admin bar), rename appropriately
+    isAnyAdmin () {
+      return this.currentUserHasPermissions(Permissions.Checker)
+    }
   },
 
   created () {
@@ -327,7 +399,7 @@ export default {
       console.log('xsmall changed')
       console.log(this.$vuetify.breakpoint.name)
     }
-  },
+  }
 }
 </script>
 
