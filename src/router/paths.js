@@ -81,6 +81,16 @@ export default [
     )
   },
   {
+    path: '/punts',
+    meta: { appMenu: true },
+    name: 'Punts',
+    component: () => import(
+      /* webpackChunkName: "routes" */
+      /* webpackMode: "lazy-once" */
+      '@/pages/menus/Punts.vue'
+    )
+  },
+  {
     path: '/social',
     meta: { appMenu: true },
     name: 'Social',

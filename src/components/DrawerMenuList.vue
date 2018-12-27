@@ -27,6 +27,7 @@ export default {
   data () {
     return {
       // TODO: Export to const in api/
+      // TODO: Use consts for names
       menus: [
         {
           title: 'Dashboard',
@@ -35,6 +36,10 @@ export default {
         {
           title: 'Duties',
           icon: 'work'
+        },
+        {
+          title: 'Punts',
+          icon: 'warning'
         },
         {
           title: 'Social',

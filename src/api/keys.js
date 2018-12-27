@@ -18,13 +18,29 @@ export const userKeys = {
 export const dutyKeys = {
   assignee: 'brother',
   checker: 'checker',
-  checkTime: 'checktime', // Change to 'check-time'
+  checkTime: 'checktime', // TODO: Change to 'check-time'
   date: 'date',
-  template: 'duty' // Change to 'duty-template'
+  template: 'duty' // TODO: Change to 'duty-template'
 }
 
 export const dutyTemplateKeys = {
   description: 'description',
   name: 'name',
   schedule: 'schedule'
+}
+
+export const puntKeys = {
+  assignee: 'brother',
+  givenBy: 'given-by',
+  makeUp: 'make-up',
+  puntTime: 'punt-time',
+  reason: 'reason'
+}
+
+export const puntMakeupKeys = {
+  assignedTo: 'assigned-to',
+  completionTime: 'complete-time',
+  description: 'description',
+  name: 'name',
+  value: 'num-punts-value'
 }

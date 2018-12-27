@@ -1,5 +1,5 @@
 <template>
-  <div class="duties-page">
+  <div class="punts-page">
     <!-- Tabs -->
     <v-tabs grow icons-and-text color="transparent" v-model="tab">
       <v-tabs-slider color="primary"></v-tabs-slider>
@@ -27,23 +27,27 @@
 </template>
 
 <script>
-import DutiesPicker from '../../components/DutiesPicker'
 import DutiesTable from '../../components/DutiesTable'
 import DutiesAdminBar from '../../components/DutiesAdminBar'
 
 export default {
-  name: 'duties-page',
-  components: { DutiesAdminBar, DutiesPicker, DutiesTable },
+  name: 'punts-page',
+  components: { DutiesAdminBar, DutiesTable },
+
+  //-------------------+
+  //     PROPERTIES    |
+  //-------------------+
+
   data () {
     return {
       tab: null,
       tabNames: [
-        'Duty Sheet',
-        'Duties'
+        'Punts',
+        'Punt Makeups',
       ],
       tabIcons: [
-        'assignment',
-        'work'
+        'warning',
+        'build'
       ]
     }
   },
@@ -52,20 +56,35 @@ export default {
     mainComponent () {
       switch (this.tab) {
         case 0:
-          return DutiesPicker
+          return DutiesTable
         case 1:
           return DutiesTable
         default:
           return null
       }
     }
+  },
+
+  //------------------+
+  //      METHODS     |
+  //------------------+
+
+  methods: {
+    method () {
+      // Do Something
+    }
+  },
+
+  // https://vuejs.org/v2/api/#watch
+  watch: {
+    msg: 'someMethod'
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  .duties-page {
+.punts-page {
 
-  }
+}
 </style>
