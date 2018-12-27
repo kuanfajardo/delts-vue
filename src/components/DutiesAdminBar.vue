@@ -1,10 +1,10 @@
 <template>
   <v-toolbar
-      v-if="isAnyDutiesAdmin"
+      v-if="shouldDisplayToolbar"
       id="admin-bar"
       class="mb-3 mt-2"
-      :class="{ 'full-admin': isFullDutiesAdmin, 'any-admin': isAnyDutiesAdmin }"
       style="opacity: 1"
+      :style="{ width: toolbarWidth + 'px' }"
   >
     <template v-if="tab === 0">
       <!-- General Actions-->
@@ -60,6 +60,21 @@
         <v-spacer></v-spacer>
       </template>
     </template>
+
+    <template v-if="tab === 1">
+      <!-- SEARCH BOX -->
+      <v-text-field
+        v-model="search"
+        append-icon="search"
+        label="Search"
+        single-line
+        solo
+        hide-details
+        class="px-1 py-0 my-0"
+      ></v-text-field>
+
+      <!--<v-spacer></v-spacer>-->
+    </template>
     <!-- TODO: Menus for other tabs -->
   </v-toolbar>
 </template>
@@ -69,21 +84,32 @@ import { dutiesMixin } from '../mixins/duties-mixin'
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import api, { userKeys, dutyKeys } from '../api'
 import { DutyStatus } from '../definitions'
-import { EDIT_SELECTED_DUTY, SET_DUTY_SHEET_LIVE } from '../store'
+import { EDIT_SELECTED_DUTY, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH } from '../store'
 import { eventNames as appEvents } from '../events'
 
 export default {
   name: 'duties-admin-bar',
+
   mixins: [dutiesMixin],
 
   data () {
     return {
+      //-------------------------+
+      //    Duty Sheet (Tab 0)   |
+      //-------------------------+
+
       assignee: null,
       // Used to distinguish changes in assignee due to (1) selecting a different duty (should be ignored), and
       // (2) actually changing the assignee via the overflow button (should take action)
       ignoreAssigneeUpdate: false,
       isOverflowBusy: false,
-      isActionButtonBusy: false
+      isActionButtonBusy: false,
+
+      //-------------------------+
+      //    Duties Tab (Tab 1)   |
+      //-------------------------+
+
+      search: ''
     }
   },
 
@@ -92,16 +118,19 @@ export default {
   },
 
   methods: {
+
+    //-------------------------+
+    //    Duty Sheet (Tab 0)   |
+    //-------------------------+
+
+    // LIVE BUTTON
     liveButtonClicked () {
       if (this.isDutySheetLive) {
-        console.log('closing sheet')
         this.SET_DUTY_SHEET_LIVE(false)
       } else {
         if (this.dutySheetHasBeenGenerated) {
-          console.log('re-opening sheet')
           this.SET_DUTY_SHEET_LIVE(true)
         } else {
-          console.log('generating and opening sheet')
           this.generateDutySheet()
         }
       }
@@ -121,10 +150,12 @@ export default {
       })
     },
 
+    // EDIT SHEET BUTTON
     editDutySheetButtonClicked () {
       alert('Edit duty sheet button clicked')
     },
 
+    // ACTION BUTTON
     actionButtonClicked () {
       switch (this.selectedDutyStatus) {
         case DutyStatus.unavailable:
@@ -186,6 +217,7 @@ export default {
       })
     },
 
+    // OVERFLOW BUTTON
     updateAssigneeForSelectedDuty () {
       if (this.selectedDuty === null) return
 
@@ -207,15 +239,58 @@ export default {
       })
     },
 
+    // STORE MAPS
     ...mapMutations({
       EDIT_SELECTED_DUTY, SET_DUTY_SHEET_LIVE
+    }),
+
+    //-------------------------+
+    //    Duties Tab (Tab 1)   |
+    //-------------------------+
+
+    // STORE MAPS
+    ...mapMutations({
+      EDIT_DUTY_SEARCH
     })
   },
 
   computed: {
+
+    //-------------------+
+    //      All Tabs     |
+    //-------------------+
+
+    shouldDisplayToolbar () {
+      switch (this.tab) {
+        case 0:
+          return this.isAnyDutiesAdmin
+        case 1:
+          return true
+        default:
+          return this.isAnyDutiesAdmin
+      }
+    },
+
+    toolbarWidth () {
+      switch (this.tab) {
+        case 0:
+          return this.isFullDutiesAdmin ? 825 : 300
+        case 1:
+          return 825
+        default:
+          return 825
+      }
+    },
+
+    //-------------------------+
+    //    Duty Sheet (Tab 0)   |
+    //-------------------------+
+
+    // STORE MAPS
     ...mapState({
       selectedDuty: state => state.dutiesStore.selectedDuty,
       isDutySheetLive: state => state.dutiesStore.isDutySheetLive,
+      dutySearch: state => state.dutiesStore.dutySearch
     }),
 
     ...mapState([
@@ -226,15 +301,18 @@ export default {
       'dutyObjForID', 'dutySheetHasBeenGenerated'
     ]),
 
+    // STATE
+    selectedDutyStatus () {
+      return this.statusForDuty(this.selectedDuty)
+    },
+
+    // PROMPT BUTTON
     promptButtonText () {
       if (this.isFullDutiesAdmin) return 'Select a Duty to Edit'
       if (this.isAnyDutiesAdmin) return 'Select a Duty to Checkoff'
     },
 
-    selectedDutyStatus () {
-      return this.statusForDuty(this.selectedDuty)
-    },
-
+    // LIVE BUTTON
     colorForLiveButton () {
       return this.isDutySheetLive ? 'accent' : 'primary'
     },
@@ -247,6 +325,7 @@ export default {
       return this.isDutySheetLive ? 'visibility_off' : 'visibility'
     },
 
+    // ACTION BUTTON
     colorForActionButton () {
       switch (this.selectedDutyStatus) {
         case DutyStatus.unavailable:
@@ -324,6 +403,7 @@ export default {
       }
     },
 
+    // OVERFLOW BUTTON
     dropdownNames () {
       return this.users.map(user => {
         return {
@@ -345,6 +425,11 @@ export default {
   },
 
   watch: {
+
+    //-------------------------+
+    //    Duty Sheet (Tab 0)   |
+    //-------------------------+
+
     assignee (newValue, oldValue) {
       if (!this.ignoreAssigneeUpdate) {
         this.updateAssigneeForSelectedDuty()
@@ -377,6 +462,14 @@ export default {
           }
         }
       }
+    },
+
+    //-------------------------+
+    //    Duties Tab (Tab 1)   |
+    //-------------------------+
+
+    search (newValue) {
+      this.EDIT_DUTY_SEARCH(newValue)
     }
   }
 }
@@ -384,11 +477,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  #admin-bar.any-admin {
-    width: 300px
-  }
+#admin-bar {
 
-  #admin-bar.full-admin {
-    width: 825px;
-  }
+}
 </style>

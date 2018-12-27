@@ -29,11 +29,12 @@
 <script>
 import PageHeader from '../../components/PageHeader'
 import DutiesPicker from '../../components/DutiesPicker'
+import DutiesTable from '../../components/DutiesTable'
 import DutiesAdminBar from '../../components/DutiesAdminBar'
 
 export default {
   name: 'duties-page',
-  components: { DutiesAdminBar, DutiesPicker, PageHeader },
+  components: { DutiesAdminBar, DutiesPicker, DutiesTable, PageHeader },
   data () {
     return {
       tab: null,
@@ -55,6 +56,8 @@ export default {
       switch (this.tab) {
         case 0:
           return DutiesPicker
+        case 1:
+          return DutiesTable
         default:
           return null
       }

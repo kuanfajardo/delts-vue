@@ -9,6 +9,21 @@ export const DutyStatus = Object.freeze({
   punted: 4
 })
 
+export function stringForDutyStatus (status) {
+  switch (status) {
+    case DutyStatus.unavailable:
+      return ''
+    case DutyStatus.unclaimed:
+      return 'Unclaimed'
+    case DutyStatus.claimed:
+      return 'Claimed'
+    case DutyStatus.completed:
+      return 'Checked'
+    case DutyStatus.punted:
+      return 'Punted'
+  }
+}
+
 // TODO: Redo levels and sets, define how they work (each user has collection of defined sets (positions),
 // which correspond to one mask over all permissions. In code, check permissions against collection of sets.
 // In DB, store sets

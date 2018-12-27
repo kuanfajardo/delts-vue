@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import { EDIT_SELECTED_DUTY, SET_CURRENT_USER, SET_DUTY_SHEET_LIVE } from './mutation-types'
+import { EDIT_SELECTED_DUTY, SET_CURRENT_USER, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH } from './mutation-types'
 import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF } from './action-types'
 
 import { firebaseMutations, firebaseAction } from 'vuexfire'
@@ -19,10 +19,12 @@ const dutiesStore = {
     allDuties: [], // Will be bound to duties collection,
     // TODO: do a batched read for this! https://firebase.google.com/docs/firestore/manage-data/transactions
     weekDuties: [], // Will be bound to duties collection, filtered for this week,
+    userDuties: [], // Will be bound to duties collection, filtered for current user,
 
     /* LOCAL */
     selectedDuty: null, // Actual firestore object
-    isDutySheetLive: false
+    isDutySheetLive: false,
+    dutySearch: ''
   },
 
   mutations: {
@@ -32,6 +34,10 @@ const dutiesStore = {
 
     [SET_DUTY_SHEET_LIVE] (state, live) {
       state.isDutySheetLive = live
+    },
+
+    [EDIT_DUTY_SEARCH] (state, search) {
+      state.dutySearch = search
     }
   },
 

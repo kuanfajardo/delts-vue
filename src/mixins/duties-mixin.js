@@ -81,7 +81,7 @@ export const dutiesMixin = {
       // TODO: remove when sure that all claimed duties have an assignee object (rn can be punted w/o an assignee)
       const dutyAssignee = dutyObj[dutyKeys.assignee] || {}
       return dutyAssignee.id === this.$store.state.currentUser.uid
-    },
+    }
   },
 
   computed: {
