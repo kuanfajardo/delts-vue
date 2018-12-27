@@ -172,7 +172,7 @@ export default {
           this.$_glob.root.$emit(appEvents.apiSuccess, 'UPDATE ASSIGNEE success')
         } else {
           console.log('Failure updating assignee for duty ' + this.selectedDuty.id)
-          this.$_glob.root.$emit(appEvents.apiFailure, 'UPDATE ASSIGNEE success')
+          this.$_glob.root.$emit(appEvents.apiFailure, 'UPDATE ASSIGNEE failed')
         }
 
         this.isOverflowBusy = false

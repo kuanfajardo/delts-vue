@@ -88,8 +88,9 @@ export default {
   },
 
   updateAssigneeForDuty (dutyObj, assigneeObj, callback) {
+    const assignee = assigneeObj ? fb.usersRef.doc(assigneeObj.id) : null
     fb.allDutiesRef.doc(dutyObj.id).update({
-      [dutyKeys.assignee]: fb.usersRef.doc(assigneeObj.id)
+      [dutyKeys.assignee]: assignee
     }).then(() => { // Success
       callback(null)
     }, (error) => { // Failure

@@ -66,7 +66,7 @@
                       <span
                           v-if="isXSmall
                           && isDutySheetLive
-                          && statusForDutyID(idx, weekday) === DutyStatus.unclaimed"
+                          && statusForDutyProperties(idx, weekday) === DutyStatus.unclaimed"
                       >
                         {{WEEKDAYS[weekday].abb}}
                       </span>
@@ -99,7 +99,8 @@ import { EDIT_SELECTED_DUTY } from '../store'
 import { dutiesMixin } from '@/mixins'
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import { DutyStatus, Permissions } from '@/definitions'
-import { dutyKeys, userKeys } from '../api'
+import api, { dutyKeys, userKeys } from '../api'
+import { eventNames as appEvents } from '../events'
 
 export default {
   name: 'duties-picker',
@@ -145,7 +146,7 @@ export default {
   methods: {
     // STATUS
     // TODO: find better method names lol
-    statusForDutyID (dutyIdx, weekday) {
+    statusForDutyProperties (dutyIdx, weekday) {
       return this.statusForDuty(this.dutyObjForID(this.idForDuty(dutyIdx, weekday)))
     },
 
@@ -155,7 +156,7 @@ export default {
 
     // STYLING
     colorForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
+      const dutyStatus = this.statusForDutyProperties(dutyIdx, weekday)
       const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
       const isMyDuty = this.isDutyForCurrentUser(dutyObj)
 
@@ -205,7 +206,7 @@ export default {
     },
 
     tooltipForDuty (dutyIdx, dutyName, weekday) {
-      const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
+      const dutyStatus = this.statusForDutyProperties(dutyIdx, weekday)
       const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
       const isMyDuty = this.isDutyForCurrentUser(dutyObj)
 
@@ -249,7 +250,7 @@ export default {
     },
 
     iconForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
+      const dutyStatus = this.statusForDutyProperties(dutyIdx, weekday)
       const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
       const isMyDuty = this.isDutyForCurrentUser(dutyObj)
 
@@ -284,7 +285,7 @@ export default {
     },
 
     iconColorForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDutyID(dutyIdx, weekday)
+      const dutyStatus = this.statusForDutyProperties(dutyIdx, weekday)
       const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
       const isMyDuty = this.isDutyForCurrentUser(dutyObj)
 
@@ -330,13 +331,22 @@ export default {
     // ACTIONS
     dutyClicked (dutyIdx, weekday) {
       const dutyID = this.idForDuty(dutyIdx, weekday)
-      if (this.selectedDuty !== null && this.selectedDuty.id === dutyID) {
-        this.deselectDuty()
-      } else {
-        if (this.selectedDuty !== null) {
+
+      if (this.isAnyAdmin) {
+        if (this.selectedDuty !== null && this.selectedDuty.id === dutyID) {
           this.deselectDuty()
+        } else {
+          if (this.selectedDuty !== null) {
+            this.deselectDuty()
+          }
+          this.selectDuty(dutyID)
         }
-        this.selectDuty(dutyID)
+      } else {
+        if (this.isDutySheetLive) {
+          const dutyStatus = this.statusForDutyProperties(dutyIdx, weekday)
+          if (dutyStatus === DutyStatus.unclaimed) this.claimDuty(dutyID)
+          if (dutyStatus === DutyStatus.claimed) this.unclaimDuty(dutyID)
+        }
       }
     },
 
@@ -349,6 +359,44 @@ export default {
     deselectDuty () {
       document.getElementById(this.selectedDuty.id).classList.remove('selected')
       this.EDIT_SELECTED_DUTY(null)
+    },
+
+    // API STUFF
+    claimDuty (dutyID) {
+      const dutyObj = this.dutyObjForID(dutyID)
+
+      // Don't override! TODO: Make rules against this in firestore rules
+      const dutyStatus = this.statusForDuty(dutyObj)
+      if (dutyStatus !== DutyStatus.unclaimed) return
+
+      api.updateAssigneeForDuty(dutyObj, this.currentFirestoreUser, (error) => {
+        if (!error) {
+          console.log('Success claiming duty ' + dutyID)
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'CLAIM success')
+        } else {
+          console.log('Failure claiming duty ' + dutyID)
+          this.$_glob.root.$emit(appEvents.apiFailure, 'CLAIM failed')
+        }
+      })
+    },
+
+    unclaimDuty (dutyID) {
+      const dutyObj = this.dutyObjForID(dutyID)
+
+      // Make sure it's yours and not punted/completed! TODO: Make rules against this in firestore rules
+      const dutyStatus = this.statusForDuty(dutyObj)
+      if (dutyStatus !== DutyStatus.claimed) return
+      if (!this.isDutyForCurrentUser(dutyObj)) return
+
+      api.updateAssigneeForDuty(dutyObj, null, (error) => {
+        if (!error) {
+          console.log('Success de-claiming duty ' + dutyID)
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'DE-CLAIM success')
+        } else {
+          console.log('Failure de-claiming assignee for duty ' + dutyID)
+          this.$_glob.root.$emit(appEvents.apiFailure, 'DE-CLAIM failed')
+        }
+      })
     },
 
     ...mapMutations({
@@ -369,18 +417,10 @@ export default {
     }),
 
     ...mapGetters([
-      'dutyTemplateNames', 'dutyMap', 'weekdaysToUse', 'dutyIDs', 'dutyObjForID', 'currentUserHasPermissions'
+      'dutyTemplateNames', 'dutyMap', 'weekdaysToUse', 'dutyIDs', 'dutyObjForID', 'currentUserHasPermissions', 'currentFirestoreUser'
     ]),
 
     // Local and Store Computed
-    dutySheetStyle () {
-      if (this.currentUserHasPermissions(Permissions.Checker)) {
-        return this.isDutySheetLive ? this.DutySheetStyle.AdminLive : this.DutySheetStyle.Admin
-      } else {
-        return this.isDutySheetLive ? this.DutySheetStyle.UserLive : this.DutySheetStyle.User
-      }
-    },
-
     // TODO: move to duties mixin (along with the check in duties admin bar), rename appropriately
     isAnyAdmin () {
       return this.currentUserHasPermissions(Permissions.Checker)
