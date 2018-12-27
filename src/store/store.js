@@ -128,6 +128,8 @@ const dutiesStore = {
 
       state.dutyTemplates.forEach(template => {
         Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
+          weekday = parseInt(weekday) // keys come as strings!
+
           if (template[dutyTemplateKeys.schedule][weekday] <= 0) return
 
           if (weekday < startDate) {

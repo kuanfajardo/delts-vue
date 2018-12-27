@@ -16,9 +16,10 @@ export default {
     store.state.dutiesStore.dutyTemplates.forEach(template => {
       Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
         for (let i = 0; i < template[dutyTemplateKeys.schedule][weekday]; i++) {
+          weekday = parseInt(weekday) // keys are strings!
+
           var dutyDate
-          if (weekday == startOfWeekDay) { // {weekday} is string, {startOfWeekDay} is number, need ==
-            console.log('same day mofos')
+          if (weekday === startOfWeekDay) {
             dutyDate = new Date(startOfWeek.getTime())
           } else {
             dutyDate = getNextDayOfWeek(weekday, startOfWeek)
