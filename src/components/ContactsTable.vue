@@ -150,7 +150,6 @@
     </v-toolbar>
 
     <!-- DATA TABLE -->
-    <!-- TODO: Make "row" a component to be able to reuse -->
     <v-data-table
         v-model="selected"
         :headers="headers"

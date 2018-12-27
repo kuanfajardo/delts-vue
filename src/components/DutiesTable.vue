@@ -2,7 +2,6 @@
   <div class="duties-table px-5">
     <!-- DATA TABLE -->
     <v-data-table
-        v-model="selected"
         :headers="headers"
         :items="duties"
         :search="dutySearch"
@@ -46,16 +45,16 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState } from 'vuex'
 import { dutyKeys, dutyTemplateKeys, userKeys } from '../api'
-import ContactsTableRow from './ContactsTableRow'
 import { dutiesMixin } from '../mixins'
 import { DutyStatus } from '../definitions'
 
 export default {
   name: 'duties-table',
-  components: { ContactsTableRow },
+
   mixins: [dutiesMixin],
+
   data () {
     return {
       // TODO: Move outside, so can use in headers
@@ -70,7 +69,6 @@ export default {
         checkTime: 'checkTime'
       }),
 
-      selected: [],
       headers: [ // LOL can't use PropKeys
         { text: 'Date', align: 'left', value: 'date' },
         { text: 'Duty', align: 'left', value: 'name' },
@@ -111,11 +109,7 @@ export default {
       allDuties: state => state.dutiesStore.allDuties,
       userDuties: state => state.dutiesStore.userDuties,
       dutySearch: state => state.dutiesStore.dutySearch
-    }),
-
-    ...mapGetters([
-      'currentUserHasPermissions'
-    ])
+    })
   },
 
   methods: {

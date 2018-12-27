@@ -98,7 +98,7 @@
 import { EDIT_SELECTED_DUTY } from '../store'
 import { dutiesMixin } from '@/mixins'
 import { mapState, mapMutations, mapGetters } from 'vuex'
-import { DutyStatus, Permissions } from '@/definitions'
+import { DutyStatus } from '@/definitions'
 import api, { dutyKeys, userKeys } from '../api'
 import { eventNames as appEvents } from '../events'
 

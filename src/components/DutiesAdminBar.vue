@@ -9,10 +9,12 @@
     <template v-if="tab === 0">
       <!-- General Actions-->
       <template v-if="isFullDutiesAdmin">
+        <!-- LIVE BUTTON -->
         <v-btn :color="colorForLiveButton" @click.stop="liveButtonClicked">{{ textForLiveButton }}
           <v-icon right>{{ iconForLiveButton }}</v-icon>
         </v-btn>
 
+        <!-- EDIT SHEET BUTTON -->
         <v-btn dark color="secondary" @click.stop="editDutySheetButtonClicked">Edit Duty Sheet
           <v-icon dark right>edit</v-icon>
         </v-btn>
@@ -24,6 +26,7 @@
       </template>
       <!-- Edit Duty Actions -->
       <template v-if="selectedDuty !== null">
+        <!-- OVERFLOW BUTTON-->
         <v-overflow-btn
           v-if="isFullDutiesAdmin"
           editable
@@ -38,7 +41,8 @@
 
         <!-- Spacers to center action button if overflow button not present -->
         <v-spacer v-if="!isFullDutiesAdmin"></v-spacer>
-        <!-- Action Button -->
+
+        <!-- ACTION BUTTON -->
         <v-btn
             :dark="!isActionButtonDisabled"
             :disabled="isActionButtonDisabled"
@@ -52,6 +56,8 @@
 
         <v-spacer></v-spacer>
       </template>
+
+      <!-- PROMPT BUTTON -->
       <template v-else>
         <v-spacer></v-spacer>
         <v-btn class="elevation-0">
@@ -72,15 +78,12 @@
         hide-details
         class="px-1 py-0 my-0"
       ></v-text-field>
-
-      <!--<v-spacer></v-spacer>-->
     </template>
-    <!-- TODO: Menus for other tabs -->
   </v-toolbar>
 </template>
 
 <script>
-import { dutiesMixin } from '../mixins/duties-mixin'
+import { dutiesMixin } from '../mixins'
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import api, { userKeys, dutyKeys } from '../api'
 import { DutyStatus } from '../definitions'
@@ -290,7 +293,6 @@ export default {
     ...mapState({
       selectedDuty: state => state.dutiesStore.selectedDuty,
       isDutySheetLive: state => state.dutiesStore.isDutySheetLive,
-      dutySearch: state => state.dutiesStore.dutySearch
     }),
 
     ...mapState([

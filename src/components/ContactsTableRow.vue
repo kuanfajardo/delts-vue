@@ -54,12 +54,12 @@ export default {
     // REQUIRED (DATA)
     editItem: {
       type: Object,
-      required: true
+      default: () => {}
     },
 
     editField: {
       type: String,
-      required: true
+      default: ''
     },
 
     // PROPERTIES
@@ -83,7 +83,7 @@ export default {
 
     editable: {
       type: Boolean,
-      default: true
+      default: false
     },
 
     label: String,
