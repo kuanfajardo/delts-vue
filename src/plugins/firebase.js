@@ -21,6 +21,7 @@ export const allDutiesRef = db.collection('duties')
 // TODO: Remove!! Only for debugging
 export const today = new Date(2018, 11, 19)
 
+// TODO: User keys!!
 export const weekDutiesRef = db.collection('duties')
   .where('date', '>=', getLastDayOfWeek(0, today))
   .where('date', '<', getNextDayOfWeek(0, today))
@@ -28,3 +29,8 @@ export const weekDutiesRef = db.collection('duties')
   .orderBy('duty')
 export const dutyTemplatesRef = db.collection('duty-templates')
 export const usersRef = db.collection('users')
+
+export function userDutiesRefForUser (user) {
+  const userRef = usersRef.doc(user.uid)
+  return allDutiesRef.where('brother', '==', userRef).orderBy('date')
+}

@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 import { EDIT_SELECTED_DUTY, SET_CURRENT_USER, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH } from './mutation-types'
-import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF } from './action-types'
+import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF, SET_USER_DUTIES_REF } from './action-types'
 
 import { firebaseMutations, firebaseAction } from 'vuexfire'
 
@@ -42,6 +42,7 @@ const dutiesStore = {
   },
 
   actions: {
+    // TODO: can you make the string refs constants? And then use [] notation in state obj above?
     [SET_DUTY_TEMPLATES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
       bindFirebaseRef('dutyTemplates', ref)
     }),
@@ -52,6 +53,10 @@ const dutiesStore = {
 
     [SET_WEEK_DUTIES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
       bindFirebaseRef('weekDuties', ref)
+    }),
+
+    [SET_USER_DUTIES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
+      bindFirebaseRef('userDuties', ref)
     })
   },
 
