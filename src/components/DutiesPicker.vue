@@ -165,7 +165,7 @@ export default {
           return 'surface darken-3'
 
         case DutyStatus.unclaimed:
-          if (this.isAnyAdmin) return 'warning'
+          if (this.isFullDutiesAdmin) return 'warning'
           else return this.isDutySheetLive ? 'primary' : 'surface darken-1'
 
         case DutyStatus.claimed:
@@ -176,14 +176,14 @@ export default {
           // Duty CAN'T be completed while sheet is live!!
           if (this.isDutySheetLive) return null
 
-          if (this.isAnyAdmin) return 'success'
+          if (this.isAnyDutiesAdmin) return 'success'
           else return isMyDuty ? 'success' : 'surface darken-1'
 
         case DutyStatus.punted:
           // Duty CAN'T be punted while sheet is live!!
           if (this.isDutySheetLive) return null
 
-          if (this.isAnyAdmin) return 'error'
+          if (this.isAnyDutiesAdmin) return 'error'
           else return isMyDuty ? 'error' : 'surface darken-1'
 
         default:
@@ -193,7 +193,7 @@ export default {
 
     // TODO: Remove if decide not needed
     styleForDuty (dutyIdx, weekday) {
-      if (this.isAnyAdmin) {
+      if (this.isAnyDutiesAdmin) {
         var opacity = 1
         if (!this.isDutySheetLive && this.isWeekdayPast(weekday)) {
           opacity = 1
@@ -222,7 +222,7 @@ export default {
         case DutyStatus.unclaimed:
           infoString = ' ' + dutyName + ' (' + this.WEEKDAYS[weekday].abb + ')'
 
-          if (this.isAnyAdmin) return 'Assign' + infoString
+          if (this.isAnyDutiesAdmin) return 'Assign' + infoString
           else return this.isDutySheetLive ? 'Claim' + infoString : 'Unclaimed'
 
         case DutyStatus.claimed:
@@ -233,7 +233,7 @@ export default {
           if (this.isDutySheetLive) return null
 
           infoString = assignee + ' (checked off by ' + checker + ')'
-          if (this.isAnyAdmin) return infoString
+          if (this.isAnyDutiesAdmin) return infoString
           else return isMyDuty ? infoString : assignee
 
         case DutyStatus.punted:
@@ -241,7 +241,7 @@ export default {
           if (this.isDutySheetLive) return null
 
           infoString = 'Punted by ' + assignee
-          if (this.isAnyAdmin) return infoString
+          if (this.isAnyDutiesAdmin) return infoString
           else return isMyDuty ? infoString : assignee
 
         default:
@@ -259,7 +259,7 @@ export default {
           return null
 
         case DutyStatus.unclaimed:
-          if (this.isAnyAdmin) return this.isDutySheetLive ? 'assignment_ind' : 'warning'
+          if (this.isAnyDutiesAdmin) return this.isDutySheetLive ? 'assignment_ind' : 'warning'
           else return 'assignment_ind'
 
         case DutyStatus.claimed:
@@ -269,14 +269,14 @@ export default {
           // Duty CAN'T be completed while sheet is live!!
           if (this.isDutySheetLive) return null
 
-          if (this.isAnyAdmin) return 'check_circle'
+          if (this.isAnyDutiesAdmin) return 'check_circle'
           else return isMyDuty ? 'check_circle' : 'how_to_reg'
 
         case DutyStatus.punted:
           // Duty CAN'T be punted while sheet is live!!
           if (this.isDutySheetLive) return null
 
-          if (this.isAnyAdmin) return 'error'
+          if (this.isAnyDutiesAdmin) return 'error'
           else return isMyDuty ? 'error' : 'how_to_reg'
 
         default:
@@ -294,7 +294,7 @@ export default {
           return null
 
         case DutyStatus.unclaimed:
-          if (this.isAnyAdmin) return 'onWarning'
+          if (this.isFullDutiesAdmin) return 'onWarning'
           else return this.isDutySheetLive ? 'onPrimary' : 'onSurface darken-1'
 
         case DutyStatus.claimed:
@@ -305,14 +305,14 @@ export default {
           // Duty CAN'T be completed while sheet is live!!
           if (this.isDutySheetLive) return null
 
-          if (this.isAnyAdmin) return 'onSuccess'
+          if (this.isAnyDutiesAdmin) return 'onSuccess'
           else return isMyDuty ? 'onSuccess' : 'onSurface darken-1'
 
         case DutyStatus.punted:
           // Duty CAN'T be punted while sheet is live!!
           if (this.isDutySheetLive) return null
 
-          if (this.isAnyAdmin) return 'onError'
+          if (this.isAnyDutiesAdmin) return 'onError'
           else return isMyDuty ? 'onError' : 'onSurface darken-1'
 
         default:
@@ -332,7 +332,7 @@ export default {
     dutyClicked (dutyIdx, weekday) {
       const dutyID = this.idForDuty(dutyIdx, weekday)
 
-      if (this.isAnyAdmin) {
+      if (this.isAnyDutiesAdmin) {
         if (this.selectedDuty !== null && this.selectedDuty.id === dutyID) {
           this.deselectDuty()
         } else {
@@ -417,14 +417,8 @@ export default {
     }),
 
     ...mapGetters([
-      'dutyTemplateNames', 'dutyMap', 'weekdaysToUse', 'dutyIDs', 'dutyObjForID', 'currentUserHasPermissions', 'currentFirestoreUser'
-    ]),
-
-    // Local and Store Computed
-    // TODO: move to duties mixin (along with the check in duties admin bar), rename appropriately
-    isAnyAdmin () {
-      return this.currentUserHasPermissions(Permissions.Checker)
-    }
+      'dutyTemplateNames', 'dutyMap', 'weekdaysToUse', 'dutyIDs', 'dutyObjForID', 'currentFirestoreUser'
+    ])
   },
 
   created () {

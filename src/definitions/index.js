@@ -1,4 +1,6 @@
 // TODO: make enums symbols: https://stackoverflow.com/questions/44447847/enums-in-javascript-with-es6
+// TODO: capitalize
+// TODO: make into bitmask (can have multiple values at once!
 export const DutyStatus = Object.freeze({
   unavailable: 0,
   unclaimed: 1,
@@ -7,22 +9,35 @@ export const DutyStatus = Object.freeze({
   punted: 4
 })
 
+// TODO: Redo levels and sets, define how they work (each user has collection of defined sets (positions),
+// which correspond to one mask over all permissions. In code, check permissions against collection of sets.
+// In DB, store sets
 export const Permissions = Object.freeze({
   None: 0,
-  Checker: 1,
-  Bouncing: 2,
-  Social: 4,
-  House: 8,
+  // Duties
+  House_Checker: 1,
+  House_Admin: 8,
+
+  // Social
+  Events_Bouncing: 2,
+  Events_Social: 4,
+
+  // Other
   Admin: 16
 })
 
 export const PermissionSets = Object.freeze({
-  User: Permissions.None,
-  Checker: Permissions.Checker,
-  Bouncing: Permissions.Bouncing,
-  Social: Permissions.Social,
-  House: Permissions.Checker | Permissions.House,
-  Admin: Permissions.Checker | Permissions.Bouncing | Permissions.Social | Permissions.House | Permissions.Admin
+  // Duties
+  Checker: Permissions.House_Checker, // 1
+  House: Permissions.House_Checker | Permissions.House_Admin, // 9
+
+  // Social
+  Bouncing: Permissions.Events_Bouncing, // 2
+  Social: Permissions.Events_Social, // 4
+
+  // Other
+  User: Permissions.None, // 0
+  Admin: Permissions.House_Checker | Permissions.Events_Bouncing | Permissions.Events_Social | Permissions.House_Admin | Permissions.Admin // 31
 })
 
 export function comparePermissions (a, b) {
@@ -30,7 +45,7 @@ export function comparePermissions (a, b) {
 }
 
 /**
- * Order matters! Test whether TEST \in HAS
+ * Order matters! Test whether \a TEST \in HAS
  * @param has
  * @param test
  */

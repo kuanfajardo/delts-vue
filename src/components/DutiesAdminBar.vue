@@ -1,28 +1,31 @@
 <template>
   <v-toolbar
-      v-if="showAdmin"
+      v-if="isAnyDutiesAdmin"
       id="admin-bar"
       class="mb-3 mt-2"
+      :class="{ 'full-admin': isFullDutiesAdmin, 'any-admin': isAnyDutiesAdmin }"
       style="opacity: 1"
   >
     <template v-if="tab === 0">
       <!-- General Actions-->
-      <v-btn color="primary" @click.stop="liveButtonClicked">Go Live
-        <v-icon right>visibility</v-icon>
-      </v-btn>
+      <template v-if="isFullDutiesAdmin">
+        <v-btn color="primary" @click.stop="liveButtonClicked">Go Live
+          <v-icon right>visibility</v-icon>
+        </v-btn>
 
-      <v-btn dark color="secondary" @click.stop="editDutySheetButtonClicked">Edit Duty Sheet
-        <v-icon dark right>edit</v-icon>
-      </v-btn>
+        <v-btn dark color="secondary" @click.stop="editDutySheetButtonClicked">Edit Duty Sheet
+          <v-icon dark right>edit</v-icon>
+        </v-btn>
 
-      <v-divider
-        class="mx-3"
-        vertical
-      ></v-divider>
-
+        <v-divider
+          class="mx-3"
+          vertical
+        ></v-divider>
+      </template>
       <!-- Edit Duty Actions -->
       <template v-if="selectedDuty !== null">
         <v-overflow-btn
+          v-if="isFullDutiesAdmin"
           editable
           :disabled="isOverflowBusy"
           :items="dropdownNames"
@@ -33,10 +36,12 @@
           v-model="assignee"
         ></v-overflow-btn>
 
+        <!-- Spacers to center action button if overflow button not present -->
+        <v-spacer v-if="!isFullDutiesAdmin"></v-spacer>
         <!-- Action Button -->
         <v-btn
-            v-if="showActionButton"
-            dark
+            :dark="!isActionButtonDisabled"
+            :disabled="isActionButtonDisabled"
             :loading="isActionButtonBusy"
             :color="colorForActionButton"
             @click.stop="actionButtonClicked"
@@ -44,14 +49,16 @@
           {{ textForActionButton }}
           <v-icon right>{{ iconForActionButton }}</v-icon>
         </v-btn>
+
+        <v-spacer></v-spacer>
       </template>
       <template v-else>
         <v-spacer></v-spacer>
         <v-btn class="elevation-0">
-          Select a Duty to Edit
+          {{ promptButtonText }}
         </v-btn>
         <v-spacer></v-spacer>
-    </template>
+      </template>
     </template>
     <!-- TODO: Menus for other tabs -->
   </v-toolbar>
@@ -61,7 +68,7 @@
 import { dutiesMixin } from '../mixins/duties-mixin'
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import api, { userKeys, dutyKeys } from '../api'
-import { DutyStatus, Permissions } from '../definitions'
+import { DutyStatus } from '../definitions'
 import { EDIT_SELECTED_DUTY } from '../store'
 import { eventNames as appEvents } from '../events'
 
@@ -186,7 +193,8 @@ export default {
 
   computed: {
     ...mapState({
-      selectedDuty: state => state.dutiesStore.selectedDuty
+      selectedDuty: state => state.dutiesStore.selectedDuty,
+      isDutySheetLive: state => state.dutiesStore.isDutySheetLive,
     }),
 
     ...mapState([
@@ -194,11 +202,12 @@ export default {
     ]),
 
     ...mapGetters([
-      'dutyObjForID', 'currentUserHasPermissions'
+      'dutyObjForID'
     ]),
 
-    showAdmin () {
-      return this.currentUserHasPermissions(Permissions.Checker | Permissions.House)
+    promptButtonText () {
+      if (this.isFullDutiesAdmin) return 'Select a Duty to Edit'
+      if (this.isAnyDutiesAdmin) return 'Select a Duty to Checkoff'
     },
 
     selectedDutyStatus () {
@@ -226,9 +235,11 @@ export default {
     textForActionButton () {
       switch (this.selectedDutyStatus) {
         case DutyStatus.unavailable:
-        case DutyStatus.unclaimed:
           // No button
           return null
+        case DutyStatus.unclaimed:
+          // Fake button (i.e. disabled) when duty sheet live
+          return 'Checkoff'
         case DutyStatus.claimed:
         case DutyStatus.punted:
           // Checkoff
@@ -244,9 +255,11 @@ export default {
     iconForActionButton () {
       switch (this.selectedDutyStatus) {
         case DutyStatus.unavailable:
-        case DutyStatus.unclaimed:
           // No button
           return null
+        case DutyStatus.unclaimed:
+          // Fake button (i.e. disabled)
+          return 'check_circle'
         case DutyStatus.claimed:
         case DutyStatus.punted:
           // Checkoff
@@ -259,19 +272,22 @@ export default {
       }
     },
 
-    showActionButton () {
+    isActionButtonDisabled () {
+      if (this.isDutySheetLive) return true
+
       switch (this.selectedDutyStatus) {
         case DutyStatus.unavailable:
         case DutyStatus.unclaimed:
-          // No button
-          return false
+          return true
         case DutyStatus.claimed:
+          // TODO: use actual time functions, not weekday ones
+          return this.isWeekdayFuture(this.weekdayForDuty(this.selectedDuty))
         case DutyStatus.completed:
         case DutyStatus.punted:
           // Yes button :D
-          return true
-        default:
           return false
+        default:
+          return true
       }
     },
 
@@ -335,7 +351,11 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  #admin-bar {
+  #admin-bar.any-admin {
+    width: 300px
+  }
+
+  #admin-bar.full-admin {
     width: 825px;
   }
 </style>

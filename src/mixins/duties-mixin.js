@@ -1,5 +1,6 @@
-import { DutyStatus } from '@/definitions'
+import { DutyStatus, Permissions } from '@/definitions'
 import { dutyKeys } from '../api'
+import { mapGetters } from 'vuex'
 
 export const dutiesMixin = {
   data () {
@@ -13,7 +14,7 @@ export const dutiesMixin = {
 
       const isClaimed = this.isDutyClaimed(dutyObj)
       const isCheckedOff = this.isDutyCheckedOff(dutyObj)
-      const dutyWeekday = new Date(dutyObj.date.seconds * 1000).getDay() // * 1000 to get ms
+      const dutyWeekday = this.weekdayForDuty(dutyObj)
 
       // TODO: change this.$store.dutiesStore to something nice
       if (this.$store.state.dutiesStore.isDutySheetLive) {
@@ -65,6 +66,10 @@ export const dutiesMixin = {
       return weekday > this.$_glob.today.getDay()
     },
 
+    weekdayForDuty (dutyObj) {
+      return new Date(dutyObj.date.seconds * 1000).getDay() // * 1000 to get ms
+    },
+
     // USER
     isDutyForCurrentUser (dutyObj) {
       // debugger
@@ -76,6 +81,20 @@ export const dutiesMixin = {
       // TODO: remove when sure that all claimed duties have an assignee object (rn can be punted w/o an assignee)
       const dutyAssignee = dutyObj[dutyKeys.assignee] || {}
       return dutyAssignee.id === this.$store.state.currentUser.uid
-    }
+    },
+  },
+
+  computed: {
+    isFullDutiesAdmin () {
+      return this.currentUserHasPermissions(Permissions.House_Admin)
+    },
+
+    isAnyDutiesAdmin () {
+      return this.currentUserHasPermissions(Permissions.House_Checker)
+    },
+
+    ...mapGetters([
+      'currentUserHasPermissions'
+    ])
   }
 }
