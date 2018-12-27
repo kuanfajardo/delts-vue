@@ -1,5 +1,6 @@
 import firebase from 'firebase'
 import { getNextDayOfWeek, getLastDayOfWeek } from '../definitions'
+import { dutyKeys, puntKeys } from '../api'
 
 let config = {
   apiKey: 'AIzaSyCYos8q_4IeiPVsuS-2xQkR8wvkXMYQ164',
@@ -17,6 +18,7 @@ export const db = firebase.firestore()
 db.settings({ timestampsInSnapshots: true })
 
 export const allDutiesRef = db.collection('duties')
+export const allPuntsRef = db.collection('punts')
 
 // TODO: Remove!! Only for debugging
 export const today = new Date(2018, 11, 19)
@@ -30,7 +32,13 @@ export const weekDutiesRef = db.collection('duties')
 export const dutyTemplatesRef = db.collection('duty-templates')
 export const usersRef = db.collection('users')
 
-export function userDutiesRefForUser (user) {
+export function dutiesRefForUser (user) {
   const userRef = usersRef.doc(user.uid)
-  return allDutiesRef.where('brother', '==', userRef).orderBy('date')
+  return allDutiesRef.where(dutyKeys.assignee, '==', userRef).orderBy('date')
 }
+
+export function puntsRefForUser (user) {
+  const userRef = usersRef.doc(user.uid)
+  return allPuntsRef.where(puntKeys.assignee, '==', userRef).orderBy('date')
+}
+

@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import { EDIT_SELECTED_DUTY, SET_CURRENT_USER, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH } from './mutation-types'
-import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF, SET_USER_DUTIES_REF } from './action-types'
+import { EDIT_SELECTED_DUTY, SET_CURRENT_USER, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH, EDIT_PUNT_SEARCH } from './mutation-types'
+import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF, SET_USER_DUTIES_REF, SET_ALL_PUNTS_REF, SET_USER_PUNTS_REF } from './action-types'
 
 import { firebaseMutations, firebaseAction } from 'vuexfire'
 
@@ -175,6 +175,37 @@ const dutiesStore = {
   }
 }
 
+const puntsStore = {
+  state: {
+    /* BOUND TO FIRESTORE */
+    // TODO: do a batched read for this! https://firebase.google.com/docs/firestore/manage-data/transactions
+    allPunts: [], // Will be bound to punts collection,
+    userPunts: [], // Will be bound to punts collection, filtered for current user,
+
+    /* LOCAL */
+    puntSearch: ''
+  },
+
+  mutations: {
+    [EDIT_PUNT_SEARCH] (state, search) {
+      state.puntSearch = search
+    }
+  },
+
+  actions: {
+    // TODO: can you make the string refs constants? And then use [] notation in state obj above?
+    [SET_ALL_PUNTS_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
+      bindFirebaseRef('allPunts', ref)
+    }),
+
+    [SET_USER_PUNTS_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
+      bindFirebaseRef('userPunts', ref)
+    })
+  },
+
+  getters: {}
+}
+
 export default new Vuex.Store({
   state: {
     /* BOUND TO FIRESTORE */
@@ -191,7 +222,8 @@ export default new Vuex.Store({
   },
 
   modules: {
-    dutiesStore
+    dutiesStore,
+    puntsStore
   },
 
   mutations: {

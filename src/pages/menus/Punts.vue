@@ -15,7 +15,7 @@
     <!-- Header -->
     <v-layout row class="align-center layout px-4 pt-4 app--page-header">
       <v-spacer></v-spacer>
-      <duties-admin-bar :tab="tab"></duties-admin-bar>
+      <punts-toolbar :tab="tab"></punts-toolbar>
       <v-spacer></v-spacer>
     </v-layout>
 
@@ -27,12 +27,15 @@
 </template>
 
 <script>
-import DutiesTable from '../../components/DutiesTable'
+import PuntsTable from '../../components/PuntsTable'
 import DutiesAdminBar from '../../components/DutiesAdminBar'
+import PuntsToolbar from '../../components/PuntsToolbar'
+import DutiesTable from '../../components/DutiesTable'
 
 export default {
   name: 'punts-page',
-  components: { DutiesAdminBar, DutiesTable },
+
+  components: { DutiesAdminBar, PuntsTable, DutiesTable, PuntsToolbar },
 
   //-------------------+
   //     PROPERTIES    |
@@ -43,7 +46,7 @@ export default {
       tab: null,
       tabNames: [
         'Punts',
-        'Punt Makeups',
+        'Punt Makeups'
       ],
       tabIcons: [
         'warning',
@@ -56,28 +59,13 @@ export default {
     mainComponent () {
       switch (this.tab) {
         case 0:
-          return DutiesTable
+          return PuntsTable
         case 1:
           return DutiesTable
         default:
           return null
       }
     }
-  },
-
-  //------------------+
-  //      METHODS     |
-  //------------------+
-
-  methods: {
-    method () {
-      // Do Something
-    }
-  },
-
-  // https://vuejs.org/v2/api/#watch
-  watch: {
-    msg: 'someMethod'
   }
 }
 </script>

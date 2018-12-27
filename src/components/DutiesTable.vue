@@ -50,7 +50,7 @@ import { mapState, mapGetters } from 'vuex'
 import { dutyKeys, dutyTemplateKeys, userKeys } from '../api'
 import ContactsTableRow from './ContactsTableRow'
 import { dutiesMixin } from '../mixins'
-import { stringForDutyStatus, DutyStatus } from '../definitions'
+import { DutyStatus } from '../definitions'
 
 export default {
   name: 'duties-table',
@@ -99,7 +99,7 @@ export default {
           [this.PropKeys.name]: this.dutyNameForItem(duty),
           [this.PropKeys.assignee]: this.assigneeForItem(duty),
           [this.PropKeys.status]: this.statusForDuty(duty),
-          [this.PropKeys.statusString]: stringForDutyStatus(this.statusForDuty(duty)),
+          [this.PropKeys.statusString]: this.stringForDutyStatus(this.statusForDuty(duty)),
           [this.PropKeys.statusColor]: this.statusColorForItem(duty),
           [this.PropKeys.checker]: this.checkerForItem(duty),
           [this.PropKeys.checkTime]: this.checkTimeForItem(duty)
@@ -163,6 +163,23 @@ export default {
         return new Date(item[dutyKeys.checkTime].seconds * 1000).toUTCString()
       }
       return ''
+    },
+
+    stringForDutyStatus (status) {
+      switch (status) {
+        case DutyStatus.unavailable:
+          return ''
+        case DutyStatus.unclaimed:
+          return 'Unclaimed'
+        case DutyStatus.claimed:
+          return 'Claimed'
+        case DutyStatus.completed:
+          return 'Checked'
+        case DutyStatus.punted:
+          return 'Punted'
+        default:
+          return ''
+      }
     }
   }
 }

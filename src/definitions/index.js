@@ -9,20 +9,11 @@ export const DutyStatus = Object.freeze({
   punted: 4
 })
 
-export function stringForDutyStatus (status) {
-  switch (status) {
-    case DutyStatus.unavailable:
-      return ''
-    case DutyStatus.unclaimed:
-      return 'Unclaimed'
-    case DutyStatus.claimed:
-      return 'Claimed'
-    case DutyStatus.completed:
-      return 'Checked'
-    case DutyStatus.punted:
-      return 'Punted'
-  }
-}
+export const PuntStatus = Object.freeze({
+  Punted: 1,
+  MakeUpClaimed: 2,
+  MadeUp: 3
+})
 
 // TODO: Redo levels and sets, define how they work (each user has collection of defined sets (positions),
 // which correspond to one mask over all permissions. In code, check permissions against collection of sets.
@@ -31,28 +22,33 @@ export const Permissions = Object.freeze({
   None: 0,
   // Duties
   House_Checker: 1,
-  House_Admin: 8,
+  House_Admin: 2,
+
+  // Punts
+  Punts_Giver: 4,
+  Punts_Admin: 8,
 
   // Social
-  Events_Bouncing: 2,
-  Events_Social: 4,
+  Events_Bouncing: 16,
+  Events_Social: 32,
 
   // Other
-  Admin: 16
+  Admin: 64
 })
 
 export const PermissionSets = Object.freeze({
   // Duties
   Checker: Permissions.House_Checker, // 1
-  House: Permissions.House_Checker | Permissions.House_Admin, // 9
+  House: Permissions.House_Checker | Permissions.House_Admin | Permissions.Punts_Admin, // 11
 
   // Social
-  Bouncing: Permissions.Events_Bouncing, // 2
-  Social: Permissions.Events_Social, // 4
+  Bouncing: Permissions.Events_Bouncing | Permissions.Punts_Giver, // 20
+  Social: Permissions.Events_Social | Permissions.Punts_Giver, // 36
 
   // Other
   User: Permissions.None, // 0
-  Admin: Permissions.House_Checker | Permissions.Events_Bouncing | Permissions.Events_Social | Permissions.House_Admin | Permissions.Admin // 31
+  Admin: Permissions.House_Checker | Permissions.House_Admin | Permissions.Punts_Giver | Permissions.Punts_Admin |
+    Permissions.Events_Bouncing | Permissions.Events_Social | Permissions.Admin // 127
 })
 
 export function comparePermissions (a, b) {

@@ -41,8 +41,8 @@
 <script>
 import appEvents from './events'
 import AppNavigation from './components/AppNavigation'
-import { dutyTemplatesRef, usersRef, allDutiesRef, weekDutiesRef, today } from './plugins/firebase'
-import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF } from './store'
+import { dutyTemplatesRef, usersRef, allDutiesRef, weekDutiesRef, allPuntsRef, today } from './plugins/firebase'
+import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF, SET_ALL_PUNTS_REF } from './store'
 
 export default {
   name: 'App',
@@ -77,6 +77,7 @@ export default {
     this.$store.dispatch(SET_USERS_REF, usersRef)
     this.$store.dispatch(SET_ALL_DUTIES_REF, allDutiesRef)
     this.$store.dispatch(SET_WEEK_DUTIES_REF, weekDutiesRef)
+    this.$store.dispatch(SET_ALL_PUNTS_REF, allPuntsRef)
   }
 }
 </script>
