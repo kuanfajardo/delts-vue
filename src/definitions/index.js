@@ -66,8 +66,14 @@ export function getLastDayOfWeek (dayOfWeek, refDate = new Date()) {
 
 export function getNextDayOfWeek (dayOfWeek, refDate = new Date()) {
   // Compute distance to next day-of-week
-  const diff = dayOfWeek - refDate.getDay()
-  const fixedDiff = (diff + 7) % 7 // +7 to compensate for incorrect JS modulus w negative numbers
+  const diff = dayOfWeek - refDate.getDay() // Relative diff
+  var fixedDiff // Actual diff
+
+  if (diff === 0) { // If same day of week, just add a week
+    fixedDiff = 7
+  } else {
+    fixedDiff = (diff + 7) % 7 // +7 to compensate for incorrect JS modulus w negative numbers
+  }
 
   // Copy reference date and add the difference needed to get next day-of-week
   var resultDate = new Date(refDate.getTime())
