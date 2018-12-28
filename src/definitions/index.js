@@ -39,7 +39,7 @@ export const Permissions = Object.freeze({
 export const PermissionSets = Object.freeze({
   // Duties
   Checker: Permissions.House_Checker, // 1
-  House: Permissions.House_Checker | Permissions.House_Admin | Permissions.Punts_Admin, // 11
+  House: Permissions.House_Checker | Permissions.House_Admin | Permissions.Punts_Giver | Permissions.Punts_Admin, // 15
 
   // Social
   Bouncing: Permissions.Events_Bouncing | Permissions.Punts_Giver, // 20

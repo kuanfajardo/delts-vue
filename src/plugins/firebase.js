@@ -34,11 +34,11 @@ export const usersRef = db.collection('users')
 
 export function dutiesRefForUser (user) {
   const userRef = usersRef.doc(user.uid)
-  return allDutiesRef.where(dutyKeys.assignee, '==', userRef).orderBy('date')
+  return allDutiesRef.where(dutyKeys.assignee, '==', userRef).orderBy(dutyKeys.date)
 }
 
 export function puntsRefForUser (user) {
   const userRef = usersRef.doc(user.uid)
-  return allPuntsRef.where(puntKeys.assignee, '==', userRef).orderBy('date')
+  return allPuntsRef.where(puntKeys.assignee, '==', userRef).orderBy(puntKeys.puntTime)
 }
 
