@@ -2,15 +2,26 @@
   <div class="punts-table px-5">
     <!-- DATA TABLE -->
     <v-data-table
+        v-model="selected"
         :headers="headers"
         :items="punts"
         :search="puntSearch"
         class="elevation-1"
         :pagination.sync="pagination"
         :rows-per-page-items="rowsPerPageItems"
+        item-key="id"
+        select-all
     >
 
       <template slot="items" slot-scope="props">
+
+        <td>
+          <v-checkbox
+            v-model="props.selected"
+            primary
+            hide-details
+          ></v-checkbox>
+        </td>
 
         <!-- TIME -->
         <td>{{ props.item[PropKeys.puntTime] }}</td>
@@ -70,7 +81,8 @@ export default {
         status: 'status',
         statusString: 'statusString',
         statusColor: 'statusColor',
-        givenBy: 'givenBy'
+        givenBy: 'givenBy',
+        id: 'id'
       }),
 
       headers: [ // LOL can't use PropKeys
@@ -89,7 +101,9 @@ export default {
 
       rowsPerPageItems: [
         25, 50, { text: 'All', value: -1 }
-      ]
+      ],
+
+      selected: []
     }
   },
 
@@ -99,6 +113,7 @@ export default {
       const puntsToShow = this.isFullPuntsAdmin ? this.allPunts : this.userPunts
       return puntsToShow.map((punt) => {
         return {
+          [this.PropKeys.id]: punt.id,
           [this.PropKeys.puntTime]: this.timeForItem(punt),
           [this.PropKeys.reason]: this.reasonForItem(punt),
           [this.PropKeys.assignee]: this.assigneeForItem(punt),

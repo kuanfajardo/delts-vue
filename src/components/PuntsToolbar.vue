@@ -2,20 +2,20 @@
   <v-toolbar
       id="punts-toolbar"
       class="mb-3 mt-2"
-      style="opacity: 1; width: 825px;"
+      style="opacity: 1; width: 900px;"
   >
     <template v-if="tab === 0">
       <template v-if="isAnyPuntsAdmin">
         <!-- PUNT DIALOG -->
         <v-dialog
-            v-model="dialog"
+            v-model="puntDialog"
             max-width="500px"
         >
 
           <!-- PUNT BUTTON -->
           <v-btn
               dark
-              color="error"
+              color="primary"
               slot="activator"
               :loading="isPuntButtonBusy"
           >New Punt
@@ -35,9 +35,8 @@
             <v-container grid-list-md class="pb-2 pt-0">
               <v-layout wrap>
                 <v-flex xs12>
-                  <!--<v-subheader>Brother(s)</v-subheader>-->
                   <v-select
-                    :items="selectUsers"
+                    :items="userItems"
                     v-model="assignees"
                     label="Brother(s)"
                     multiple
@@ -61,9 +60,119 @@
             <v-card-actions color="white">
               <v-spacer></v-spacer>
               <!-- CANCEL BUTTON -->
-              <v-btn flat color="error" @click.native="close">Cancel</v-btn>
+              <v-btn flat color="error" @click.native="closePuntDialog">Cancel</v-btn>
               <!-- PUNT BUTTON -->
-              <v-btn flat color="primary" @click.native="save">Punt</v-btn>
+              <v-btn flat color="primary" @click.native="savePuntDialog">Punt</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- MAKEUP DIALOG -->
+        <v-dialog
+            v-if="showMakeupButton"
+            v-model="makeupDialog"
+            max-width="500px"
+        >
+
+          <!-- MAKEUP BUTTON -->
+          <v-btn
+              dark
+              color="secondary"
+              slot="activator"
+              :loading="isDialogButtonBusy"
+          >Makeup Punt
+            <v-icon right>edit</v-icon>
+          </v-btn>
+
+          <!-- DIALOG CARD -->
+          <v-card class="ma-auto">
+            <v-card-title>
+              <div class="mt-2 ml-2 mb-0">
+                <span class="headline pb-2">Assign Makeup to Punt</span>
+              </div>
+            </v-card-title>
+
+            <!-- FORM -->
+            <v-container grid-list-md class="pb-2 pt-0">
+              <v-layout wrap>
+                <v-flex xs12>
+                  <v-select
+                    :items="[1, 2, 3]"
+                    v-model="makeupDialogMakeup"
+                    label="Make-up"
+                    solo
+                    hint="Select makeup to assign to punt."
+                    persistent-hint>
+                  </v-select>
+                </v-flex>
+                <v-flex xs12>
+                  <v-checkbox
+                    v-model="makeupDialogCheck"
+                    color="primary"
+                    hide-details
+                    label="Mark makeup as complete"
+                  ></v-checkbox>
+                </v-flex>
+              </v-layout>
+            </v-container>
+
+            <v-divider></v-divider>
+
+            <!-- DIALOG ACTIONS -->
+            <v-card-actions color="white">
+              <v-spacer></v-spacer>
+              <!-- CANCEL BUTTON -->
+              <v-btn flat color="error" @click.native="closeMakeupDialog">Cancel</v-btn>
+              <!-- PUNT BUTTON -->
+              <v-btn flat color="primary" @click.native="saveMakeupDialog">Save</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <!-- DELETE DIALOG -->
+        <v-dialog
+          v-if="showDeleteButton"
+          v-model="deleteDialog"
+          persistent
+          max-width="450">
+
+          <!-- DELETE BUTTON-->
+          <v-btn
+            color="error"
+            slot="activator"
+          >
+            {{ deleteTitle }}
+            <v-icon right>delete</v-icon>
+          </v-btn>
+
+          <!-- DIALOG CARD -->
+          <v-card class="ma-auto">
+            <v-card-title>
+              <div class="mt-2 ml-2 mb-0">
+                <span class="headline pb-2">{{ deleteTitle }}</span>
+              </div>
+            </v-card-title>
+             <v-alert
+              type="error"
+              color="accent"
+              class="mx-4"
+              :value="true"
+            >
+              After you delete a punt, it's permanently deleted. Punts can't be undeleted.
+            </v-alert>
+
+            <v-card-text>
+              {{ 'Are you sure you want to delete ' + 0 + ' punts?' }}
+            </v-card-text>
+
+            <v-divider></v-divider>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <!-- CANCEL BUTTON -->
+              <v-btn color="primary" @click.stop="closeDeleteDialog">Cancel</v-btn>
+              <!-- DELETE BUTTON -->
+              <v-btn color="accent" flat @click.stop="saveDeleteDialog">Delete</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -121,10 +230,16 @@ export default {
       //-------------------------+
 
       search: '',
-      dialog: false,
+      puntDialog: false,
+      makeupDialog: false,
+      deleteDialog: false,
       assignees: [],
       reason: '',
       isPuntButtonBusy: false,
+      isDialogButtonBusy: false,
+      isDeleteButtonBusy: false,
+      makeupDialogCheck: false,
+      makeupDialogMakeup: '',
 
       //-------------------------+
       //    Duties Tab (Tab 1)   |
@@ -144,13 +259,13 @@ export default {
     //     Punts  (Tab 0)   |
     //----------------------+
 
-    close () {
+    closePuntDialog () {
       this.dialog = false
       this.reason = ''
       this.assignees = []
     },
 
-    save () {
+    savePuntDialog () {
       this.isPuntButtonBusy = true
 
       api.createNewPuntsBatch(this.assignees, this.reason, (error) => {
@@ -163,7 +278,23 @@ export default {
         this.isPuntButtonBusy = false
       })
 
-      this.close()
+      this.closePuntDialog()
+    },
+
+    closeMakeupDialog () {
+      this.makeupDialog = false
+    },
+
+    saveMakeupDialog () {
+      this.closeMakeupDialog()
+    },
+
+    closeDeleteDialog () {
+      this.deleteDialog = false
+    },
+
+    saveDeleteDialog () {
+      this.closeDeleteDialog()
     },
 
     // STORE MAPS
@@ -188,13 +319,30 @@ export default {
     //-------------------------+
 
     // TODO: make a helper method (not only place!)
-    selectUsers () {
+    userItems () {
       return this.users.map(user => {
         return {
           text: user[userKeys.firstName] + ' ' + user[userKeys.lastName],
           value: user.id
         }
       })
+    },
+
+    makeupItems () {
+      // TODO: Get from makeups binding
+      return [1, 2, 3]
+    },
+
+    showMakeupButton () {
+      return true
+    },
+
+    showDeleteButton () {
+      return true
+    },
+
+    deleteTitle () {
+      return 'Delete Punt(s)'
     },
 
     ...mapState([
