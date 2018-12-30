@@ -1,4 +1,4 @@
-import { dutyKeys, dutyTemplateKeys, puntKeys } from './keys'
+import { dutyKeys, dutyTemplateKeys, puntKeys, puntMakeupKeys, puntMakeupTemplateKeys } from './keys'
 import * as fb from '../plugins/firebase'
 import { getNextDayOfWeek } from '../definitions'
 import store from '../store'
@@ -176,9 +176,57 @@ export default {
     })
   },
 
-  updateUser (userObj, updateData, callback) {
+  updateUserWithData (userObj, updateData, callback) {
     fb.usersRef.doc(userObj.id)
       .update(updateData)
+      .then(() => { // Success
+        callback(null)
+      }, (error) => { // Failure
+        callback(new Error(error))
+      }).catch((error) => { // Error in callback
+        throw error
+      })
+  },
+
+  // TODO: Change to accept makeupObj
+  updatePuntsWithMakeup (puntObjArr, makeupTemplateID, markAsComplete, callback) {
+    var batch = fb.db.batch()
+
+    const makeupTemplateRef = fb.puntMakeupTemplatesRef.doc(makeupTemplateID)
+    const completionTime = markAsComplete ? new Date() : null
+
+    puntObjArr.forEach(puntObj => {
+      const assigneeRef = fb.usersRef.doc(puntObj[puntKeys.assignee].id)
+
+      if (puntObj[puntKeys.makeUp] !== null) {
+        const oldMakeupRef = fb.puntMakeupsRef.doc(puntObj[puntKeys.makeUp].id)
+
+        const makeupUpdateObj = {
+          [puntMakeupKeys.completionTime]: completionTime,
+          [puntMakeupKeys.makeupTemplate]: makeupTemplateRef
+        }
+
+        batch.update(oldMakeupRef, makeupUpdateObj)
+      } else {
+        const newMakeupRef = fb.puntMakeupsRef.doc()
+        const newMakeupObj = {
+          [puntMakeupKeys.completionTime]: completionTime,
+          [puntMakeupKeys.makeupTemplate]: makeupTemplateRef,
+          [puntMakeupKeys.assignedTo]: assigneeRef
+        }
+
+        batch.set(newMakeupRef, newMakeupObj)
+
+        const puntRef = fb.allPuntsRef.doc(puntObj.id)
+        const puntUpdateObj = {
+          [puntKeys.makeUp]: newMakeupRef
+        }
+
+        batch.update(puntRef, puntUpdateObj)
+      }
+    })
+
+    batch.commit()
       .then(() => { // Success
         callback(null)
       }, (error) => { // Failure
@@ -193,6 +241,35 @@ export default {
     // TODO: Add Admin SDK to delete user
     callback(new Error('Delete User not implemented yet'))
   },
+
+  deletePunt (puntObj, callback) {
+    fb.allPuntsRef.doc(puntObj.id).delete()
+      .then(() => { // Success
+        callback(null)
+      }, (error) => { // Failure
+        callback(new Error(error))
+      }).catch((error) => { // Error in callback
+        throw error
+      })
+  },
+
+  deletePuntsBatch (puntObjArr, callback) {
+    var puntsBatch = fb.db.batch()
+
+    puntObjArr.forEach(puntObj => {
+      const puntRef = fb.allPuntsRef.doc(puntObj.id)
+      puntsBatch.delete(puntRef)
+    })
+
+    puntsBatch.commit()
+      .then(() => { // Success
+        callback(null)
+      }, (error) => { // Failure
+        callback(new Error(error))
+      }).catch((error) => { // Error in callback
+        throw error
+      })
+  }
 
   // OTHER
 

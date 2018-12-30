@@ -9,7 +9,7 @@
         class="elevation-1"
         :pagination.sync="pagination"
         :rows-per-page-items="rowsPerPageItems"
-        item-key="id"
+        :item-key="PropKeys.id"
         select-all
     >
 
@@ -18,7 +18,7 @@
         <td>
           <v-checkbox
             v-model="props.selected"
-            primary
+            color="primary"
             hide-details
           ></v-checkbox>
         </td>
@@ -59,10 +59,11 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import { puntKeys, puntMakeupKeys, userKeys } from '../api'
+import { mapState, mapMutations } from 'vuex'
+import { puntKeys, puntMakeupKeys, userKeys, puntMakeupTemplateKeys } from '../api'
 import { puntsMixin } from '../mixins'
 import { PuntStatus } from '../definitions'
+import { EDIT_SELECTED_PUNTS } from '../store'
 
 export default {
   name: 'punts-table',
@@ -82,7 +83,8 @@ export default {
         statusString: 'statusString',
         statusColor: 'statusColor',
         givenBy: 'givenBy',
-        id: 'id'
+        id: 'id',
+        object: 'object'
       }),
 
       headers: [ // LOL can't use PropKeys
@@ -109,11 +111,11 @@ export default {
 
   computed: {
     punts () {
-      console.log(this.isFullPuntsAdmin)
       const puntsToShow = this.isFullPuntsAdmin ? this.allPunts : this.userPunts
       return puntsToShow.map((punt) => {
-        return {
-          [this.PropKeys.id]: punt.id,
+        return { // TODO: make constructor in object i.e. 'PuntsTableObj(punt)'
+          [this.PropKeys.id]: punt.id, // Needed for sorting
+          [this.PropKeys.object]: punt, // Needed for later (when in 'selected')
           [this.PropKeys.puntTime]: this.timeForItem(punt),
           [this.PropKeys.reason]: this.reasonForItem(punt),
           [this.PropKeys.assignee]: this.assigneeForItem(punt),
@@ -130,7 +132,8 @@ export default {
     ...mapState({
       allPunts: state => state.puntsStore.allPunts,
       userPunts: state => state.puntsStore.userPunts,
-      puntSearch: state => state.puntsStore.puntSearch
+      puntSearch: state => state.puntsStore.puntSearch,
+      selectedPunts: state => state.puntsStore.selectedPunts
     })
   },
 
@@ -166,8 +169,11 @@ export default {
     },
 
     makeUpForItem (item) {
+      // TODO: make functions for all this! have it check for undefined and return something if not defined
       if (item[puntKeys.makeUp]) {
-        return item[puntKeys.makeUp][puntMakeupKeys.name]
+        if (item[puntKeys.makeUp][puntMakeupKeys.makeupTemplate]) {
+          return item[puntKeys.makeUp][puntMakeupKeys.makeupTemplate][puntMakeupTemplateKeys.name]
+        }
       }
       return ''
     },
@@ -176,8 +182,6 @@ export default {
       if (item[puntKeys.makeUp]) {
         if (item[puntKeys.makeUp][puntMakeupKeys.completionTime]) {
           return new Date(item[puntKeys.makeUp][puntMakeupKeys.completionTime].seconds * 1000).toDateString()
-        } else {
-          return ''
         }
       }
       return ''
@@ -201,6 +205,22 @@ export default {
         default:
           return ''
       }
+    },
+
+    ...mapMutations({
+      EDIT_SELECTED_PUNTS
+    })
+  },
+
+  watch: {
+    selected (newValue) {
+      this.EDIT_SELECTED_PUNTS(newValue)
+    },
+
+    // If some other component changes store, reflect in local storage. Have to do this b/c v-model of data table
+    // can't directly be the store's selectedPunts b/c of how commits work (i.e. can't directly change it)
+    selectedPunts (newValue) {
+      this.selected = newValue
     }
   }
 }

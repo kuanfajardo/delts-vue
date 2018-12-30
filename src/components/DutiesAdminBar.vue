@@ -90,6 +90,7 @@ import { DutyStatus } from '../definitions'
 import { EDIT_SELECTED_DUTY, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH } from '../store'
 import { eventNames as appEvents } from '../events'
 
+// TODO: 'Disabled' dialog activator buttons are still clickable! Change it lol
 export default {
   name: 'duties-admin-bar',
 
@@ -296,7 +297,7 @@ export default {
     }),
 
     ...mapState([
-      'users', 'currentUser'
+      'users'
     ]),
 
     ...mapGetters([

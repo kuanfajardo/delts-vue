@@ -17,8 +17,8 @@
               dark
               color="primary"
               slot="activator"
-              :loading="isPuntButtonBusy"
-          >New Punt
+              :loading="isPuntButtonBusy">
+            New Punt
             <v-icon right>add_circle</v-icon>
           </v-btn>
 
@@ -68,8 +68,18 @@
         </v-dialog>
 
         <!-- MAKEUP DIALOG -->
+        <v-btn
+            v-if="disableMakeupButton"
+            light
+            disabled
+            color="secondary"
+            :loading="isMakeupButtonBusy">
+        Makeup
+          <v-icon dark right>edit</v-icon>
+        </v-btn>
+
         <v-dialog
-            v-if="showMakeupButton"
+            v-else
             v-model="makeupDialog"
             max-width="500px"
         >
@@ -79,16 +89,16 @@
               dark
               color="secondary"
               slot="activator"
-              :loading="isDialogButtonBusy"
-          >Makeup Punt
-            <v-icon right>edit</v-icon>
+              :loading="isMakeupButtonBusy">
+          Makeup
+            <v-icon dark right>edit</v-icon>
           </v-btn>
 
           <!-- DIALOG CARD -->
           <v-card class="ma-auto">
             <v-card-title>
               <div class="mt-2 ml-2 mb-0">
-                <span class="headline pb-2">Assign Makeup to Punt</span>
+                <span class="headline pb-2">{{ 'Assign Makeup to ' + selectedPunts.length + ' Punt' + (selectedPunts.length > 1 ? 's' : '') }}</span>
               </div>
             </v-card-title>
 
@@ -97,9 +107,9 @@
               <v-layout wrap>
                 <v-flex xs12>
                   <v-select
-                    :items="[1, 2, 3]"
+                    :items="makeupItems"
                     v-model="makeupDialogMakeup"
-                    label="Make-up"
+                    label="Makeup"
                     solo
                     hint="Select makeup to assign to punt."
                     persistent-hint>
@@ -124,14 +134,24 @@
               <!-- CANCEL BUTTON -->
               <v-btn flat color="error" @click.native="closeMakeupDialog">Cancel</v-btn>
               <!-- PUNT BUTTON -->
-              <v-btn flat color="primary" @click.native="saveMakeupDialog">Save</v-btn>
+              <v-btn flat color="primary" :disabled="!makeupDialogMakeup" @click.native="saveMakeupDialog">Save</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
 
         <!-- DELETE DIALOG -->
+        <v-btn
+          v-if="disableDeleteButton"
+          color="error"
+          disabled
+          :loading="isDeleteButtonBusy"
+        >
+          Delete
+          <v-icon right>delete</v-icon>
+        </v-btn>
+
         <v-dialog
-          v-if="showDeleteButton"
+          v-else
           v-model="deleteDialog"
           persistent
           max-width="450">
@@ -140,8 +160,9 @@
           <v-btn
             color="error"
             slot="activator"
+            :loading="isDeleteButtonBusy"
           >
-            {{ deleteTitle }}
+            Delete
             <v-icon right>delete</v-icon>
           </v-btn>
 
@@ -149,7 +170,7 @@
           <v-card class="ma-auto">
             <v-card-title>
               <div class="mt-2 ml-2 mb-0">
-                <span class="headline pb-2">{{ deleteTitle }}</span>
+                <span class="headline pb-2">{{ 'Delete ' + selectedPunts.length + ' Punt' + (selectedPunts.length > 1 ? 's' : '') }}</span>
               </div>
             </v-card-title>
              <v-alert
@@ -162,7 +183,7 @@
             </v-alert>
 
             <v-card-text>
-              {{ 'Are you sure you want to delete ' + 0 + ' punts?' }}
+              {{ 'Are you sure you want to delete ' + selectedPunts.length + ' punts?' }}
             </v-card-text>
 
             <v-divider></v-divider>
@@ -214,9 +235,10 @@
 <script>
 import { puntsMixin } from '../mixins'
 import { mapMutations, mapState } from 'vuex'
-import { EDIT_PUNT_SEARCH } from '../store'
-import api, { userKeys } from '../api'
+import { EDIT_PUNT_SEARCH, EDIT_SELECTED_PUNTS } from '../store'
+import api, { userKeys, puntKeys, puntMakeupTemplateKeys, puntMakeupKeys } from '../api'
 import { eventNames as appEvents } from '../events'
+import { PuntStatus } from '../definitions'
 
 export default {
   name: 'punts-toolbar',
@@ -230,14 +252,18 @@ export default {
       //-------------------------+
 
       search: '',
+
       puntDialog: false,
       makeupDialog: false,
       deleteDialog: false,
+
       assignees: [],
       reason: '',
+
       isPuntButtonBusy: false,
-      isDialogButtonBusy: false,
+      isMakeupButtonBusy: false,
       isDeleteButtonBusy: false,
+
       makeupDialogCheck: false,
       makeupDialogMakeup: '',
 
@@ -260,7 +286,7 @@ export default {
     //----------------------+
 
     closePuntDialog () {
-      this.dialog = false
+      this.puntDialog = false
       this.reason = ''
       this.assignees = []
     },
@@ -283,23 +309,60 @@ export default {
 
     closeMakeupDialog () {
       this.makeupDialog = false
+      this.makeupDialogCheck = false
+      this.makeupDialogMakeup = ''
+      this.EDIT_SELECTED_PUNTS([])
     },
 
     saveMakeupDialog () {
+      this.isMakeupButtonBusy = true
+
+      const puntsObjArr = this.selectedPunts.map(punt => {
+        return punt.object
+      })
+
+      api.updatePuntsWithMakeup(puntsObjArr, this.makeupDialogMakeup, this.makeupDialogCheck, (error) => {
+        if (error === null) {
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'MAKEUP PUNTS success')
+        } else {
+          this.$_glob.root.$emit(appEvents.apiFailure, 'MAKEUP PUNTS failed')
+        }
+
+        this.isMakeupButtonBusy = false
+      })
+
       this.closeMakeupDialog()
     },
 
     closeDeleteDialog () {
       this.deleteDialog = false
+      this.EDIT_SELECTED_PUNTS([])
     },
 
     saveDeleteDialog () {
+      this.isDeleteButtonBusy = true
+
+      const puntsObjArr = this.selectedPunts.map(punt => {
+        return punt.object
+      })
+
+      api.deletePuntsBatch(puntsObjArr, (error) => {
+        if (error === null) {
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'PUNTS DELETE success')
+        } else {
+          this.$_glob.root.$emit(appEvents.apiFailure, 'PUNTS DELETE failed')
+        }
+
+        this.isDeleteButtonBusy = false
+      })
+
       this.closeDeleteDialog()
     },
 
     // STORE MAPS
     ...mapMutations({
-      EDIT_PUNT_SEARCH
+      EDIT_PUNT_SEARCH,
+      EDIT_SELECTED_PUNTS
     })
 
     //----------------------+
@@ -329,25 +392,81 @@ export default {
     },
 
     makeupItems () {
-      // TODO: Get from makeups binding
-      return [1, 2, 3]
+      return this.makeupTemplates.map(template => {
+        return {
+          text: template[puntMakeupTemplateKeys.name],
+          value: template.id
+        }
+      })
     },
 
-    showMakeupButton () {
-      return true
+    disableMakeupButton () {
+      if (this.selectedPunts.length === 0) return true
+
+      // Rules:
+      //    1) If any selected are MADE UP => Disable
+      //    2) If selected includes both PUNTED and MAKE UP CLAIMED => Disable
+      //    3) If selected includes all MAKE UP CLAIMED,
+      //         and all selected don't share the same make up template => Disable
+      //    4) Everything else, Enable
+
+      var includesPunted = false
+      var commonMakeupTemplate = null
+
+      for (const selectedPunt of this.selectedPunts) {
+        const puntObj = selectedPunt.object
+        const puntStatus = this.statusForPunt(puntObj)
+
+        if (puntStatus === PuntStatus.MadeUp) {
+          return true
+        }
+
+        if (puntStatus === PuntStatus.MakeUpClaimed) {
+          if (includesPunted) return true
+
+          if (commonMakeupTemplate !== null) {
+            if (puntObj[puntKeys.makeUp][puntMakeupKeys.makeupTemplate].id !== commonMakeupTemplate.id) {
+              return true
+            }
+          } else {
+            commonMakeupTemplate = puntObj[puntKeys.makeUp][puntMakeupKeys.makeupTemplate]
+          }
+        }
+
+        if (puntStatus === PuntStatus.Punted) {
+          if (commonMakeupTemplate !== null) {
+            return true
+          } else {
+            includesPunted = true
+          }
+        }
+      }
+
+      if (commonMakeupTemplate) {
+        // TODO: make separate function- used also in makeupItems()
+        this.makeupDialogMakeup = commonMakeupTemplate.id//{
+          // text: commonMakeupTemplate[puntMakeupTemplateKeys.name],
+          // value: commonMakeupTemplate.id
+        // }
+
+        this.makeupDialogCheck = true
+      }
+
+      return false
     },
 
-    showDeleteButton () {
-      return true
-    },
-
-    deleteTitle () {
-      return 'Delete Punt(s)'
+    disableDeleteButton () {
+      return this.selectedPunts.length === 0
     },
 
     ...mapState([
       'users'
-    ])
+    ]),
+
+    ...mapState({
+      makeupTemplates: state => state.puntsStore.makeupTemplates,
+      selectedPunts: state => state.puntsStore.selectedPunts
+    })
   },
 
   watch: {
@@ -358,6 +477,14 @@ export default {
 
     search (newValue) {
       this.EDIT_PUNT_SEARCH(newValue)
+    },
+
+    disableMakeupButton (newValue) {
+      // To make sure props are reset after selecting and then deselecting rows
+      if (newValue === true) {
+        this.makeupDialogMakeup = ''
+        this.makeupDialogCheck = false
+      }
     }
 
     //-------------------------+

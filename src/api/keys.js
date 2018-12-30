@@ -39,8 +39,12 @@ export const puntKeys = {
 
 export const puntMakeupKeys = {
   assignedTo: 'assigned-to',
-  completionTime: 'complete-time',
+  completionTime: 'completion-time',
+  makeupTemplate: 'template'
+}
+
+export const puntMakeupTemplateKeys = {
   description: 'description',
   name: 'name',
-  value: 'num-punts-value'
+  value: 'value'
 }

@@ -361,7 +361,7 @@ export default {
     save () {
       if (this.isDialogEdit) { // Update
         const editedUserObj = this.selected[0]
-        api.updateUser(editedUserObj, this.editMap, (error) => {
+        api.updateUserWithData(editedUserObj, this.editMap, (error) => {
           if (error === null) {
             this.$_glob.root.$emit(appEvents.apiSuccess, 'USER UPDATE success')
           } else {
@@ -393,7 +393,7 @@ export default {
 
     // INLINE ACTIONS
     inlineSave (userObj) {
-      api.updateUser(userObj, userObj, (error) => {
+      api.updateUserWithData(userObj, userObj, (error) => {
         if (error === null) {
           console.log('User ' + userObj.id + ' updated successfully')
           this.$_glob.root.$emit(appEvents.apiSuccess, 'USER UPDATE success')

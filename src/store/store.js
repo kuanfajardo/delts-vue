@@ -1,8 +1,11 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import { EDIT_SELECTED_DUTY, SET_CURRENT_USER, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH, EDIT_PUNT_SEARCH } from './mutation-types'
-import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF, SET_USER_DUTIES_REF, SET_ALL_PUNTS_REF, SET_USER_PUNTS_REF } from './action-types'
+import { EDIT_SELECTED_DUTY, SET_CURRENT_USER, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH, EDIT_PUNT_SEARCH, EDIT_SELECTED_PUNTS } from './mutation-types'
+import {
+  SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF, SET_USER_DUTIES_REF,
+  SET_ALL_PUNTS_REF, SET_USER_PUNTS_REF, SET_PUNT_MAKEUPS_REF, SET_PUNT_MAKEUP_TEMPLATES_REF
+} from './action-types'
 
 import { firebaseMutations, firebaseAction } from 'vuexfire'
 
@@ -16,10 +19,10 @@ const dutiesStore = {
   state: {
     /* BOUND TO FIRESTORE */
     dutyTemplates: [], // Will be bound to duty-templates collection
-    allDuties: [], // Will be bound to duties collection,
+    allDuties: [], // Will be bound to duties collection.
     // TODO: do a batched read for this! https://firebase.google.com/docs/firestore/manage-data/transactions
-    weekDuties: [], // Will be bound to duties collection, filtered for this week,
-    userDuties: [], // Will be bound to duties collection, filtered for current user,
+    weekDuties: [], // Will be bound to duties collection, filtered for this week.
+    userDuties: [], // Will be bound to duties collection, filtered for current user.
 
     /* LOCAL */
     selectedDuty: null, // Actual firestore object
@@ -179,17 +182,24 @@ const puntsStore = {
   state: {
     /* BOUND TO FIRESTORE */
     // TODO: do a batched read for this! https://firebase.google.com/docs/firestore/manage-data/transactions
-    allPunts: [], // Will be bound to punts collection,
-    userPunts: [], // Will be bound to punts collection, filtered for current user,
+    allPunts: [], // Will be bound to punts collection.
+    userPunts: [], // Will be bound to punts collection, filtered for current user.
+    puntMakeups: [], // Will be bound to punt makeups collection
+    makeupTemplates: [],
 
     /* LOCAL */
-    puntSearch: ''
+    puntSearch: '',
+    selectedPunts: []
   },
 
   mutations: {
     [EDIT_PUNT_SEARCH] (state, search) {
       state.puntSearch = search
-    }
+    },
+
+    [EDIT_SELECTED_PUNTS] (state, selected) {
+      state.selectedPunts = selected
+    },
   },
 
   actions: {
@@ -200,6 +210,14 @@ const puntsStore = {
 
     [SET_USER_PUNTS_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
       bindFirebaseRef('userPunts', ref)
+    }),
+
+    [SET_PUNT_MAKEUPS_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
+      bindFirebaseRef('puntMakeups', ref)
+    }),
+
+    [SET_PUNT_MAKEUP_TEMPLATES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
+      bindFirebaseRef('makeupTemplates', ref)
     })
   },
 
@@ -212,6 +230,8 @@ export default new Vuex.Store({
     users: [], // Will be bound to users collection
 
     /* LOCAL */
+    // TODO: Replace ALL calls to firebase current user with this. Or make decision on that
+    // TODO: Make getter for getting current user ref here?
     currentUser: null
   },
 
@@ -229,7 +249,6 @@ export default new Vuex.Store({
   mutations: {
     [SET_CURRENT_USER] (state, user) {
       state.currentUser = user
-      console.log(user)
     },
 
     ...firebaseMutations

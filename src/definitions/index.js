@@ -10,9 +10,9 @@ export const DutyStatus = Object.freeze({
 })
 
 export const PuntStatus = Object.freeze({
-  Punted: 1,
-  MakeUpClaimed: 2,
-  MadeUp: 3
+  Punted: 0,
+  MakeUpClaimed: 1,
+  MadeUp: 2
 })
 
 // TODO: Redo levels and sets, define how they work (each user has collection of defined sets (positions),

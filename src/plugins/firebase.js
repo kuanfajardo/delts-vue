@@ -17,18 +17,25 @@ firebase.initializeApp(config)
 export const db = firebase.firestore()
 db.settings({ timestampsInSnapshots: true })
 
+// TODO: make ref locations constants
 export const allDutiesRef = db.collection('duties')
 export const allPuntsRef = db.collection('punts')
+export const puntMakeupsRef = db.collection('punt-makeups')
+export const puntMakeupTemplatesRef = db.collection('punt-makeup-templates')
 
 // TODO: Remove!! Only for debugging
-export const today = new Date(2018, 11, 19)
+export const today = new Date(2018, 11, 26)
+
+console.log(getLastDayOfWeek(0, today))
+console.log(getNextDayOfWeek(0, today))
 
 // TODO: User keys!!
 export const weekDutiesRef = db.collection('duties')
-  .where('date', '>=', getLastDayOfWeek(0, today))
-  .where('date', '<', getNextDayOfWeek(0, today))
-  .orderBy('date')
-  .orderBy('duty')
+  .where(dutyKeys.date, '>=', getLastDayOfWeek(0, today))
+  .where(dutyKeys.date, '<', getNextDayOfWeek(0, today))
+  .orderBy(dutyKeys.date)
+  .orderBy(dutyKeys.template)
+
 export const dutyTemplatesRef = db.collection('duty-templates')
 export const usersRef = db.collection('users')
 

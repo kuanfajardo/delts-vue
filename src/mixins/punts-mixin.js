@@ -9,6 +9,8 @@ export const puntsMixin = {
 
   methods: {
     statusForPunt (puntObj) {
+      if (!puntObj) return null
+
       if (puntObj[puntKeys.makeUp] === null) {
         return PuntStatus.Punted
       }
@@ -24,7 +26,6 @@ export const puntsMixin = {
 
   computed: {
     isFullPuntsAdmin () {
-      console.log('yeet')
       return this.currentUserHasPermissions(Permissions.Punts_Admin)
     },
 
