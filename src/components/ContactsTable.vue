@@ -26,17 +26,7 @@
               class="mb-2"
           >
             New User
-          </v-btn>
-
-          <!-- EDIT USER BUTTON -->
-          <v-btn
-              v-if="selected.length === 1"
-              slot="activator"
-              color="primary"
-              class="mb-2"
-              @click.stop="editSelectedItem"
-          >
-            Edit User
+            <v-icon right>add_circle</v-icon>
           </v-btn>
 
           <!-- DIALOG CARD (EDIT/NEW) -->
@@ -94,14 +84,35 @@
               <!-- CANCEL BUTTON -->
               <v-btn flat color="error" @click.native="close">Cancel</v-btn>
               <!-- SAVE/INVITE BUTTON -->
-              <v-btn flat color="primary" @click.native="save">{{ isDialogEdit ? 'Save' : 'Invite'}}</v-btn>
+              <v-btn flat color="primary" :disabled="!editMap[userKeys.email]" @click.native="save">{{ isDialogEdit ? 'Save' : 'Invite'}}</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
 
+        <!-- EDIT USER BUTTON -->
+        <v-btn
+          :disabled="selected.length !== 1"
+          color="primary"
+          class="mb-2"
+          @click.stop="editSelectedItem"
+        >
+          Edit User
+          <v-icon right>edit</v-icon>
+        </v-btn>
+
         <!-- DELETE DIALOG -->
+        <v-btn
+          v-if="selected.length === 0"
+          color="error"
+          disabled
+          class="mb-2"
+        >
+          {{ deleteButtonTitle }}
+          <v-icon right>delete</v-icon>
+        </v-btn>
+
         <v-dialog
-          v-if="selected.length > 0"
+          v-else
           v-model="deleteDialog"
           persistent
           max-width="450">
@@ -110,8 +121,10 @@
         <v-btn
           color="error"
           slot="activator"
+          class="mb-2"
         >
           {{ deleteButtonTitle }}
+          <v-icon right>delete</v-icon>
         </v-btn>
 
         <!-- DIALOG CARD -->
@@ -301,7 +314,8 @@ export default {
 
     formSubheader () {
       return this.isDialogEdit ? ''
-        : 'The new user will receive an email asking them to sign up and fill in the rest of their details.'
+        : 'The new user will receive an email asking them to sign up and fill in the rest of their details. ' +
+        '(P.S. I don\'t have validation on the text field so PLEASE ENTER A REAL EMAIL.)'
     },
 
     deleteButtonTitle () {
@@ -369,14 +383,16 @@ export default {
           }
         })
       } else { // New
-        api.createNewUser(this.editMap[userKeys.email], (error) => {
-          if (error === null) {
-            this.$_glob.root.$emit(appEvents.apiSuccess, 'USER CREATE success')
-          } else {
-            console.log(error)
-            this.$_glob.root.$emit(appEvents.apiFailure, 'USER CREATE failed')
-          }
-        })
+        if (this.editMap[userKeys.email]) {
+          api.createNewUser(this.editMap[userKeys.email], (error) => {
+            if (error === null) {
+              this.$_glob.root.$emit(appEvents.apiSuccess, 'USER CREATE success')
+            } else {
+              console.log(error)
+              this.$_glob.root.$emit(appEvents.apiFailure, 'USER CREATE failed')
+            }
+          })
+        }
       }
 
       this.close()
