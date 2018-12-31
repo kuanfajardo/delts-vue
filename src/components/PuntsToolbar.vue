@@ -235,7 +235,7 @@
 <script>
 import { puntsMixin } from '../mixins'
 import { mapMutations, mapState } from 'vuex'
-import { EDIT_PUNT_SEARCH, EDIT_SELECTED_PUNTS } from '../store'
+import { EDIT_PUNT_SEARCH, EDIT_SELECTED_PUNTS, EDIT_MAKEUP_TEMPLATE_SEARCH } from '../store'
 import api, { userKeys, puntKeys, puntMakeupTemplateKeys, puntMakeupKeys } from '../api'
 import { eventNames as appEvents } from '../events'
 import { PuntStatus } from '../definitions'
@@ -362,7 +362,8 @@ export default {
     // STORE MAPS
     ...mapMutations({
       EDIT_PUNT_SEARCH,
-      EDIT_SELECTED_PUNTS
+      EDIT_SELECTED_PUNTS,
+      EDIT_MAKEUP_TEMPLATE_SEARCH
     })
 
     //----------------------+
@@ -485,12 +486,15 @@ export default {
         this.makeupDialogMakeup = ''
         this.makeupDialogCheck = false
       }
-    }
+    },
 
     //-------------------------+
     //    Duties Tab (Tab 1)   |
     //-------------------------+
 
+    search_2 (newValue) {
+      this.EDIT_MAKEUP_TEMPLATE_SEARCH(newValue)
+    }
   }
 }
 </script>

@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 import { EDIT_SELECTED_DUTY, SET_CURRENT_USER, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH, EDIT_PUNT_SEARCH,
-  EDIT_SELECTED_PUNTS, EDIT_SELECTED_MAKEUP_TEMPLATE } from './mutation-types'
+  EDIT_SELECTED_PUNTS, EDIT_SELECTED_MAKEUP_TEMPLATE, EDIT_MAKEUP_TEMPLATE_SEARCH } from './mutation-types'
 import {
   SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF, SET_USER_DUTIES_REF,
   SET_ALL_PUNTS_REF, SET_USER_PUNTS_REF, SET_PUNT_MAKEUPS_REF, SET_PUNT_MAKEUP_TEMPLATES_REF
@@ -189,8 +189,12 @@ const puntsStore = {
     makeupTemplates: [],
 
     /* LOCAL */
+    // Punts Tab 0
     puntSearch: '',
     selectedPunts: [],
+
+    // Punts Tab 1
+    makeupTemplateSearch: '',
     focusedMakeupTemplate: null
   },
 
@@ -205,6 +209,10 @@ const puntsStore = {
 
     [EDIT_SELECTED_MAKEUP_TEMPLATE] (state, selected) {
       state.focusedMakeupTemplate = selected
+    },
+
+    [EDIT_MAKEUP_TEMPLATE_SEARCH] (state, search) {
+      state.makeupTemplateSearch = search
     }
   },
 

@@ -4,6 +4,7 @@
     <v-data-table
         v-model="selected"
         :headers="headers"
+        :search="makeupTemplateSearch"
         :items="templates"
         class="elevation-1"
         :pagination.sync="pagination"
@@ -103,7 +104,8 @@ export default {
 
     ...mapState({
       makeupTemplates: state => state.puntsStore.makeupTemplates,
-      focusedTemplate: state => state.puntsStore.focusedMakeupTemplate
+      focusedTemplate: state => state.puntsStore.focusedMakeupTemplate,
+      makeupTemplateSearch: state => state.puntsStore.makeupTemplateSearch
     })
   },
 
