@@ -9,19 +9,9 @@
         :pagination.sync="pagination"
         :rows-per-page-items="rowsPerPageItems"
         :item-key="PropKeys.id"
-        select-all
     >
 
       <template slot="items" slot-scope="props">
-
-        <td>
-          <v-checkbox
-            v-model="props.selected"
-            color="primary"
-            hide-details
-          ></v-checkbox>
-        </td>
-
         <!-- DATE -->
         <td>{{ props.item[PropKeys.date] }}</td>
 
@@ -30,15 +20,38 @@
 
         <!-- DESCRIPTION -->
         <td>{{ props.item[PropKeys.description] }}</td>
+
+        <!-- ACTIONS -->
+        <td class="justify-center layout px-0">
+          <v-btn
+            v-if="isFocused(props.item)"
+            dark
+            class="elevation-0"
+            color="secondary"
+            @click.stop="seeMakeups(null)"
+          >
+            <v-icon>arrow_forward</v-icon>
+          </v-btn>
+          <v-btn
+            v-else
+            outline
+            dark
+            color="secondary"
+            @click.stop="seeMakeups(props.item)"
+          >
+            <v-icon dark>arrow_forward</v-icon>
+          </v-btn>
+        </td>
       </template>
     </v-data-table>
   </div>
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapMutations } from 'vuex'
 import { puntMakeupTemplateKeys } from '../api'
 import { puntsMixin } from '../mixins'
+import { EDIT_SELECTED_MAKEUP_TEMPLATE } from '../store'
 
 export default {
   name: 'punts-table',
@@ -59,7 +72,8 @@ export default {
       headers: [ // LOL can't use PropKeys
         { text: 'Date', align: 'left', value: 'date' },
         { text: 'Name', align: 'left', value: 'name' },
-        { text: 'Description', align: 'left', value: 'description' }
+        { text: 'Description', align: 'left', value: 'description' },
+        { text: 'See Makeups', sortable: false, value: false }
       ],
 
       pagination: {
@@ -88,7 +102,8 @@ export default {
     },
 
     ...mapState({
-      makeupTemplates: state => state.puntsStore.makeupTemplates
+      makeupTemplates: state => state.puntsStore.makeupTemplates,
+      focusedTemplate: state => state.puntsStore.focusedMakeupTemplate
     })
   },
 
@@ -111,7 +126,20 @@ export default {
 
     descriptionForItem (item) {
       return item[puntMakeupTemplateKeys.description]
-    }
+    },
+
+    seeMakeups (item) {
+      this.EDIT_SELECTED_MAKEUP_TEMPLATE(item)
+    },
+
+    isFocused (item) {
+      if (!this.focusedTemplate) return false
+      return item[this.PropKeys.id] === this.focusedTemplate.id
+    },
+
+    ...mapMutations({
+      EDIT_SELECTED_MAKEUP_TEMPLATE
+    })
   }
 }
 </script>

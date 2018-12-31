@@ -33,6 +33,16 @@
           </v-btn>
         </td>
       </template>
+      <template slot="no-data">
+        Click on a template's <v-btn
+            outline
+            dark
+            color="secondary"
+          >
+            <v-icon dark>arrow_forward</v-icon>
+          </v-btn>
+        button to see corresponding punt makeups.
+      </template>
     </v-data-table>
   </div>
 </template>
@@ -74,9 +84,7 @@ export default {
 
       rowsPerPageItems: [
         25, 50, { text: 'All', value: -1 }
-      ],
-
-      selectedTemplateID: '0obgqtYtOwdL91DEql75' // TODO: Make a prop
+      ]
     }
   },
 
@@ -84,7 +92,7 @@ export default {
     punts () {
       const puntsToShow = this.allPunts.filter(punt => {
         try {
-          return punt[puntKeys.makeUp][puntMakeupKeys.makeupTemplate].id === this.selectedTemplateID
+          return punt[puntKeys.makeUp][puntMakeupKeys.makeupTemplate].id === this.focusedTemplate.id
         } catch (e) {
           return false
         }
@@ -105,6 +113,7 @@ export default {
 
     ...mapState({
       allPunts: state => state.puntsStore.allPunts,
+      focusedTemplate: state => state.puntsStore.focusedMakeupTemplate
     })
   },
 
