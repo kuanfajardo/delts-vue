@@ -1,27 +1,16 @@
 <template>
-  <div class="punts-table px-5">
+  <div class="punts-table px-3">
     <!-- DATA TABLE -->
     <v-data-table
-        v-model="selected"
         :headers="headers"
         :items="punts"
-        :search="puntSearch"
         class="elevation-1"
         :pagination.sync="pagination"
         :rows-per-page-items="rowsPerPageItems"
         :item-key="PropKeys.id"
-        select-all
     >
 
       <template slot="items" slot-scope="props">
-
-        <td>
-          <v-checkbox
-            v-model="props.selected"
-            color="primary"
-            hide-details
-          ></v-checkbox>
-        </td>
 
         <!-- TIME -->
         <td>{{ props.item[PropKeys.puntTime] }}</td>
@@ -31,9 +20,6 @@
 
         <!-- REASON -->
         <td>{{ props.item[PropKeys.reason] }}</td>
-
-        <!-- GIVEN BY -->
-        <td>{{ props.item[PropKeys.givenBy] }}</td>
 
         <!-- STATUS -->
         <td>
@@ -46,24 +32,16 @@
             {{ props.item[PropKeys.statusString] }}
           </v-btn>
         </td>
-
-        <!-- MAKEUP TIME -->
-        <td>{{ props.item[PropKeys.makeUpTime] }}</td>
-
-        <!-- MAKEUP -->
-        <td>{{ props.item[PropKeys.makeUp] }}</td>
-
       </template>
     </v-data-table>
   </div>
 </template>
 
 <script>
-import { mapState, mapMutations } from 'vuex'
-import { puntKeys, puntMakeupKeys, userKeys, puntMakeupTemplateKeys } from '../api'
+import { mapState } from 'vuex'
+import { puntKeys, puntMakeupKeys, userKeys } from '../api'
 import { puntsMixin } from '../mixins'
 import { PuntStatus } from '../definitions'
-import { EDIT_SELECTED_PUNTS } from '../store'
 
 export default {
   name: 'punts-table',
@@ -77,24 +55,17 @@ export default {
         puntTime: 'puntTime',
         reason: 'reason',
         assignee: 'assignee',
-        makeUp: 'makeUp',
-        makeUpTime: 'makeUpTime',
         status: 'status',
         statusString: 'statusString',
         statusColor: 'statusColor',
-        givenBy: 'givenBy',
-        id: 'id',
-        object: 'object'
+        id: 'id'
       }),
 
       headers: [ // LOL can't use PropKeys
         { text: 'Date', align: 'left', value: 'puntTime' },
         { text: 'Assignee', align: 'left', value: 'assignee' },
         { text: 'Reason', align: 'left', value: 'reason' },
-        { text: 'Given By', value: 'givenBy' },
-        { text: 'Status', value: 'statusString' },
-        { text: 'Make-Up Time', value: 'makeUpTime' },
-        { text: 'Make-Up', value: 'makeUp' }
+        { text: 'Status', value: 'statusString' }
       ],
 
       pagination: {
@@ -105,41 +76,48 @@ export default {
         25, 50, { text: 'All', value: -1 }
       ],
 
-      selected: []
+      selectedTemplateID: '0obgqtYtOwdL91DEql75' // TODO: Make a prop
     }
   },
 
   computed: {
     punts () {
-      const puntsToShow = this.isFullPuntsAdmin ? this.allPunts : this.userPunts
+      const puntsToShow = this.allPunts.filter(punt => {
+        try {
+          return punt[puntKeys.makeUp][puntMakeupKeys.makeupTemplate].id === this.selectedTemplateID
+        } catch (e) {
+          return false
+        }
+      })
+
       return puntsToShow.map((punt) => {
         return { // TODO: make constructor in object i.e. 'PuntsTableObj(punt)'
           [this.PropKeys.id]: punt.id, // Needed for sorting
-          [this.PropKeys.object]: punt, // Needed for later (when in 'selected')
           [this.PropKeys.puntTime]: this.timeForItem(punt),
           [this.PropKeys.reason]: this.reasonForItem(punt),
           [this.PropKeys.assignee]: this.assigneeForItem(punt),
           [this.PropKeys.status]: this.statusForPunt(punt),
           [this.PropKeys.statusString]: this.stringForPuntStatus(this.statusForPunt(punt)),
           [this.PropKeys.statusColor]: this.statusColorForItem(punt),
-          [this.PropKeys.makeUp]: this.makeUpForItem(punt),
-          [this.PropKeys.makeUpTime]: this.makeUpTimeForItem(punt),
-          [this.PropKeys.givenBy]: this.givenByForItem(punt)
         }
       })
     },
 
     ...mapState({
       allPunts: state => state.puntsStore.allPunts,
-      userPunts: state => state.puntsStore.userPunts,
-      puntSearch: state => state.puntsStore.puntSearch,
-      selectedPunts: state => state.puntsStore.selectedPunts
     })
   },
 
   methods: {
     timeForItem (item) {
-      return new Date(item[puntKeys.puntTime].seconds * 1000).toDateString()
+      const itemDate = new Date(item[puntKeys.puntTime].seconds * 1000)
+
+      const date = itemDate.getDate()
+      const month = itemDate.getMonth() + 1 // Months are zero based
+      const year = itemDate.getFullYear()
+      const twoDigitYear = year.toString().slice(2)
+
+      return month + '/' + date + '/' + twoDigitYear
     },
 
     reasonForItem (item) {
@@ -168,32 +146,6 @@ export default {
       }
     },
 
-    makeUpForItem (item) {
-      // TODO: make functions for all this! have it check for undefined and return something if not defined
-      if (item[puntKeys.makeUp]) {
-        if (item[puntKeys.makeUp][puntMakeupKeys.makeupTemplate]) {
-          return item[puntKeys.makeUp][puntMakeupKeys.makeupTemplate][puntMakeupTemplateKeys.name]
-        }
-      }
-      return ''
-    },
-
-    makeUpTimeForItem (item) {
-      if (item[puntKeys.makeUp]) {
-        if (item[puntKeys.makeUp][puntMakeupKeys.completionTime]) {
-          return new Date(item[puntKeys.makeUp][puntMakeupKeys.completionTime].seconds * 1000).toDateString()
-        }
-      }
-      return ''
-    },
-
-    givenByForItem (item) {
-      if (item[puntKeys.givenBy]) {
-        return item[puntKeys.givenBy][userKeys.firstName]
-      }
-      return ''
-    },
-
     stringForPuntStatus (status) {
       switch (status) {
         case PuntStatus.Punted:
@@ -205,30 +157,7 @@ export default {
         default:
           return ''
       }
-    },
-
-    ...mapMutations({
-      EDIT_SELECTED_PUNTS
-    })
-  },
-
-  watch: {
-    selected (newValue) {
-      this.EDIT_SELECTED_PUNTS(newValue)
-    },
-
-    // If some other component changes store, reflect in local storage. Have to do this b/c v-model of data table
-    // can't directly be the store's selectedPunts b/c of how commits work (i.e. can't directly change it)
-    selectedPunts (newValue) {
-      this.selected = newValue
     }
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-.punts-table {
-
-}
-</style>

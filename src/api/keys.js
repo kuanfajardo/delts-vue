@@ -46,5 +46,6 @@ export const puntMakeupKeys = {
 export const puntMakeupTemplateKeys = {
   description: 'description',
   name: 'name',
-  value: 'value'
+  value: 'value',
+  date: 'date'
 }

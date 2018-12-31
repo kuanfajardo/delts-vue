@@ -31,11 +31,14 @@ import PuntsTable from '../../components/PuntsTable'
 import DutiesAdminBar from '../../components/DutiesAdminBar'
 import PuntsToolbar from '../../components/PuntsToolbar'
 import DutiesTable from '../../components/DutiesTable'
+import PuntMakeupsTab from '../../components/PuntsMakeupTab'
+
+
 
 export default {
   name: 'punts-page',
 
-  components: { DutiesAdminBar, PuntsTable, DutiesTable, PuntsToolbar },
+  components: { DutiesAdminBar, PuntsTable, DutiesTable, PuntsToolbar, PuntMakeupsTab },
 
   //-------------------+
   //     PROPERTIES    |
@@ -61,7 +64,7 @@ export default {
         case 0:
           return PuntsTable
         case 1:
-          return DutiesTable
+          return PuntMakeupsTab
         default:
           return null
       }
