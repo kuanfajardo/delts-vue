@@ -1,5 +1,11 @@
 <template>
   <div class="punts-table px-3">
+    <v-toolbar dense class="elevation-2">
+      <v-toolbar-title>
+        Makeup Templates
+      </v-toolbar-title>
+      <v-subheader>To edit, simply click on a name/description</v-subheader>
+    </v-toolbar>
     <!-- DATA TABLE -->
     <v-data-table
         v-model="selected"
@@ -17,10 +23,24 @@
         <td>{{ props.item[PropKeys.date] }}</td>
 
         <!-- NAME -->
-        <td>{{ props.item[PropKeys.name] }}</td>
+        <contacts-table-row
+            :edit-item="props.item"
+            :edit-field="PropKeys.name"
+            title="Name"
+            :save="inlineSave"
+            editable>
+        </contacts-table-row>
+        <!--<td>{{ props.item[PropKeys.name] }}</td>-->
 
         <!-- DESCRIPTION -->
-        <td>{{ props.item[PropKeys.description] }}</td>
+        <contacts-table-row
+            :edit-item="props.item"
+            :edit-field="PropKeys.description"
+            title="Description"
+            :save="inlineSave"
+            editable>
+        </contacts-table-row>
+        <!--<td>{{ props.item[PropKeys.description] }}</td>-->
 
         <!-- ACTIONS -->
         <td class="justify-center layout px-0">
@@ -50,13 +70,15 @@
 
 <script>
 import { mapState, mapMutations } from 'vuex'
-import { puntMakeupTemplateKeys } from '../api'
+import api, { puntMakeupTemplateKeys } from '../api'
 import { puntsMixin } from '../mixins'
 import { EDIT_SELECTED_MAKEUP_TEMPLATE } from '../store'
+import { eventNames as appEvents } from '../events'
+import ContactsTableRow from './ContactsTableRow'
 
 export default {
   name: 'punts-table',
-
+  components: { ContactsTableRow },
   mixins: [puntsMixin],
 
   data () {
@@ -137,6 +159,23 @@ export default {
     isFocused (item) {
       if (!this.focusedTemplate) return false
       return item[this.PropKeys.id] === this.focusedTemplate.id
+    },
+
+    inlineSave (item) {
+      const makeupTemplateObj = item[this.PropKeys.object]
+
+      const updateData = {
+        [puntMakeupTemplateKeys.name]: item[this.PropKeys.name],
+        [puntMakeupTemplateKeys.description]: item[this.PropKeys.description]
+      }
+
+      api.updateMakeupTemplateWithData(makeupTemplateObj, updateData, (error) => {
+        if (error === null) {
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'MAKEUP TEMPLATE UPDATE success')
+        } else {
+          this.$_glob.root.$emit(appEvents.apiFailure, 'MAKEUP TEMPLATE UPDATE failed')
+        }
+      })
     },
 
     ...mapMutations({

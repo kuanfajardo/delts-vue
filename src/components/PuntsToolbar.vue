@@ -217,6 +217,62 @@
     </template>
 
     <template v-if="tab === 1">
+
+      <!-- NEW MAKEUP DIALOG -->
+      <v-dialog
+          v-model="newMakeupDialog"
+          max-width="500px"
+        >
+
+          <!-- NEW MAKEUP BUTTON -->
+          <v-btn
+            dark
+            color="primary"
+            slot="activator"
+            :loading="isNewMakeupButtonBusy">
+            New Template
+            <v-icon right>add_circle</v-icon>
+          </v-btn>
+
+          <!-- DIALOG CARD -->
+          <v-card class="ma-auto">
+            <v-card-title>
+              <div class="mt-2 ml-2 mb-0">
+                <span class="headline pb-2">New Makeup Template</span>
+                <div class="mt-1">This will serve as a general template for a set of punt makeups.</div>
+              </div>
+            </v-card-title>
+
+            <!-- FORM -->
+            <v-container grid-list-md class="pb-2 pt-0">
+              <v-layout wrap>
+                <v-flex xs12>
+                  <v-text-field v-model="templateName" label="Name"></v-text-field>
+                </v-flex>
+                <v-flex xs12>
+                  <v-text-field v-model="templateDescription" label="Description"></v-text-field>
+                </v-flex>
+              </v-layout>
+            </v-container>
+
+            <v-divider></v-divider>
+
+            <!-- DIALOG ACTIONS -->
+            <v-card-actions color="white">
+              <v-spacer></v-spacer>
+              <!-- CANCEL BUTTON -->
+              <v-btn flat color="error" @click.native="closeNewMakeupDialog">Cancel</v-btn>
+              <!-- SAVE BUTTON -->
+              <v-btn flat color="primary" :disabled="!templateName || !templateDescription" @click.native="saveNewMakeupDialog">Save</v-btn>
+            </v-card-actions>
+          </v-card>
+      </v-dialog>
+
+       <v-divider
+          class="mx-3"
+          vertical
+        ></v-divider>
+
       <!-- SEARCH BOX -->
       <v-text-field
         v-model="search_2"
@@ -228,7 +284,6 @@
         class="px-1 py-0 my-0"
       ></v-text-field>
     </template>
-    <!-- TODO: Menus for other tabs -->
   </v-toolbar>
 </template>
 
@@ -271,7 +326,11 @@ export default {
       //    Duties Tab (Tab 1)   |
       //-------------------------+
 
-      search_2: ''
+      search_2: '',
+      newMakeupDialog: false,
+      isNewMakeupButtonBusy: false,
+      templateName: '',
+      templateDescription: ''
     }
   },
 
@@ -363,13 +422,37 @@ export default {
     ...mapMutations({
       EDIT_PUNT_SEARCH,
       EDIT_SELECTED_PUNTS,
-      EDIT_MAKEUP_TEMPLATE_SEARCH
-    })
+    }),
 
     //----------------------+
     //    Makeups (Tab 1)   |
     //----------------------+
 
+    closeNewMakeupDialog () {
+      this.newMakeupDialog = false
+      this.templateDescription = ''
+      this.templateName = ''
+    },
+
+    saveNewMakeupDialog () {
+      this.isNewMakeupButtonBusy = true
+
+      api.createNewMakeupTemplate(this.templateName, this.templateDescription, (error) => {
+        if (error === null) {
+          this.$_glob.root.$emit(appEvents.apiSuccess, 'NEW MAKEUP success')
+        } else {
+          this.$_glob.root.$emit(appEvents.apiFailure, 'NEW MAKEUP failed')
+        }
+
+        this.isNewMakeupButtonBusy = false
+      })
+
+      this.closeNewMakeupDialog()
+    },
+
+    ...mapMutations({
+      EDIT_MAKEUP_TEMPLATE_SEARCH
+    })
   },
 
   computed: {
@@ -444,12 +527,7 @@ export default {
       }
 
       if (commonMakeupTemplate) {
-        // TODO: make separate function- used also in makeupItems()
-        this.makeupDialogMakeup = commonMakeupTemplate.id//{
-          // text: commonMakeupTemplate[puntMakeupTemplateKeys.name],
-          // value: commonMakeupTemplate.id
-        // }
-
+        this.makeupDialogMakeup = commonMakeupTemplate.id
         this.makeupDialogCheck = true
       }
 

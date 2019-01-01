@@ -1,5 +1,11 @@
 <template>
   <div class="punts-table px-3">
+    <v-toolbar dense class="elevation-2">
+      <v-toolbar-title>
+        Punt Makeups
+      </v-toolbar-title>
+    </v-toolbar>
+
     <!-- DATA TABLE -->
     <v-data-table
         :headers="headers"
@@ -34,14 +40,14 @@
         </td>
       </template>
       <template slot="no-data">
-        Click on a template's <v-btn
-            outline
-            dark
-            color="secondary"
-          >
-            <v-icon dark>arrow_forward</v-icon>
-          </v-btn>
-        button to see corresponding punt makeups.
+        <div v-if="focusedTemplate">
+          No makeups currently are using this template.
+        </div>
+        <div v-else>
+          Click on a template's
+          <v-btn outline dark color="secondary"><v-icon dark>arrow_forward</v-icon></v-btn>
+          button to see corresponding punt makeups.
+        </div>
       </template>
     </v-data-table>
   </div>

@@ -132,6 +132,26 @@ export default {
       })
   },
 
+  createNewMakeupTemplate (templateName, templateDescription, callback) {
+    // TODO: type checking OOH or can do it in cloud
+
+    const makeupTemplateObj = {
+      [puntMakeupTemplateKeys.name]: templateName,
+      [puntMakeupTemplateKeys.description]: templateDescription,
+      [puntMakeupTemplateKeys.date]: new Date(),
+      [puntMakeupTemplateKeys.value]: 1
+    }
+
+    fb.puntMakeupTemplatesRef.add(makeupTemplateObj)
+      .then(() => { // Success
+        callback(null)
+      }, (error) => { // Failure
+        callback(new Error(error))
+      }).catch((error) => { // Error in callback
+        throw error
+      })
+  },
+
   // READ
 
   // UPDATE
@@ -227,6 +247,18 @@ export default {
     })
 
     batch.commit()
+      .then(() => { // Success
+        callback(null)
+      }, (error) => { // Failure
+        callback(new Error(error))
+      }).catch((error) => { // Error in callback
+        throw error
+      })
+  },
+
+  updateMakeupTemplateWithData (makeupTemplateObj, updateData, callback) {
+    fb.puntMakeupTemplatesRef.doc(makeupTemplateObj.id)
+      .update(updateData)
       .then(() => { // Success
         callback(null)
       }, (error) => { // Failure
