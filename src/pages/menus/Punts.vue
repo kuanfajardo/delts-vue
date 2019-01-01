@@ -32,11 +32,12 @@ import DutiesAdminBar from '../../components/DutiesAdminBar'
 import PuntsToolbar from '../../components/PuntsToolbar'
 import DutiesTable from '../../components/DutiesTable'
 import PuntMakeupsTab from '../../components/PuntsMakeupTab'
-
-
+import { puntsMixin } from '../../mixins'
 
 export default {
   name: 'punts-page',
+
+  mixins: [puntsMixin],
 
   components: { DutiesAdminBar, PuntsTable, DutiesTable, PuntsToolbar, PuntMakeupsTab },
 
@@ -47,14 +48,6 @@ export default {
   data () {
     return {
       tab: null,
-      tabNames: [
-        'Punts',
-        'Punt Makeups'
-      ],
-      tabIcons: [
-        'warning',
-        'build'
-      ]
     }
   },
 
@@ -67,6 +60,22 @@ export default {
           return PuntMakeupsTab
         default:
           return null
+      }
+    },
+
+    tabNames () {
+      if (this.isFullPuntsAdmin) {
+        return ['Punts', 'Punt Makeups']
+      } else {
+        return ['Punts']
+      }
+    },
+
+    tabIcons () {
+      if (this.isFullPuntsAdmin) {
+        return ['warning', 'build']
+      } else {
+        return ['warning']
       }
     }
   }

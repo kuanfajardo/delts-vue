@@ -27,7 +27,7 @@
         <td>{{ props.item[PropKeys.puntTime] }}</td>
 
         <!-- ASSIGNEE -->
-        <td>{{ props.item[PropKeys.assignee] }}</td>
+        <td :class="classForItem(props.item)">{{ props.item[PropKeys.assignee] }}</td>
 
         <!-- REASON -->
         <td>{{ props.item[PropKeys.reason] }}</td>
@@ -111,8 +111,7 @@ export default {
 
   computed: {
     punts () {
-      const puntsToShow = this.isFullPuntsAdmin ? this.allPunts : this.userPunts
-      return puntsToShow.map((punt) => {
+      return this.puntsToShow.map((punt) => {
         return { // TODO: make constructor in object i.e. 'PuntsTableObj(punt)'
           [this.PropKeys.id]: punt.id, // Needed for sorting
           [this.PropKeys.object]: punt, // Needed for later (when in 'selected')
@@ -129,12 +128,33 @@ export default {
       })
     },
 
+    puntsToShow () {
+      if (this.isFullPuntsAdmin) {
+        return this.allPunts
+      }
+
+      if (this.isAnyPuntsAdmin) {
+        return this.allPunts.filter(punt => {
+          const isAssignedToMe = punt[puntKeys.assignee].id === this.currentUser.uid
+          const isGivenByMe = punt[puntKeys.givenBy].id === this.currentUser.uid
+
+          return isAssignedToMe || isGivenByMe
+        })
+      }
+
+      return this.userPunts
+    },
+
     ...mapState({
       allPunts: state => state.puntsStore.allPunts,
       userPunts: state => state.puntsStore.userPunts,
       puntSearch: state => state.puntsStore.puntSearch,
       selectedPunts: state => state.puntsStore.selectedPunts
-    })
+    }),
+
+    ...mapState([
+      'currentUser'
+    ])
   },
 
   methods: {
@@ -207,6 +227,13 @@ export default {
       }
     },
 
+    classForItem (item) {
+      const isMyPunt = (item[this.PropKeys.object][puntKeys.assignee].id === this.currentUser.uid)
+      return {
+        'my-punt': isMyPunt
+      }
+    },
+
     ...mapMutations({
       EDIT_SELECTED_PUNTS
     })
@@ -230,5 +257,9 @@ export default {
 <style scoped>
 .punts-table {
 
+}
+
+.my-punt {
+  background-color: rgba(15, 81, 184, 0.44);
 }
 </style>

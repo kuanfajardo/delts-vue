@@ -501,6 +501,12 @@ export default {
         const puntObj = selectedPunt.object
         const puntStatus = this.statusForPunt(puntObj)
 
+        if (!this.isFullPuntsAdmin) {
+          if (puntObj[puntKeys.givenBy].id !== this.currentUser.uid) {
+            return true
+          }
+        }
+
         if (puntStatus === PuntStatus.MadeUp) {
           return true
         }
@@ -535,11 +541,26 @@ export default {
     },
 
     disableDeleteButton () {
-      return this.selectedPunts.length === 0
+      if (this.isFullPuntsAdmin) {
+        return this.selectedPunts.length === 0
+      }
+
+      if (this.isAnyPuntsAdmin) {
+        for (const selectedPunt of this.selectedPunts) {
+          const puntObj = selectedPunt.object
+          if (puntObj[puntKeys.givenBy].id !== this.currentUser.uid) {
+            return true
+          }
+        }
+
+        return this.selectedPunts.length === 0
+      }
+
+      return true
     },
 
     ...mapState([
-      'users'
+      'users', 'currentUser'
     ]),
 
     ...mapState({
