@@ -62,7 +62,7 @@
               <!-- CANCEL BUTTON -->
               <v-btn flat color="error" @click.native="closePuntDialog">Cancel</v-btn>
               <!-- PUNT BUTTON -->
-              <v-btn flat color="primary" @click.native="savePuntDialog">Punt</v-btn>
+              <v-btn flat color="primary" :disabled="!assignees || !reason" @click.native="savePuntDialog">Punt</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -312,7 +312,7 @@ export default {
       makeupDialog: false,
       deleteDialog: false,
 
-      assignees: [],
+      assignees: null,
       reason: '',
 
       isPuntButtonBusy: false,
@@ -347,7 +347,7 @@ export default {
     closePuntDialog () {
       this.puntDialog = false
       this.reason = ''
-      this.assignees = []
+      this.assignees = null
     },
 
     savePuntDialog () {
