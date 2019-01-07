@@ -46,6 +46,15 @@ export default {
         'assignment'
       ]
     }
+  },
+
+  computed: {
+    mainComponent () {
+      switch (this.tab) {
+        default:
+          return null
+      }
+    }
   }
 }
 </script>

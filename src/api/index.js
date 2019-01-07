@@ -1,4 +1,4 @@
-import { dutyKeys, dutyTemplateKeys, puntKeys, puntMakeupKeys, puntMakeupTemplateKeys } from './keys'
+import { dutyKeys, dutyTemplateKeys, puntKeys, puntMakeupKeys, puntMakeupTemplateKeys, partyKeys } from './keys'
 import * as fb from '../plugins/firebase'
 import { getNextDayOfWeek } from '../definitions'
 import store from '../store'
@@ -148,6 +148,25 @@ export default {
       }, (error) => { // Failure
         callback(new Error(error))
       }).catch((error) => { // Error in callback
+        throw error
+      })
+  },
+
+  createNewParty (name, theme, start, end, capacity, callback) {
+    const newPartyObj = {
+      [partyKeys.capacity]: capacity,
+      [partyKeys.name]: name,
+      [partyKeys.theme]: theme,
+      [partyKeys.startTimestamp]: start,
+      [partyKeys.endTimestamp]: end
+    }
+
+    fb.partiesRef.add(newPartyObj)
+      .then(() => { // SUCCESS
+        callback(null)
+      }, (error) => { // FAILURE
+        callback(new Error(error))
+      }).catch((error) => { // ERROR IN CALLBACK
         throw error
       })
   },

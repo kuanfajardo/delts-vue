@@ -22,6 +22,7 @@ export const allDutiesRef = db.collection('duties')
 export const allPuntsRef = db.collection('punts')
 export const puntMakeupsRef = db.collection('punt-makeups')
 export const puntMakeupTemplatesRef = db.collection('punt-makeup-templates')
+export const partiesRef = db.collection('parties')
 
 // TODO: Remove!! Only for debugging
 export const today = new Date(2018, 11, 26)

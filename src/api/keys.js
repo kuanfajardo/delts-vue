@@ -49,3 +49,11 @@ export const puntMakeupTemplateKeys = {
   value: 'value',
   date: 'date'
 }
+export const partyKeys = {
+  capacity: 'capacity',
+  name: 'name',
+  startTimestamp: 'time-start',
+  endTimestamp: 'time-end',
+  theme: 'theme'
+}
+
