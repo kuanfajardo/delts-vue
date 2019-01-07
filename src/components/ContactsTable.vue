@@ -92,7 +92,7 @@
         <!-- EDIT USER BUTTON -->
         <v-btn
           :disabled="selected.length !== 1"
-          color="primary"
+          color="secondary"
           class="mb-2"
           @click.stop="editSelectedItem"
         >

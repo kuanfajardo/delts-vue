@@ -1,6 +1,6 @@
 import firebase from 'firebase'
 import { getNextDayOfWeek, getLastDayOfWeek } from '../definitions'
-import { dutyKeys, puntKeys } from '../api'
+import { dutyKeys, puntKeys, partyKeys } from '../api'
 
 let config = {
   apiKey: 'AIzaSyCYos8q_4IeiPVsuS-2xQkR8wvkXMYQ164',
@@ -22,7 +22,9 @@ export const allDutiesRef = db.collection('duties')
 export const allPuntsRef = db.collection('punts')
 export const puntMakeupsRef = db.collection('punt-makeups')
 export const puntMakeupTemplatesRef = db.collection('punt-makeup-templates')
-export const partiesRef = db.collection('parties')
+// TODO: Fix this
+export const partiesCollectionRef = db.collection('parties')
+export const partiesRef = db.collection('parties').orderBy(partyKeys.startTimestamp)
 
 // TODO: Remove!! Only for debugging
 export const today = new Date(2018, 11, 26)

@@ -1,11 +1,12 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
+// TODO: Import *
 import { EDIT_SELECTED_DUTY, SET_CURRENT_USER, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH, EDIT_PUNT_SEARCH,
-  EDIT_SELECTED_PUNTS, EDIT_SELECTED_MAKEUP_TEMPLATE, EDIT_MAKEUP_TEMPLATE_SEARCH } from './mutation-types'
+  EDIT_SELECTED_PUNTS, EDIT_SELECTED_MAKEUP_TEMPLATE, EDIT_MAKEUP_TEMPLATE_SEARCH, EDIT_PARTY_SEARCH } from './mutation-types'
 import {
   SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF, SET_USER_DUTIES_REF,
-  SET_ALL_PUNTS_REF, SET_USER_PUNTS_REF, SET_PUNT_MAKEUPS_REF, SET_PUNT_MAKEUP_TEMPLATES_REF
+  SET_ALL_PUNTS_REF, SET_USER_PUNTS_REF, SET_PUNT_MAKEUPS_REF, SET_PUNT_MAKEUP_TEMPLATES_REF, SET_PARTIES_REF
 } from './action-types'
 
 import { firebaseMutations, firebaseAction } from 'vuexfire'
@@ -238,6 +239,30 @@ const puntsStore = {
   getters: {}
 }
 
+const socialStore = {
+  state: {
+    /* BOUND TO FIRESTORE */
+    parties: [],
+
+    /* LOCAL */
+    partySearch: ''
+  },
+
+  mutations: {
+    [EDIT_PARTY_SEARCH] (state, search) {
+      state.partySearch = search
+    }
+  },
+
+  actions: {
+    [SET_PARTIES_REF]: firebaseAction(({ bindFirebaseRef, unbindFirebaseRef }, ref) => {
+      bindFirebaseRef('parties', ref)
+    })
+  },
+
+  getters: {}
+}
+
 export default new Vuex.Store({
   state: {
     /* BOUND TO FIRESTORE */
@@ -257,7 +282,8 @@ export default new Vuex.Store({
 
   modules: {
     dutiesStore,
-    puntsStore
+    puntsStore,
+    socialStore
   },
 
   mutations: {

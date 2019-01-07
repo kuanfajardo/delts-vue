@@ -24,7 +24,6 @@
 
           <v-card
             height="auto"
-            color="grey lighten-4"
           >
 
             <v-card-title>
@@ -191,6 +190,23 @@
             </v-card-actions>
           </v-card>
       </v-dialog>
+
+      <v-divider
+        class="mx-3"
+        vertical
+      ></v-divider>
+
+      <!-- TODO: Search box component -->
+      <!-- SEARCH BOX -->
+      <v-text-field
+        v-model="search"
+        append-icon="search"
+        label="Search"
+        single-line
+        solo
+        hide-details
+        class="px-1 py-0 my-0"
+      ></v-text-field>
     </template>
     <template v-if="tab === 1">
     </template>
@@ -203,6 +219,7 @@
 import { mapState, mapMutations } from 'vuex'
 import api from '../api'
 import { eventNames as appEvents } from '../events'
+import { EDIT_PARTY_SEARCH } from '../store'
 
 export default {
   name: 'social-toolbar',
@@ -236,7 +253,8 @@ export default {
         capacity: null
       },
 
-      valid: false
+      valid: false,
+      search: ''
     }
   },
 
@@ -279,7 +297,7 @@ export default {
           var endTime = this.newPartyModel.startTime // "hh:mm"
           end.setHours(endTime.substring(0, 2), endTime.substring(3))
 
-          api.createNewParty(this.newPartyModel.name, this.newPartyModel.theme, start, end, this.newPartyModel.capacity,
+          api.createNewParty(this.newPartyModel.name, this.newPartyModel.theme, start, end, parseInt(this.newPartyModel.capacity),
             (error) => {
               if (error === null) {
                 this.$_glob.root.$emit(appEvents.apiSuccess, 'NEW PARTY success')
@@ -294,12 +312,23 @@ export default {
     },
 
     closeNewParty () {
-      this.newPartyModel = {}
-      this.$validator.reset()
       this.newPartyDialog = false
+
+      setTimeout(() => {
+        this.newPartyModel = {}
+        this.$validator.reset()
+      }, 300)
     },
 
-    ...mapMutations({})
+    ...mapMutations({
+      EDIT_PARTY_SEARCH
+    })
+  },
+
+  watch: {
+    search (newValue) {
+      this.EDIT_PARTY_SEARCH(newValue)
+    }
   }
 }
 </script>

@@ -5,6 +5,7 @@ import store from '../store'
 import firebase from 'firebase'
 
 // TODO: split into public and private
+// TODO: HUGE MY GUY :: CUSTOM OBJS FOR FIRESTORE : https://firebase.google.com/docs/firestore/manage-data/add-data#custom_objects
 export default {
   // CREATE
   generateDutySheet (startOfWeek, callback) {
@@ -161,7 +162,7 @@ export default {
       [partyKeys.endTimestamp]: end
     }
 
-    fb.partiesRef.add(newPartyObj)
+    fb.partiesCollectionRef.add(newPartyObj)
       .then(() => { // SUCCESS
         callback(null)
       }, (error) => { // FAILURE

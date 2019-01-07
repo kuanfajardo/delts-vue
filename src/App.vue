@@ -41,9 +41,10 @@
 <script>
 import appEvents from './events'
 import AppNavigation from './components/AppNavigation'
-import { dutyTemplatesRef, usersRef, allDutiesRef, weekDutiesRef, allPuntsRef, puntMakeupsRef, puntMakeupTemplatesRef, today } from './plugins/firebase'
+// TODO: Import *
+import { dutyTemplatesRef, usersRef, allDutiesRef, weekDutiesRef, allPuntsRef, puntMakeupsRef, puntMakeupTemplatesRef, partiesRef, today } from './plugins/firebase'
 import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF, SET_ALL_PUNTS_REF,
-  SET_PUNT_MAKEUPS_REF, SET_PUNT_MAKEUP_TEMPLATES_REF } from './store'
+  SET_PUNT_MAKEUPS_REF, SET_PUNT_MAKEUP_TEMPLATES_REF, SET_PARTIES_REF } from './store'
 
 export default {
   name: 'App',
@@ -81,6 +82,7 @@ export default {
     this.$store.dispatch(SET_ALL_PUNTS_REF, allPuntsRef)
     this.$store.dispatch(SET_PUNT_MAKEUPS_REF, puntMakeupsRef)
     this.$store.dispatch(SET_PUNT_MAKEUP_TEMPLATES_REF, puntMakeupTemplatesRef)
+    this.$store.dispatch(SET_PARTIES_REF, partiesRef)
   }
 }
 </script>

@@ -28,10 +28,11 @@
 
 <script>
 import SocialToolbar from '../../components/SocialToolbar'
+import PartyIterator from '../../components/PartyIterator'
 
 export default {
   name: 'social-page',
-  components: { SocialToolbar },
+  components: { SocialToolbar, PartyIterator },
   data () {
     return {
       tab: null,
@@ -51,6 +52,8 @@ export default {
   computed: {
     mainComponent () {
       switch (this.tab) {
+        case 0:
+          return PartyIterator
         default:
           return null
       }
