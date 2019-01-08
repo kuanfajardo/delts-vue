@@ -50,6 +50,7 @@ export default {
       })
   },
 
+  // TODO: createUser
   createNewUser (email, callback) {
     const defaultPassword = 'tempPass'
     firebase.auth().createUserWithEmailAndPassword(email, defaultPassword)
@@ -75,6 +76,7 @@ export default {
       })
   },
 
+  // TODO: createPunt
   createNewPunt (punteeID, reason, callback) {
     // TODO: make helpers for ref objects
     // TODO: make helper for current user ref
@@ -104,6 +106,7 @@ export default {
       })
   },
 
+  // TODO: createPuntBatch
   createNewPuntsBatch (punteeIDs, reason, callback) {
     var puntsBatch = fb.db.batch()
 
@@ -133,6 +136,7 @@ export default {
       })
   },
 
+  // TODO: createMakeupTemplate
   createNewMakeupTemplate (templateName, templateDescription, callback) {
     // TODO: type checking OOH or can do it in cloud
 
@@ -153,6 +157,7 @@ export default {
       })
   },
 
+  // TODO: createParty
   createNewParty (name, theme, start, end, capacity, callback) {
     const newPartyObj = {
       [partyKeys.capacity]: capacity,
@@ -175,6 +180,7 @@ export default {
   // READ
 
   // UPDATE
+  // TODO: updateDutyCheckoff
   checkoffDuty (dutyObj, callback) {
     // TODO: move to better place?
     const currentUserID = firebase.auth().currentUser.uid
@@ -190,6 +196,7 @@ export default {
     })
   },
 
+  // TODO: updateDutyCheckoff
   undoCheckoffForDuty (dutyObj, callback) {
     fb.allDutiesRef.doc(dutyObj.id).update({
       [dutyKeys.checker]: null,
@@ -203,6 +210,7 @@ export default {
     })
   },
 
+  // TODO: updateDutyAssignee
   updateAssigneeForDuty (dutyObj, assigneeObj, callback) {
     const assignee = assigneeObj ? fb.usersRef.doc(assigneeObj.id) : null
     fb.allDutiesRef.doc(dutyObj.id).update({
@@ -228,6 +236,7 @@ export default {
       })
   },
 
+  // TODO: updatePuntBatchMakeup
   // TODO: Change to accept makeupObj
   updatePuntsWithMakeup (puntObjArr, makeupTemplateID, markAsComplete, callback) {
     var batch = fb.db.batch()
@@ -288,6 +297,18 @@ export default {
       })
   },
 
+  updatePartyWithData (partyObj, updateData, callback) {
+    fb.partiesRef.doc(partyObj.id)
+      .update(updateData)
+      .then(() => { // Success
+        callback(null)
+      }, (error) => { // Failure
+        callback(new Error(error))
+      }).catch((error) => { // Error in callback
+        throw error
+      })
+  },
+
   // DELETE
   deleteUser (userObj, callback) {
     // TODO: Add Admin SDK to delete user
@@ -305,6 +326,7 @@ export default {
       })
   },
 
+  // TODO: deletePuntBatch
   deletePuntsBatch (puntObjArr, callback) {
     var puntsBatch = fb.db.batch()
 
@@ -321,9 +343,31 @@ export default {
       }).catch((error) => { // Error in callback
         throw error
       })
-  }
+  },
+
+  deleteParty (partyObj, callback) {
+    fb.partiesRef.doc(partyObj.id)
+      .delete()
+      .then(() => { // Success
+        callback(null)
+      }, (error) => { // Failure
+        callback(new Error(error))
+      }).catch((error) => { // Error in callback
+        throw error
+      })
+  },
 
   // OTHER
+  // TODO: Use this!
+  run (f, callback) {
+    f().then(() => {
+      callback(null)
+    }, (error) => {
+      callback(new Error(error))
+    }).catch((error) => {
+      throw error
+    })
+  }
 
 }
 
