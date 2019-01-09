@@ -43,12 +43,20 @@ export const dutyTemplatesRef = db.collection('duty-templates')
 export const usersRef = db.collection('users')
 
 export function dutiesRefForUser (user) {
-  const userRef = usersRef.doc(user.uid)
-  return allDutiesRef.where(dutyKeys.assignee, '==', userRef).orderBy(dutyKeys.date)
+  if (user) {
+    const userRef = usersRef.doc(user.uid)
+    return allDutiesRef.where(dutyKeys.assignee, '==', userRef).orderBy(dutyKeys.date)
+  } else {
+    return []
+  }
 }
 
 export function puntsRefForUser (user) {
-  const userRef = usersRef.doc(user.uid)
-  return allPuntsRef.where(puntKeys.assignee, '==', userRef).orderBy(puntKeys.puntTime)
+  if (user) {
+    const userRef = usersRef.doc(user.uid)
+    return allPuntsRef.where(puntKeys.assignee, '==', userRef).orderBy(puntKeys.puntTime)
+  } else {
+    return []
+  }
 }
 
