@@ -18,7 +18,13 @@
         lg3
       >
         <v-card>
-          <v-card-title class="subheading font-weight-bold">{{ props.item[partyKeys.name] }}</v-card-title>
+          <v-card-title class="subheading font-weight-bold">
+            {{ props.item[partyKeys.name] }}
+            <v-spacer></v-spacer>
+            <v-chip :color="props.item[partyKeys.isActive] ? 'primary' : 'white'" text-color="white" class="ma-0 pa-0">
+              Active
+            </v-chip>
+          </v-card-title>
 
           <v-divider></v-divider>
 
@@ -47,189 +53,15 @@
           <v-divider class="mt-1"></v-divider>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn class="my-1 mr-1 elevation-4" small fab color="secondary" @click.native="editParty(props.item)"><v-icon>edit</v-icon></v-btn>
+            <v-btn v-if="props.item[partyKeys.isActive]" class="my-1 mr-1 elevation-4" small fab color="secondary" @click.native="editParty(props.item)"><v-icon>edit</v-icon></v-btn>
             <v-btn class="my-1 mr-1 elevation-4" small fab color="primary" @click.native="viewInviteListForParty(props.item)"><v-icon>face</v-icon></v-btn>
-            <v-btn class="my-1 mr-1 elevation-4" small fab color="white" :href="props.item[partyKeys.photos]"><v-icon color="black">photo_camera</v-icon></v-btn>
+            <v-btn :disabled="props.item[partyKeys.photos] === null" class="my-1 mr-1 elevation-4" small fab color="white" :href="props.item[partyKeys.photos]" target="_blank"><v-icon color="black">photo_camera</v-icon></v-btn>
             <v-btn class="my-1 mr-1 elevation-4" small fab color="accent" @click.native="deleteParty(props.item)"><v-icon>delete</v-icon></v-btn>
             <v-spacer></v-spacer>
           </v-card-actions>
         </v-card>
       </v-flex>
     </v-data-iterator>
-    <!--<v-dialog-->
-        <!--v-model="editDialog"-->
-        <!--max-width="500px"-->
-      <!--&gt;-->
-        <!--&lt;!&ndash; DIALOG CARD &ndash;&gt;-->
-        <!--<v-card class="ma-auto">-->
-          <!--<v-card-title>-->
-            <!--<div class="mt-2 ml-2 mb-0">-->
-              <!--<span class="headline pb-2">Edit Party</span>-->
-              <!--<div class="mt-1">Ian McNally is 10/10.</div>-->
-            <!--</div>-->
-          <!--</v-card-title>-->
-
-          <!--&lt;!&ndash; FORM &ndash;&gt;-->
-          <!--<v-form v-model="isEditFormValid">-->
-          <!--<v-container grid-list-md class="pb-2 pt-3 px-4">-->
-            <!--<v-layout wrap>-->
-              <!--<v-flex xs12>-->
-                <!--<v-text-field-->
-                    <!--v-model="editFormModel.name"-->
-                    <!--solo-->
-                    <!--label="Party Name"-->
-                    <!--v-validate="'required'"-->
-                    <!--data-vv-name="name"-->
-                    <!--:error-messages="errors.collect('name')"-->
-                <!--&gt;</v-text-field>-->
-              <!--</v-flex>-->
-              <!--<v-flex xs12>-->
-                 <!--<v-textarea-->
-                  <!--label="Theme / Dress"-->
-                  <!--rows="2"-->
-                  <!--outline-->
-                  <!--v-model="editFormModel.theme"-->
-                  <!--v-validate="'required'"-->
-                  <!--data-vv-name="theme"-->
-                  <!--:error-messages="errors.collect('theme')"-->
-                <!--&gt;</v-textarea>-->
-              <!--</v-flex>-->
-              <!--<v-flex xs12 sm6>-->
-                <!--<v-menu-->
-                  <!--:close-on-content-click="false"-->
-                  <!--v-model="partyStartDateMenu"-->
-                  <!--:nudge-right="40"-->
-                  <!--lazy-->
-                  <!--transition="scale-transition"-->
-                  <!--offset-y-->
-                  <!--full-width-->
-                <!--&gt;-->
-                  <!--<v-text-field-->
-                    <!--slot="activator"-->
-                    <!--v-model="editFormModel.startDate"-->
-                    <!--label="Start Date"-->
-                    <!--prepend-icon="event_available"-->
-                    <!--readonly-->
-                    <!--v-validate="'required|date_format:YYYY-MM-DD'"-->
-                    <!--data-vv-name="startDate"-->
-                    <!--:error-messages="errors.collect('startDate')"-->
-                    <!--ref="startDate"-->
-                  <!--&gt;</v-text-field>-->
-                  <!--<v-date-picker v-model="editFormModel.startDate" @input="partyStartDateMenu = false"></v-date-picker>-->
-                <!--</v-menu>-->
-              <!--</v-flex>-->
-              <!--<v-flex xs12 sm6>-->
-                <!--<v-menu-->
-                  <!--ref="startTimeMenu"-->
-                  <!--:close-on-content-click="false"-->
-                  <!--v-model="partyStartTimeMenu"-->
-                  <!--:nudge-right="40"-->
-                  <!--lazy-->
-                  <!--transition="scale-transition"-->
-                  <!--offset-y-->
-                  <!--:return-value.sync="editFormModel.startTime"-->
-                  <!--full-width-->
-                <!--&gt;-->
-                  <!--<v-text-field-->
-                    <!--slot="activator"-->
-                    <!--v-model="editFormModel.startTime"-->
-                    <!--label="Start Time"-->
-                    <!--prepend-icon="timer"-->
-                    <!--readonly-->
-                    <!--v-validate="'required'"-->
-                    <!--data-vv-name="startTime"-->
-                    <!--:error-messages="errors.collect('startTime')"-->
-                  <!--&gt;</v-text-field>-->
-                  <!--<v-time-picker-->
-                      <!--v-if="partyStartTimeMenu"-->
-                      <!--format="24hr"-->
-                      <!--v-model="editFormModel.startTime"-->
-                      <!--@change="$refs.startTimeMenu.save(editFormModel.startTime)"-->
-                  <!--&gt;</v-time-picker>-->
-                <!--</v-menu>-->
-              <!--</v-flex>-->
-              <!--<v-flex xs12 sm6>-->
-                <!--<v-menu-->
-                  <!--:close-on-content-click="false"-->
-                  <!--v-model="partyEndDateMenu"-->
-                  <!--:nudge-right="40"-->
-                  <!--lazy-->
-                  <!--transition="scale-transition"-->
-                  <!--offset-y-->
-                  <!--full-width-->
-                <!--&gt;-->
-                  <!--<v-text-field-->
-                    <!--slot="activator"-->
-                    <!--v-model="editFormModel.endDate"-->
-                    <!--label="End Date"-->
-                    <!--prepend-icon="event_busy"-->
-                    <!--readonly-->
-                    <!--v-validate="'required|date_format:YYYY-MM-DD|after:startDate, true'"-->
-                    <!--data-vv-name="endDate"-->
-                    <!--:error-messages="errors.collect('endDate')"-->
-                  <!--&gt;</v-text-field>-->
-                  <!--<v-date-picker v-model="editFormModel.endDate" @input="partyEndDateMenu = false"></v-date-picker>-->
-                <!--</v-menu>-->
-              <!--</v-flex>-->
-              <!--<v-flex xs12 sm6>-->
-                <!--<v-menu-->
-                  <!--ref="endTimeMenu"-->
-                  <!--:close-on-content-click="false"-->
-                  <!--v-model="partyEndTimeMenu"-->
-                  <!--:nudge-right="40"-->
-                  <!--lazy-->
-                  <!--transition="scale-transition"-->
-                  <!--offset-y-->
-                  <!--full-width-->
-                  <!--:return-value.sync="editFormModel.endTime"-->
-                <!--&gt;-->
-                  <!--<v-text-field-->
-                    <!--slot="activator"-->
-                    <!--v-model="editFormModel.endTime"-->
-                    <!--label="End Time"-->
-                    <!--prepend-icon="timer_off"-->
-                    <!--readonly-->
-                    <!--v-validate="'required'"-->
-                    <!--data-vv-name="endTime"-->
-                    <!--:error-messages="errors.collect('endTime')"-->
-                  <!--&gt;</v-text-field>-->
-                  <!--<v-time-picker-->
-                      <!--v-if="partyEndTimeMenu"-->
-                      <!--format="24hr"-->
-                      <!--v-model="editFormModel.endTime"-->
-                      <!--@change="$refs.endTimeMenu.save(editFormModel.endTime)"-->
-                  <!--&gt;</v-time-picker>-->
-                <!--</v-menu>-->
-              <!--</v-flex>-->
-              <!--<v-flex xs12 sm6>-->
-                <!--<v-text-field-->
-                  <!--v-model="editFormModel.capacity"-->
-                  <!--prepend-icon="people"-->
-                  <!--type="number"-->
-                  <!--label="Capacity"-->
-                  <!--:hint="hintForCapacity"-->
-                  <!--persistent-hint-->
-                  <!--v-validate="'required|integer|min_value:0'"-->
-                  <!--data-vv-name="capacity"-->
-                  <!--:error-messages="errors.collect('capacity')"-->
-                <!--&gt;</v-text-field>-->
-              <!--</v-flex>-->
-            <!--</v-layout>-->
-          <!--</v-container>-->
-          <!--</v-form>-->
-
-          <!--<v-divider></v-divider>-->
-
-          <!--&lt;!&ndash; DIALOG ACTIONS &ndash;&gt;-->
-          <!--<v-card-actions color="white">-->
-            <!--<v-spacer></v-spacer>-->
-            <!--&lt;!&ndash; CANCEL BUTTON &ndash;&gt;-->
-            <!--<v-btn flat color="error" @click.native="closePuntDialog">Cancel</v-btn>-->
-            <!--&lt;!&ndash; PUNT BUTTON &ndash;&gt;-->
-            <!--<v-btn flat color="primary" :disabled="!assignees || !reason" @click.native="savePuntDialog">Punt</v-btn>-->
-          <!--</v-card-actions>-->
-        <!--</v-card>-->
-      <!--</v-dialog>-->
   </v-container>
 </template>
 
@@ -247,7 +79,7 @@ export default {
   data () {
     return {
       pagination: {
-        rowsPerPage: 4
+        rowsPerPage: 0
       },
 
       editDialog: false,
@@ -274,9 +106,14 @@ export default {
           [partyKeys.photos]: partyObj[partyKeys.photos],
           [partyKeys.startTimestamp]: this.dateForTimestamp(partyObj[partyKeys.startTimestamp]),
           [partyKeys.endTimestamp]: this.dateForTimestamp(partyObj[partyKeys.endTimestamp]),
+          [partyKeys.isActive]: partyObj[partyKeys.isActive],
           object: partyObj
         }
       })
+    },
+
+    breakpoint () {
+      return this.$vuetify.breakpoint.name
     },
 
     ...mapState({
@@ -321,12 +158,36 @@ export default {
 
     deleteParty (item) {
       alert('Deleting ' + item[partyKeys.name])
+    },
+
+    numRowItemsForBreakpoint (breakpointName) {
+      switch (breakpointName) {
+        case 'xl':
+        case 'lg':
+          return 4
+        case 'md':
+          return 3
+        case 'sm':
+          return 2
+        case 'xs':
+          return 1
+        default:
+          return 0
+      }
+    },
+
+    updateRowsPerPage () {
+      this.pagination.rowsPerPage = this.numRowItemsForBreakpoint(this.$vuetify.breakpoint.name)
     }
+  },
+
+  mounted () {
+    this.updateRowsPerPage()
   },
 
   // https://vuejs.org/v2/api/#watch
   watch: {
-    msg: 'someMethod'
+    breakpoint: 'updateRowsPerPage'
   }
 }
 </script>

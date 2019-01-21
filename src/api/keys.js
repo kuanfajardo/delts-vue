@@ -55,7 +55,8 @@ export const partyKeys = {
   startTimestamp: 'time-start',
   endTimestamp: 'time-end',
   theme: 'theme',
-  photos: 'photos'
+  photos: 'photos',
+  isActive: 'is-active'
 }
 }
 
