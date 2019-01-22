@@ -164,7 +164,9 @@ export default {
       [partyKeys.name]: name,
       [partyKeys.theme]: theme,
       [partyKeys.startTimestamp]: start,
-      [partyKeys.endTimestamp]: end
+      [partyKeys.endTimestamp]: end,
+      [partyKeys.photos]: null,
+      [partyKeys.isActive]: true
     }
 
     fb.partiesCollectionRef.add(newPartyObj)

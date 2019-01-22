@@ -53,7 +53,18 @@
           <v-divider class="mt-1"></v-divider>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn v-if="props.item[partyKeys.isActive]" class="my-1 mr-1 elevation-4" small fab color="secondary" @click.native="editParty(props.item)"><v-icon>edit</v-icon></v-btn>
+            <edit-party-dialog v-if="props.item[partyKeys.isActive]" class="my-1 pr-2 mr-1 elevation-0" :model="props.item.object" :on-save="updateParty">
+              <v-btn
+                  class="elevation-4"
+                  small
+                  fab
+                  color="secondary"
+              >
+                <v-icon>
+                  edit
+                </v-icon>
+              </v-btn>
+            </edit-party-dialog>
             <v-btn class="my-1 mr-1 elevation-4" small fab color="primary" @click.native="viewInviteListForParty(props.item)"><v-icon>face</v-icon></v-btn>
             <v-btn :disabled="props.item[partyKeys.photos] === null" class="my-1 mr-1 elevation-4" small fab color="white" :href="props.item[partyKeys.photos]" target="_blank"><v-icon color="black">photo_camera</v-icon></v-btn>
             <v-btn class="my-1 mr-1 elevation-4" small fab color="accent" @click.native="deleteParty(props.item)"><v-icon>delete</v-icon></v-btn>
@@ -68,10 +79,12 @@
 <script>
 import { mapState } from 'vuex'
 import { partyKeys } from '../api'
+import EditPartyDialog from './EditPartyDialog'
+import api from '../api'
 
 export default {
   name: 'party-iterator',
-
+  components: { EditPartyDialog },
   //-------------------+
   //     PROPERTIES    |
   //-------------------+
@@ -98,7 +111,6 @@ export default {
     // TODO: Custom objs!
     parties () {
       return this.partyObjects.map((partyObj) => {
-        console.log(partyObj)
         return {
           [partyKeys.name]: partyObj[partyKeys.name],
           [partyKeys.capacity]: partyObj[partyKeys.capacity],
@@ -148,8 +160,20 @@ export default {
       return month + '/' + date + '/' + twoDigitYear + ' @ ' + hour + ':' + minuteString + ' ' + amOrPm
     },
 
-    editParty (item) {
-      alert('Editing ' + item[partyKeys.name])
+    updateParty (valid, partyModel, callback) {
+      if (valid) {
+        // Create Date obj from start date and time
+        const start = new Date(partyModel.startDate) // "yyyy-mm-dd"
+        var startTime = partyModel.startTime // "hh:mm"
+        start.setHours(startTime.substring(0, 2), startTime.substring(3))
+
+        // Create Date obj from end date and time
+        const end = new Date(partyModel.endDate) // "yyyy-mm-dd"
+        var endTime = partyModel.startTime // "hh:mm"
+        end.setHours(endTime.substring(0, 2), endTime.substring(3))
+
+        callback()
+      }
     },
 
     viewInviteListForParty (item) {
