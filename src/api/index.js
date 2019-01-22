@@ -183,10 +183,10 @@ export default {
 
   // UPDATE
   // TODO: updateDutyCheckoff
-  checkoffDuty (dutyObj, callback) {
+  checkoffDuty (duty, callback) {
     // TODO: move to better place?
     const currentUserID = firebase.auth().currentUser.uid
-    fb.allDutiesRef.doc(dutyObj.id).update({
+    fb.allDutiesRef.doc(duty.id).update({
       [dutyKeys.checker]: fb.usersRef.doc(currentUserID),
       [dutyKeys.checkTime]: new Date()
     }).then(() => { // Success
@@ -199,8 +199,8 @@ export default {
   },
 
   // TODO: updateDutyCheckoff
-  undoCheckoffForDuty (dutyObj, callback) {
-    fb.allDutiesRef.doc(dutyObj.id).update({
+  undoCheckoffForDuty (duty, callback) {
+    fb.allDutiesRef.doc(duty.id).update({
       [dutyKeys.checker]: null,
       [dutyKeys.checkTime]: null
     }).then(() => { // Success
@@ -213,10 +213,10 @@ export default {
   },
 
   // TODO: updateDutyAssignee
-  updateAssigneeForDuty (dutyObj, assigneeObj, callback) {
-    const assignee = assigneeObj ? fb.usersRef.doc(assigneeObj.id) : null
-    fb.allDutiesRef.doc(dutyObj.id).update({
-      [dutyKeys.assignee]: assignee
+  updateAssigneeForDuty (duty, assignee, callback) { // Duty obj, User obj
+    const assigneeRef = assignee ? fb.usersRef.doc(assignee.id) : null
+    fb.allDutiesRef.doc(duty.id).update({
+      [dutyKeys.assignee]: assigneeRef
     }).then(() => { // Success
       callback(null)
     }, (error) => { // Failure

@@ -11,15 +11,15 @@
         <v-flex xs10>
           <v-layout row wrap>
             <v-flex
-                v-for="weekday in weekdaysToUse"
-                :key="`weekdayHeader_${weekday}`"
+                v-for="date in datesToUse"
+                :key="`weekdayHeader_${date.getDay()}`"
                 xs2
             >
               <v-card
-                  :dark="isWeekdayToday(weekday)"
-                  :color="isWeekdayToday(weekday) ? 'surface darken-4' : 'surface darken-2'"
+                  :dark="isToday(date)"
+                  :color="isToday(date) ? 'surface darken-4' : 'surface darken-2'"
               >
-                <v-card-text class="px-0">{{WEEKDAYS[weekday].name}}</v-card-text>
+                <v-card-text class="px-0">{{ weekdayNameForDate(date) }}</v-card-text>
               </v-card>
             </v-flex>
           </v-layout>
@@ -32,7 +32,7 @@
         <!-- Duty Name -->
         <v-flex xs2 :key="`dutyHeader_${duty}_${idx}`">
           <v-card light color="surface darken-2">
-            <v-card-text class="px-0">{{duty}}</v-card-text>
+            <v-card-text class="px-0">{{ duty }}</v-card-text>
           </v-card>
         </v-flex>
 
@@ -43,46 +43,50 @@
         >
           <v-layout row wrap>
              <v-flex
-                 v-for="weekday in weekdaysToUse"
-                 :key="`dutySlot_${duty}${idx}_${weekday}`"
-                 :id="idForDuty(idx, weekday)"
-                 :style="{ 'border-bottom-color': colorForDuty(idx, weekday) }"
+                 v-for="date in datesToUse"
+                 :key="`dutySlot_${duty}${idx}_${date.getDay()}`"
+                 :data-duty="dutyForProperties(idx, date)"
+                 :id="elementIDForDuty(dutyForProperties(idx, date))"
+                 :style="{ 'border-bottom-color': colorForDuty(dutyForProperties(idx, date)) }"
                  xs2
              >
                 <!-- Available Duty -->
-                <template v-if="isDutyIDAvailable(idx, weekday)">
+                <template v-if="dutyForProperties(idx, date)">
                   <v-tooltip bottom>
-                    <!-- For XS screens, (1) weekday text in btn and (2) constrained width -->
+                    <!-- For XS/S screens, (1) weekday text in btn and (2) constrained width -->
                     <v-btn
                         slot="activator"
                         block
                         dark
                         class="duty-button"
                         :class="{ 'xs' : isXSmall }"
-                        :style="styleForDuty(idx, weekday)"
-                        :color="colorForDuty(idx, weekday)"
-                        @click.stop="dutyClicked(idx, weekday)"
+                        :color="colorForDuty(dutyForProperties(idx, date))"
+                        @click.stop="dutyClicked(dutyForProperties(idx, date))"
                     >
                       <span
                           v-if="isXSmall
                           && isDutySheetLive
-                          && statusForDutyProperties(idx, weekday) === DutyStatus.unclaimed"
+                          && dutyForProperties(idx, date).status === DutyStatus.unclaimed"
                       >
-                        {{WEEKDAYS[weekday].abb}}
+                        {{ weekdayAbbreviationForDate(date) }}
                       </span>
 
-                      <v-icon v-else :color="iconColorForDuty(idx, weekday)">{{iconForDuty(idx, weekday)}}</v-icon>
+                      <v-icon v-else :color="iconColorForDuty(dutyForProperties(idx, date))">
+                        {{ iconForDuty(dutyForProperties(idx, date)) }}
+                      </v-icon>
                     </v-btn>
-                    <span>{{tooltipForDuty(idx, duty, weekday)}}</span>
+                    <span>
+                      {{ tooltipForDuty(dutyForProperties(idx, date)) }}
+                    </span>
                   </v-tooltip>
                 </template>
 
-               <!-- Unavailable Slots -->
+                <!-- Unavailable Slots -->
                 <template v-else>
                   <v-card
                       dark
                       class="duty-button"
-                      :color="colorForDuty(idx, weekday)"
+                      :color="colorForDuty(dutyForProperties(idx, date))"
                   ></v-card>
                 </template>
 
@@ -96,71 +100,34 @@
 
 <script>
 import { EDIT_SELECTED_DUTY } from '../store'
-import { dutiesMixin } from '@/mixins'
 import { mapState, mapMutations, mapGetters } from 'vuex'
-import { DutyStatus } from '@/definitions'
-import api, { dutyKeys, userKeys } from '../api'
+import { DutyStatus } from '../definitions'
+import api from '../api'
 import { eventNames as appEvents } from '../events'
+import { isSameDay, eachDayOfInterval, startOfWeek, endOfWeek, format } from 'date-fns'
+import { permissionsMixin } from '../mixins'
 
 export default {
   name: 'duties-picker',
-  mixins: [dutiesMixin],
-
-  data () {
-    return {
-      // CONSTANTS
-      // TODO: move to defs
-      WEEKDAYS: [
-        {
-          'name': 'Sunday',
-          'abb': 'U'
-        },
-        {
-          'name': 'Monday',
-          'abb': 'M'
-        },
-        {
-          'name': 'Tuesday',
-          'abb': 'T'
-        },
-        {
-          'name': 'Wednesday',
-          'abb': 'W'
-        },
-        {
-          'name': 'Thursday',
-          'abb': 'R'
-        },
-        {
-          'name': 'Friday',
-          'abb': 'F'
-        },
-        {
-          'name': 'Saturday',
-          'abb': 'S'
-        }
-      ]
-    }
-  },
-
+  mixins: [permissionsMixin],
   methods: {
-    // STATUS
-    // TODO: find better method names lol
-    statusForDutyProperties (dutyIdx, weekday) {
-      return this.statusForDuty(this.dutyObjForID(this.idForDuty(dutyIdx, weekday)))
-    },
+    // STATE
 
-    isDutyIDAvailable (dutyIdx, weekday) {
-      return this.isDutyAvailable(this.dutyObjForID(this.idForDuty(dutyIdx, weekday)))
+    dutyForProperties (dutyTemplateIndex, date) {
+      return this.dutyMap[dutyTemplateIndex]['schedule'][date.getDay()]
     },
 
     // STYLING
-    colorForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDutyProperties(dutyIdx, weekday)
-      const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
-      const isMyDuty = this.isDutyForCurrentUser(dutyObj)
 
-      switch (dutyStatus) {
+    elementIDForDuty (duty) {
+      return duty ? duty.id : null
+    },
+
+    colorForDuty (duty) {
+      if (!duty) return
+
+      const isMyDuty = duty.isDutyForCurrentUser()
+      switch (duty.status) {
         case DutyStatus.unavailable:
           return 'surface darken-3'
 
@@ -191,36 +158,22 @@ export default {
       }
     },
 
-    // TODO: Remove if decide not needed
-    styleForDuty (dutyIdx, weekday) {
-      if (this.isAnyDutiesAdmin) {
-        var opacity = 1
-        if (!this.isDutySheetLive && this.isWeekdayPast(weekday)) {
-          opacity = 1
-        }
-      } else {
-        opacity = 1
-      }
+    tooltipForDuty (duty) {
+      if (!duty) return
 
-      return { 'opacity': opacity }
-    },
+      const isMyDuty = duty.isDutyForCurrentUser()
 
-    tooltipForDuty (dutyIdx, dutyName, weekday) {
-      const dutyStatus = this.statusForDutyProperties(dutyIdx, weekday)
-      const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
-      const isMyDuty = this.isDutyForCurrentUser(dutyObj)
-
-      const checker = dutyObj[dutyKeys.checker] === null ? 'System' : dutyObj[dutyKeys.checker][userKeys.firstName]
-      const assignee = dutyObj[dutyKeys.assignee] === null ? 'System' : dutyObj[dutyKeys.assignee][userKeys.firstName]
+      const checker = duty.checkerName
+      const assignee = duty.assigneeName
 
       var infoString
 
-      switch (dutyStatus) {
+      switch (duty.status) {
         case DutyStatus.unavailable:
           return null
 
         case DutyStatus.unclaimed:
-          infoString = ' ' + dutyName + ' (' + this.WEEKDAYS[weekday].abb + ')'
+          infoString = ' ' + duty.name + ' (' + format(duty.date, 'E') + ')'
 
           if (this.isAnyDutiesAdmin) return 'Assign' + infoString
           else return this.isDutySheetLive ? 'Claim' + infoString : 'Unclaimed'
@@ -249,12 +202,11 @@ export default {
       }
     },
 
-    iconForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDutyProperties(dutyIdx, weekday)
-      const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
-      const isMyDuty = this.isDutyForCurrentUser(dutyObj)
+    iconForDuty (duty) {
+      if (!duty) return
+      const isMyDuty = duty.isDutyForCurrentUser()
 
-      switch (dutyStatus) {
+      switch (duty.status) {
         case DutyStatus.unavailable:
           return null
 
@@ -284,12 +236,11 @@ export default {
       }
     },
 
-    iconColorForDuty (dutyIdx, weekday) {
-      const dutyStatus = this.statusForDutyProperties(dutyIdx, weekday)
-      const dutyObj = this.dutyMap[dutyIdx]['schedule'][weekday]
-      const isMyDuty = this.isDutyForCurrentUser(dutyObj)
+    iconColorForDuty (duty) {
+      if (!duty) return
+      const isMyDuty = duty.isDutyForCurrentUser()
 
-      switch (dutyStatus) {
+      switch (duty.status) {
         case DutyStatus.unavailable:
           return null
 
@@ -320,40 +271,46 @@ export default {
       }
     },
 
-    idForDuty (dutyIdx, weekday) {
-      try {
-        return this.dutyMap[dutyIdx]['schedule'][weekday].id
-      } catch (e) {
-        return null
-      }
+    // DATE HELPERS
+
+    isToday (date) {
+      // TODO: Remove! Change to new Date()
+      return isSameDay(date, this.$_glob.root.today)
+    },
+
+    weekdayNameForDate (date) {
+      return format(date, 'EEEE')
+    },
+
+    weekdayAbbreviationForDate (date) {
+      return format(date, 'E')
     },
 
     // ACTIONS
-    dutyClicked (dutyIdx, weekday) {
-      const dutyID = this.idForDuty(dutyIdx, weekday)
 
+    dutyClicked (duty) {
       if (this.isAnyDutiesAdmin) {
-        if (this.selectedDuty !== null && this.selectedDuty.id === dutyID) {
+        if (this.selectedDuty !== null && this.selectedDuty.id === duty.id) {
           this.deselectDuty()
         } else {
           if (this.selectedDuty !== null) {
             this.deselectDuty()
           }
-          this.selectDuty(dutyID)
+          this.selectDuty(duty)
         }
       } else {
         if (this.isDutySheetLive) {
-          const dutyStatus = this.statusForDutyProperties(dutyIdx, weekday)
-          if (dutyStatus === DutyStatus.unclaimed) this.claimDuty(dutyID)
-          if (dutyStatus === DutyStatus.claimed) this.unclaimDuty(dutyID)
+          if (duty.status === DutyStatus.unclaimed) this.claimDuty(duty)
+          if (duty.status === DutyStatus.claimed) this.unclaimDuty(duty)
         }
       }
     },
 
     // STATE MUTATIONS (and UI?)
-    selectDuty (dutyID) {
-      document.getElementById(dutyID).classList.add('selected')
-      this.EDIT_SELECTED_DUTY(this.dutyObjForID(dutyID))
+
+    selectDuty (duty) {
+      document.getElementById(duty.id).classList.add('selected')
+      this.EDIT_SELECTED_DUTY(duty)
     },
 
     deselectDuty () {
@@ -362,38 +319,33 @@ export default {
     },
 
     // API STUFF
-    claimDuty (dutyID) {
-      const dutyObj = this.dutyObjForID(dutyID)
 
+    claimDuty (duty) {
       // Don't override! TODO: Make rules against this in firestore rules
-      const dutyStatus = this.statusForDuty(dutyObj)
-      if (dutyStatus !== DutyStatus.unclaimed) return
+      if (duty.status !== DutyStatus.unclaimed) return
 
-      api.updateAssigneeForDuty(dutyObj, this.currentFirestoreUser, (error) => {
+      api.updateAssigneeForDuty(duty.object, this.currentFirestoreUser, (error) => {
         if (!error) {
-          console.log('Success claiming duty ' + dutyID)
+          console.log('Success claiming duty ' + duty.id)
           this.$_glob.root.$emit(appEvents.apiSuccess, 'CLAIM success')
         } else {
-          console.log('Failure claiming duty ' + dutyID)
+          console.log('Failure claiming duty ' + duty.id)
           this.$_glob.root.$emit(appEvents.apiFailure, 'CLAIM failed')
         }
       })
     },
 
-    unclaimDuty (dutyID) {
-      const dutyObj = this.dutyObjForID(dutyID)
-
+    unclaimDuty (duty) {
       // Make sure it's yours and not punted/completed! TODO: Make rules against this in firestore rules
-      const dutyStatus = this.statusForDuty(dutyObj)
-      if (dutyStatus !== DutyStatus.claimed) return
-      if (!this.isDutyForCurrentUser(dutyObj)) return
+      if (duty.statyus !== DutyStatus.claimed) return
+      if (!duty.isDutyForCurrentUser()) return
 
-      api.updateAssigneeForDuty(dutyObj, null, (error) => {
+      api.updateAssigneeForDuty(duty.object, null, (error) => {
         if (!error) {
-          console.log('Success de-claiming duty ' + dutyID)
+          console.log('Success de-claiming duty ' + duty.id)
           this.$_glob.root.$emit(appEvents.apiSuccess, 'DE-CLAIM success')
         } else {
-          console.log('Failure de-claiming assignee for duty ' + dutyID)
+          console.log('Failure de-claiming assignee for duty ' + duty.id)
           this.$_glob.root.$emit(appEvents.apiFailure, 'DE-CLAIM failed')
         }
       })
@@ -410,14 +362,28 @@ export default {
       return (this.$vuetify.breakpoint.smAndDown)
     },
 
+    datesToUse () {
+      const today = new Date()
+      const allWeekDates = eachDayOfInterval({ start: startOfWeek(today), end: endOfWeek(today) })
+
+      const weekDatesToUse = []
+      for (const weekday in this.weekdaysToUse) {
+        if (this.weekdaysToUse.hasOwnProperty(weekday)) {
+          weekDatesToUse.push(allWeekDates[weekday])
+        }
+      }
+
+      return weekDatesToUse
+    },
+
     // Store Computed
     ...mapState({
       selectedDuty: state => state.dutiesStore.selectedDuty,
-      isDutySheetLive: state => state.dutiesStore.isDutySheetLive,
+      isDutySheetLive: state => state.dutiesStore.isDutySheetLive
     }),
 
     ...mapGetters([
-      'dutyTemplateNames', 'dutyMap', 'weekdaysToUse', 'dutyIDs', 'dutyObjForID', 'currentFirestoreUser'
+      'dutyTemplateNames', 'dutyMap', 'weekdaysToUse', 'currentFirestoreUser'
     ])
   },
 
@@ -429,7 +395,7 @@ export default {
   },
 
   watch: {
-    isXSmall (newValue, oldValue) {
+    isXSmall () {
       console.log('xsmall changed')
       console.log(this.$vuetify.breakpoint.name)
     }

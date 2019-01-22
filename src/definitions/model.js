@@ -8,11 +8,19 @@ import {
   userKeys
 } from '../api'
 
-import { comparePermissions, containsAllPermission, PermissionSets } from '../definitions'
+import { comparePermissions, containsAllPermission, PermissionSets, DutyStatus, PuntStatus } from '../definitions'
+
+import { compareAsc, getDay } from 'date-fns'
+
+import store from '../store'
+
+// TODO: Remove!
+import { today } from '../plugins/firebase'
 
 class FirestoreObject {
   constructor (obj) {
     this.object = obj
+    this.id = obj.id
   }
 
   static dateForFirestoreTimestamp (timestamp) {
@@ -130,7 +138,7 @@ export class Duty extends FirestoreObject {
 
   get checkTime () {
     return this.object[dutyKeys.checkTime]
-      ? FirestoreObject.dateForFirestoreTimestamp(this.object[dutyKeys.checkTime]).toUTCString()
+      ? FirestoreObject.dateForFirestoreTimestamp(this.object[dutyKeys.checkTime])
       : null
   }
 
@@ -152,9 +160,73 @@ export class Duty extends FirestoreObject {
     return this.checker ? this.checker.fullName : ''
   }
 
+  get dateString () {
+    return this.date.toDateString()
+  }
+
   get checkTimeString () {
     return this.checkTime ? this.checkTime.toUTCString() : ''
   }
+
+  get status () {
+    if (this.object === null) {
+      return DutyStatus.unavailable
+    }
+
+    const isClaimed = this.assignee !== null
+    const isCheckedOff = this.checkTime !== null
+
+    if (store.state.dutiesStore.isDutySheetLive) {
+      return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
+    }
+
+    // TODO: Switch today with new Date()!
+    const comparisonResult = compareAsc(this.date, today)
+
+    switch (comparisonResult) {
+      case -1: // Duty date BEFORE today
+        return isCheckedOff ? DutyStatus.completed : DutyStatus.punted
+      case 0: // Duty date IS today
+        return isCheckedOff ? DutyStatus.completed : (isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed)
+      case 1: // Duty date is AFTER today
+        return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
+
+      // Should never execute
+      default:
+        throw Error('Something went wrong. Comparison result should be between -1 and 1.')
+    }
+  }
+
+  get statusString () {
+    switch (this.status) {
+      case DutyStatus.unavailable:
+        return ''
+      case DutyStatus.unclaimed:
+        return 'Unclaimed'
+      case DutyStatus.claimed:
+        return 'Claimed'
+      case DutyStatus.completed:
+        return 'Checked'
+      case DutyStatus.punted:
+        return 'Punted'
+      default:
+        return ''
+    }
+  }
+
+  get weekday () {
+    return getDay(this.date)
+  }
+
+  isDutyForCurrentUser () {
+    try {
+      return this.assignee.id === store.state.currentUser.uid
+    } catch (e) {
+      return false
+    }
+  }
+
+  // METHODS
 }
 
 export class Party extends FirestoreObject {

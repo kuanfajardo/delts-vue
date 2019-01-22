@@ -83,19 +83,18 @@
 </template>
 
 <script>
-import { dutiesMixin } from '../mixins'
 import { mapState, mapMutations, mapGetters } from 'vuex'
-import api, { userKeys, dutyKeys } from '../api'
+import api, { userKeys } from '../api'
 import { DutyStatus } from '../definitions'
 import { EDIT_SELECTED_DUTY, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH } from '../store'
 import { eventNames as appEvents } from '../events'
+import { permissionsMixin } from '../mixins'
+import { compareAsc } from 'date-fns'
 
 // TODO: 'Disabled' dialog activator buttons are still clickable! Change it lol
 export default {
   name: 'duties-admin-bar',
-
-  mixins: [dutiesMixin],
-
+  mixins: [permissionsMixin],
   data () {
     return {
       //-------------------------+
@@ -161,7 +160,7 @@ export default {
 
     // ACTION BUTTON
     actionButtonClicked () {
-      switch (this.selectedDutyStatus) {
+      switch (this.selectedDuty.status) {
         case DutyStatus.unavailable:
         case DutyStatus.unclaimed:
           // Shouldn't even be possible!
@@ -189,7 +188,7 @@ export default {
       api.checkoffDuty(this.selectedDuty, (error) => {
         if (error === null) {
           console.log('Success checking off duty ' + this.selectedDuty.id)
-          this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id))
+          this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id)) // Refresh object
           this.$_glob.root.$emit(appEvents.apiSuccess, 'CHECKOFF success')
         } else {
           console.log('Failure checking off duty ' + this.selectedDuty.id + '. ' + error.message)
@@ -210,7 +209,7 @@ export default {
       api.undoCheckoffForDuty(this.selectedDuty, (error) => {
         if (error === null) {
           console.log('Success undoing checkoff for duty ' + this.selectedDuty.id)
-          this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id))
+          this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id)) // Refresh object
           this.$_glob.root.$emit(appEvents.apiSuccess, 'UNDO CHECKOFF success')
         } else {
           console.log('Failure undoing checkoff for duty ' + this.selectedDuty.id + '. ' + error.message)
@@ -232,7 +231,7 @@ export default {
         // TODO: Change all checks for === null to just !error
         if (error === null) {
           console.log('Success updating assignee for duty ' + this.selectedDuty.id)
-          this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id))
+          this.EDIT_SELECTED_DUTY(this.dutyObjForID(this.selectedDuty.id)) // Refresh object
           this.$_glob.root.$emit(appEvents.apiSuccess, 'UPDATE ASSIGNEE success')
         } else {
           console.log('Failure updating assignee for duty ' + this.selectedDuty.id)
@@ -293,7 +292,7 @@ export default {
     // STORE MAPS
     ...mapState({
       selectedDuty: state => state.dutiesStore.selectedDuty,
-      isDutySheetLive: state => state.dutiesStore.isDutySheetLive,
+      isDutySheetLive: state => state.dutiesStore.isDutySheetLive
     }),
 
     ...mapState([
@@ -303,11 +302,6 @@ export default {
     ...mapGetters([
       'dutyObjForID', 'dutySheetHasBeenGenerated'
     ]),
-
-    // STATE
-    selectedDutyStatus () {
-      return this.statusForDuty(this.selectedDuty)
-    },
 
     // PROMPT BUTTON
     promptButtonText () {
@@ -330,7 +324,7 @@ export default {
 
     // ACTION BUTTON
     colorForActionButton () {
-      switch (this.selectedDutyStatus) {
+      switch (this.selectedDuty.status) {
         case DutyStatus.unavailable:
         case DutyStatus.unclaimed:
           // No button
@@ -348,7 +342,7 @@ export default {
     },
 
     textForActionButton () {
-      switch (this.selectedDutyStatus) {
+      switch (this.selectedDuty.status) {
         case DutyStatus.unavailable:
           // No button
           return null
@@ -368,7 +362,7 @@ export default {
     },
 
     iconForActionButton () {
-      switch (this.selectedDutyStatus) {
+      switch (this.selectedDuty.status) {
         case DutyStatus.unavailable:
           // No button
           return null
@@ -390,13 +384,13 @@ export default {
     isActionButtonDisabled () {
       if (this.isDutySheetLive) return true
 
-      switch (this.selectedDutyStatus) {
+      switch (this.selectedDuty.status) {
         case DutyStatus.unavailable:
         case DutyStatus.unclaimed:
           return true
         case DutyStatus.claimed:
-          // TODO: use actual time functions, not weekday ones
-          return this.isWeekdayFuture(this.weekdayForDuty(this.selectedDuty))
+          // TODO: Bug?
+          return compareAsc(this.selectedDuty.date, this.$_glob.root.today) === -1
         case DutyStatus.completed:
         case DutyStatus.punted:
           // Yes button :D
@@ -417,10 +411,8 @@ export default {
     },
 
     overflowLabel () {
-      if (this.selectedDuty[dutyKeys.assignee] !== null) {
-        // TODO: helper for full name
-        return this.selectedDuty[dutyKeys.assignee][userKeys.firstName] + ' ' +
-          this.selectedDuty[dutyKeys.assignee][userKeys.lastName]
+      if (this.selectedDuty.assignee !== null) {
+        return this.selectedDuty.assigneeName
       } else {
         return 'Edit Assignee'
       }
@@ -433,7 +425,7 @@ export default {
     //    Duty Sheet (Tab 0)   |
     //-------------------------+
 
-    assignee (newValue, oldValue) {
+    assignee () {
       if (!this.ignoreAssigneeUpdate) {
         this.updateAssigneeForSelectedDuty()
       }
@@ -448,10 +440,10 @@ export default {
       if (newValue === null) { // Deselecting a duty
         this.assignee = null
       } else {
-        if (newValue[dutyKeys.assignee] !== null) { // Selecting a claimed duty
+        if (newValue.assignee !== null) { // Selecting a claimed duty
           this.assignee = {
-            text: newValue[dutyKeys.assignee][userKeys.firstName] + ' ' + newValue[dutyKeys.assignee][userKeys.lastName],
-            value: newValue[dutyKeys.assignee]
+            text: newValue.assigneeName,
+            value: newValue.assignee
           }
         } else { // Selecting an unclaimed duty
           this.assignee = null
@@ -460,7 +452,7 @@ export default {
           // already null! This means that the above line won't trigger the assignee watcher, and therefore
           // this.ignoreAssigneeUpdate will stay true. In this case, we must manually start listening to changes in
           // this.assignee.
-          if (oldValue === null || oldValue[dutyKeys.assignee] === null) {
+          if (oldValue === null || oldValue.assignee === null) {
             this.ignoreAssigneeUpdate = false
           }
         }

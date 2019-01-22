@@ -18,6 +18,7 @@ export const PuntStatus = Object.freeze({
 // TODO: Redo levels and sets, define how they work (each user has collection of defined sets (positions),
 // which correspond to one mask over all permissions. In code, check permissions against collection of sets.
 // In DB, store sets
+// TODO: stop exporting !
 export const Permissions = Object.freeze({
   None: 0,
   // Duties
@@ -62,6 +63,18 @@ export function comparePermissions (a, b) {
  */
 export function containsAllPermission (has, test) {
   return (has & test) === test
+}
+
+export class PermissionTester {
+  static isDutiesChecker (user) {
+    if (!user) return false
+    return user.hasPermissions(Permissions.House_Checker)
+  }
+
+  static isDutiesAdmin (user) {
+    if (!user) return false
+    return user.hasPermissions(Permissions.House_Admin)
+  }
 }
 
 export function getLastDayOfWeek (dayOfWeek, refDate = new Date()) {

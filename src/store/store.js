@@ -14,6 +14,7 @@ import { firebaseMutations, firebaseAction } from 'vuexfire'
 import { dutyTemplatesRef } from '../plugins/firebase'
 import { getAllIndexes, PermissionSets, comparePermissions, containsAllPermission } from '../definitions'
 import { dutyTemplateKeys, dutyKeys, userKeys } from '../api'
+import { Party, Duty, User } from '../definitions/model'
 
 Vue.use(Vuex)
 
@@ -66,6 +67,18 @@ const dutiesStore = {
   },
 
   getters: {
+    customAllDuties: (state) => {
+      return state.allDuties.map((dutyObj) => {
+        return new Duty(dutyObj)
+      })
+    },
+
+    customUserDuties: (state) => {
+      return state.userDuties.map((dutyObj) => {
+        return new Duty(dutyObj)
+      })
+    },
+
     dutyMap: (state, getters) => {
       var mapReal = []
       state.dutyTemplates.forEach(template => {
@@ -89,15 +102,14 @@ const dutiesStore = {
         mapReal = mapReal.concat(allDuties)
       })
 
-      state.weekDuties.forEach(duty => {
-        const dutyDate = new Date(duty[dutyKeys.date].seconds * 1000) // * 1000 to get ms
-        const dutyWeekday = dutyDate.getDay()
+      state.weekDuties.forEach(dutyObj => {
+        const duty = new Duty(dutyObj)
 
-        const templateIdxs = getAllIndexes(getters.dutyTemplateIDs, duty[dutyKeys.template].id)
+        const templateIdxs = getAllIndexes(getters.dutyTemplateIDs, duty.template.id)
         for (const templateIdx of templateIdxs) {
           // Place in correct spot for templates with multiple slots / day (i.e. Kitchen)
-          if (mapReal[templateIdx]['schedule'][dutyWeekday] === null) {
-            mapReal[templateIdx]['schedule'][dutyWeekday] = duty
+          if (mapReal[templateIdx]['schedule'][duty.date.getDay()] === null) {
+            mapReal[templateIdx]['schedule'][duty.date.getDay()] = duty
             break
           }
         }
@@ -171,7 +183,7 @@ const dutiesStore = {
         return duty.id === dutyID
       })
 
-      return dutyObj || null
+      return dutyObj ? new Duty(dutyObj) : null
     },
 
     dutySheetHasBeenGenerated: (state) => {
@@ -303,7 +315,7 @@ export default new Vuex.Store({
         return user.id === uid
       })
 
-      return userObj || null
+      return userObj ? new User(userObj) : null
     },
 
     currentPermissionSet: (state, getters) => {
