@@ -1,16 +1,17 @@
-import { dutyKeys, dutyTemplateKeys, puntKeys, puntMakeupKeys, puntMakeupTemplateKeys, partyKeys } from './keys'
+import { dutyKeys, puntKeys, puntMakeupKeys, puntMakeupTemplateKeys, partyKeys } from './keys'
 import * as fb from '../plugins/firebase'
-import { getNextDayOfWeek } from '../definitions'
 import store from '../store'
 import firebase from 'firebase'
+import { setDay, startOfWeek, startOfDay } from 'date-fns'
 
-// TODO: split into public and private
 // TODO: HUGE MY GUY :: CUSTOM OBJS FOR FIRESTORE : https://firebase.google.com/docs/firestore/manage-data/add-data#custom_objects
 export default {
   // CREATE
-  generateDutySheet (startOfWeek, callback) {
-    startOfWeek.setHours(0, 0, 0, 0)
-    const startOfWeekDay = startOfWeek.getDay()
+  generateDutySheet (weekStart, callback) {
+    // Make sure it is the start of week
+    weekStart = startOfDay(startOfWeek(weekStart))
+
+    // TODO: Check to make sure there isn't a duty sheet generated for this week already
 
     var dutySheetBatch = fb.db.batch()
 
@@ -19,12 +20,7 @@ export default {
         for (let i = 0; i < dutyTemplate.schedule[weekday]; i++) { // Iterate over duties per weekday
           weekday = parseInt(weekday) // keys are strings!
 
-          var dutyDate
-          if (weekday === startOfWeekDay) {
-            dutyDate = new Date(startOfWeek.getTime())
-          } else {
-            dutyDate = getNextDayOfWeek(weekday, startOfWeek)
-          }
+          var dutyDate = setDay(weekStart, weekday)
 
           const dutyObj = {
             [dutyKeys.assignee]: null,

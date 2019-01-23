@@ -42,7 +42,7 @@
 import appEvents from './events'
 import AppNavigation from './components/AppNavigation'
 // TODO: Import *
-import { dutyTemplatesRef, usersRef, allDutiesRef, weekDutiesRef, allPuntsRef, puntMakeupsRef, puntMakeupTemplatesRef, partiesRef, today } from './plugins/firebase'
+import { dutyTemplatesRef, usersRef, allDutiesRef, weekDutiesRef, allPuntsRef, puntMakeupsRef, puntMakeupTemplatesRef, partiesRef } from './plugins/firebase'
 import { SET_DUTY_TEMPLATES_REF, SET_USERS_REF, SET_ALL_DUTIES_REF, SET_WEEK_DUTIES_REF, SET_ALL_PUNTS_REF,
   SET_PUNT_MAKEUPS_REF, SET_PUNT_MAKEUP_TEMPLATES_REF, SET_PARTIES_REF } from './store'
 
@@ -70,9 +70,6 @@ export default {
     appEvents.forEach(item => {
       this.$on(item.name, item.callback)
     })
-
-    // TODO: Remove! Only for debug
-    this.$_glob.today = today
 
     // Set vuexfire bindings
     this.$store.dispatch(SET_DUTY_TEMPLATES_REF, dutyTemplatesRef)

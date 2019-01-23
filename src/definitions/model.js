@@ -8,14 +8,11 @@ import {
   userKeys
 } from '../api'
 
-import { comparePermissions, containsAllPermission, PermissionSets, DutyStatus, PuntStatus } from '../definitions'
+import { comparePermissions, containsAllPermission, PermissionSets, DutyStatus, PuntStatus, TODAY } from '../definitions'
 
-import { compareAsc, getDay, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns'
+import { compareAsc, getDay, eachDayOfInterval, startOfWeek, endOfWeek, fromUnixTime } from 'date-fns'
 
 import store from '../store'
-
-// TODO: Remove!
-import { today } from '../plugins/firebase'
 
 class FirestoreObject {
   constructor (obj) {
@@ -24,7 +21,7 @@ class FirestoreObject {
   }
 
   static dateForFirestoreTimestamp (timestamp) {
-    return new Date(timestamp.seconds * 1000)
+    return fromUnixTime(timestamp.seconds)
   }
 }
 
@@ -184,10 +181,9 @@ export class Duty extends FirestoreObject {
       return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
     }
 
-    // TODO: Switch today with new Date()!
     // TODO: Switch from compareAsc to isPast / isFuture / isSameDay
     // TODO: Make sure all dates are setHours(0, 0, 0, 0) - maybe convenience function to produce today's date like that
-    const comparisonResult = compareAsc(this.date, today)
+    const comparisonResult = compareAsc(this.date, TODAY())
 
     switch (comparisonResult) {
       case -1: // Duty date BEFORE today
@@ -307,6 +303,7 @@ export class DutyMap {
     var startDate = 6
     var endDate = 0
 
+    // Find span of week
     this._rawTemplates.forEach((dutyTemplate) => {
       Object.keys(dutyTemplate.schedule).forEach(weekday => {
         weekday = parseInt(weekday) // keys come as strings!
@@ -328,11 +325,12 @@ export class DutyMap {
       weekdays.push(i)
     }
 
+    // TODO: Not use TODAY(), but rather a ref date to be able to see multiple weeks, not just current one
     return eachDayOfInterval({
-      start: startOfWeek(today, {
+      start: startOfWeek(TODAY(), {
         weekStartsOn: startDate
       }),
-      end: endOfWeek(today, {
+      end: endOfWeek(TODAY(), {
         weekStartsOn: (endDate + 1) % 7
       })
     })

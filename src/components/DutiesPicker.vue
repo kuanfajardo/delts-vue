@@ -101,7 +101,7 @@
 <script>
 import { EDIT_SELECTED_DUTY } from '../store'
 import { mapState, mapMutations, mapGetters } from 'vuex'
-import { DutyStatus } from '../definitions'
+import { DutyStatus, TODAY } from '../definitions'
 import api from '../api'
 import { eventNames as appEvents } from '../events'
 import { isSameDay, format } from 'date-fns'
@@ -275,7 +275,7 @@ export default {
 
     isToday (date) {
       // TODO: Remove! Change to new Date()
-      return isSameDay(date, this.$_glob.root.today)
+      return isSameDay(date, TODAY())
     },
 
     weekdayNameForDate (date) {

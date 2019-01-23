@@ -1,3 +1,5 @@
+import { startOfWeek, startOfDay, addWeeks, getMonth, getYear } from 'date-fns'
+
 // TODO: make enums symbols: https://stackoverflow.com/questions/44447847/enums-in-javascript-with-es6
 // TODO: capitalize
 // TODO: make into bitmask (can have multiple values at once!
@@ -77,56 +79,38 @@ export class PermissionTester {
   }
 }
 
-export function getLastDayOfWeek (dayOfWeek, refDate = new Date()) {
-  // Get next day-of-week and subtract a week
-  var resultDate = getNextDayOfWeek(dayOfWeek, refDate)
-  resultDate.setDate(resultDate.getDate() - 7)
-
-  // Standardize all reference dates to have a time of 00:00:00:0000
-  resultDate.setHours(0, 0, 0, 0)
-
-  return resultDate
+export function TODAY () {
+  const fakeToday = new Date(2018, 11, 26)
+  return startOfDay(fakeToday)
 }
 
-export function getNextDayOfWeek (dayOfWeek, refDate = new Date()) {
-  // Compute distance to next day-of-week
-  const diff = dayOfWeek - refDate.getDay() // Relative diff
-  var fixedDiff // Actual diff
+export function lastStartOfWeek (refDate = TODAY()) {
+  return startOfWeek(refDate)
+}
 
-  if (diff === 0) { // If same day of week, just add a week
-    fixedDiff = 7
+export function nextStartOfWeek (refDate = TODAY()) {
+  const weeksToAdd = 1
+  return addWeeks(startOfWeek(refDate), weeksToAdd)
+}
+
+export function newCleanDate (refDate = new Date()) {
+  return startOfDay(refDate)
+}
+
+export function getClassYears () {
+  const GRAD_DATE_MONTH = 5 // June
+
+  var currentClassYear
+  if (getMonth(TODAY()) >= GRAD_DATE_MONTH) { // Skip to next year
+    currentClassYear = getYear(TODAY()) + 1
   } else {
-    fixedDiff = (diff + 7) % 7 // +7 to compensate for incorrect JS modulus w negative numbers
+    currentClassYear = getYear(TODAY())
   }
 
-  // Copy reference date and add the difference needed to get next day-of-week
-  var resultDate = new Date(refDate.getTime())
-  resultDate.setDate(refDate.getDate() + fixedDiff)
-
-  // Standardize all reference dates to have a time of 00:00:00:0000
-  resultDate.setHours(0, 0, 0, 0)
-
-  return resultDate
-}
-
-export function getAllIndexes (arr, val) {
-  var indexes = []
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i] === val) {
-      indexes.push(i)
-    }
-  }
-  return indexes
-}
-
-export function classYears () {
-  var dt = new Date()
   var years = []
-
-  for (var i = 0; i < 5; i++) {
-    var year = dt.getFullYear()
-    years.push(year)
-    dt.setFullYear(year + 1)
+  const numberOfActiveYears = 4
+  for (var i = 0; i < numberOfActiveYears; i++) {
+    years.push(currentClassYear + i)
   }
 
   return years

@@ -276,7 +276,7 @@
 import { mapState, mapGetters } from 'vuex'
 import api, { userKeys } from '../api'
 import { eventNames as appEvents } from '../events'
-import { stateAbbreviations, classYears, courseNumbers, Permissions } from '../definitions'
+import { stateAbbreviations, getClassYears, courseNumbers, Permissions } from '../definitions'
 import ContactsTableRow from './ContactsTableRow'
 
 export default {
@@ -302,7 +302,7 @@ export default {
       isDialogEdit: false,
       editMap: {},
       states: stateAbbreviations,
-      years: classYears(),
+      years: getClassYears(),
       courses: courseNumbers.concat('Undecided')
     }
   },

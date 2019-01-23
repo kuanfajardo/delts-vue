@@ -1,6 +1,6 @@
 import firebase from 'firebase'
-import { getNextDayOfWeek, getLastDayOfWeek } from '../definitions'
 import { dutyKeys, puntKeys, partyKeys } from '../api'
+import { nextStartOfWeek, lastStartOfWeek } from '../definitions'
 
 let config = {
   apiKey: 'AIzaSyCYos8q_4IeiPVsuS-2xQkR8wvkXMYQ164',
@@ -26,16 +26,13 @@ export const puntMakeupTemplatesRef = db.collection('punt-makeup-templates')
 export const partiesCollectionRef = db.collection('parties')
 export const partiesRef = db.collection('parties').orderBy(partyKeys.startTimestamp)
 
-// TODO: Remove!! Only for debugging
-export const today = new Date(2018, 11, 26)
-
-console.log(getLastDayOfWeek(0, today))
-console.log(getNextDayOfWeek(0, today))
+console.log(lastStartOfWeek())
+console.log(nextStartOfWeek())
 
 // TODO: User keys!!
 export const weekDutiesRef = db.collection('duties')
-  .where(dutyKeys.date, '>=', getLastDayOfWeek(0, today))
-  .where(dutyKeys.date, '<', getNextDayOfWeek(0, today))
+  .where(dutyKeys.date, '>=', lastStartOfWeek())
+  .where(dutyKeys.date, '<', nextStartOfWeek())
   .orderBy(dutyKeys.date)
   .orderBy(dutyKeys.template)
 
@@ -60,3 +57,8 @@ export function puntsRefForUser (user) {
   }
 }
 
+// db.collection('duties').where('date', '>=', new Date(2018, 11, 23)).get().then((snapshot) => {
+//   snapshot.forEach((doc) => {
+//     db.collection('duties').doc(doc.id).delete()
+//   })
+// })

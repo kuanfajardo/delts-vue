@@ -85,7 +85,7 @@
 <script>
 import { mapState, mapMutations, mapGetters } from 'vuex'
 import api, { userKeys } from '../api'
-import { DutyStatus } from '../definitions'
+import { DutyStatus, TODAY } from '../definitions'
 import { EDIT_SELECTED_DUTY, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH } from '../store'
 import { eventNames as appEvents } from '../events'
 import { permissionsMixin } from '../mixins'
@@ -141,13 +141,13 @@ export default {
 
     generateDutySheet () {
       // TODO: Change to real date
-      api.generateDutySheet(this.$_glob.today, (error) => {
+      api.generateDutySheet(TODAY(), (error) => {
         if (error === null) {
-          console.log('Success in generating duty sheet starting on ' + this.$_glob.today)
+          console.log('Success in generating duty sheet starting on ' + TODAY())
           this.$_glob.root.$emit(appEvents.apiSuccess, 'SHEET GENERATION success')
           this.SET_DUTY_SHEET_LIVE(true)
         } else {
-          console.log('Failure in generating duty sheet starting on ' + this.$_glob.today)
+          console.log('Failure in generating duty sheet starting on ' + TODAY())
           this.$_glob.root.$emit(appEvents.apiSuccess, 'SHEET GENERATION failed')
         }
       })
@@ -390,7 +390,7 @@ export default {
           return true
         case DutyStatus.claimed:
           // TODO: Bug?
-          return isAfter(this.selectedDuty.date, this.$_glob.root.today)
+          return isAfter(this.selectedDuty.date, TODAY())
         case DutyStatus.completed:
         case DutyStatus.punted:
           // Yes button :D

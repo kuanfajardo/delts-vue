@@ -139,6 +139,7 @@
 
 <script>
 import appEvents from '@/events/names'
+import { getClassYears, stateNames } from '../definitions'
 
 export default {
   $_veeValidate: {
@@ -160,67 +161,8 @@ export default {
         password: null,
         repeatPassword: null
       },
-      states: [
-        'Alabama',
-        'Alaska',
-        'American Samoa',
-        'Arizona',
-        'Arkansas',
-        'California',
-        'Colorado',
-        'Connecticut',
-        'Delaware',
-        'District of Columbia',
-        'Federated States of Micronesia',
-        'Florida',
-        'Georgia',
-        'Guam',
-        'Hawaii',
-        'Idaho',
-        'Illinois',
-        'Indiana',
-        'Iowa',
-        'Kansas',
-        'Kentucky',
-        'Louisiana',
-        'Maine',
-        'Marshall Islands',
-        'Maryland',
-        'Massachusetts',
-        'Michigan',
-        'Minnesota',
-        'Mississippi',
-        'Missouri',
-        'Montana',
-        'Nebraska',
-        'Nevada',
-        'New Hampshire',
-        'New Jersey',
-        'New Mexico',
-        'New York',
-        'North Carolina',
-        'North Dakota',
-        'Northern Mariana Islands',
-        'Ohio',
-        'Oklahoma',
-        'Oregon',
-        'Palau',
-        'Pennsylvania',
-        'Puerto Rico',
-        'Rhode Island',
-        'South Carolina',
-        'South Dakota',
-        'Tennessee',
-        'Texas',
-        'Utah',
-        'Vermont',
-        'Virgin Island',
-        'Virginia',
-        'Washington',
-        'West Virginia',
-        'Wisconsin',
-        'Wyoming'
-      ],
+      states: stateNames,
+      years: getClassYears(),
       valid: true
     }
   },
@@ -244,21 +186,6 @@ export default {
     clear: function () {
       this.formModel = {}
       this.$validator.reset()
-    }
-  },
-
-  computed: {
-    years: function () {
-      var dt = new Date()
-      var years = []
-
-      for (var i = 0; i < 5; i++) {
-        var year = dt.getFullYear()
-        years.push(year)
-        dt.setFullYear(year + 1)
-      }
-
-      return years
     }
   }
 }
