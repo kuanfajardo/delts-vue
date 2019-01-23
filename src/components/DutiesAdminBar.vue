@@ -89,7 +89,7 @@ import { DutyStatus } from '../definitions'
 import { EDIT_SELECTED_DUTY, SET_DUTY_SHEET_LIVE, EDIT_DUTY_SEARCH } from '../store'
 import { eventNames as appEvents } from '../events'
 import { permissionsMixin } from '../mixins'
-import { compareAsc } from 'date-fns'
+import { isAfter } from 'date-fns'
 
 // TODO: 'Disabled' dialog activator buttons are still clickable! Change it lol
 export default {
@@ -390,7 +390,7 @@ export default {
           return true
         case DutyStatus.claimed:
           // TODO: Bug?
-          return compareAsc(this.selectedDuty.date, this.$_glob.root.today) === -1
+          return isAfter(this.selectedDuty.date, this.$_glob.root.today)
         case DutyStatus.completed:
         case DutyStatus.punted:
           // Yes button :D

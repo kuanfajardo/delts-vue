@@ -11,10 +11,9 @@ import {
 
 import { firebaseMutations, firebaseAction } from 'vuexfire'
 
-import { dutyTemplatesRef } from '../plugins/firebase'
-import { getAllIndexes, PermissionSets, comparePermissions, containsAllPermission } from '../definitions'
-import { dutyTemplateKeys, dutyKeys, userKeys } from '../api'
-import { Party, Duty, User } from '../definitions/model'
+import { PermissionSets, comparePermissions, containsAllPermission } from '../definitions'
+import { userKeys } from '../api'
+import { Party, Duty, User, Punt, PuntMakeup, DutyTemplate, PuntMakeupTemplate, DutyMap } from '../definitions/model'
 
 Vue.use(Vuex)
 
@@ -79,103 +78,20 @@ const dutiesStore = {
       })
     },
 
+    customWeekDuties: (state) => {
+      return state.weekDuties.map((dutyObj) => {
+        return new Duty(dutyObj)
+      })
+    },
+
+    customDutyTemplates: (state) => {
+      return state.dutyTemplates.map((dutyTemplateObj) => {
+        return new DutyTemplate(dutyTemplateObj)
+      })
+    },
+
     dutyMap: (state, getters) => {
-      var mapReal = []
-      state.dutyTemplates.forEach(template => {
-        var maxNumDuties = 0
-        Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
-          maxNumDuties = Math.max(template[dutyTemplateKeys.schedule][weekday], maxNumDuties)
-        })
-
-        var allDuties = []
-        for (let i = 0; i < maxNumDuties; i++) {
-          var localSchedule = {}
-          for (let j = 0; j < 7; j++) {
-            localSchedule[j] = null
-          }
-          allDuties.push({
-            name: template[dutyTemplateKeys.name],
-            schedule: localSchedule,
-            templateRef: dutyTemplatesRef.doc(template.id) })
-        }
-
-        mapReal = mapReal.concat(allDuties)
-      })
-
-      state.weekDuties.forEach(dutyObj => {
-        const duty = new Duty(dutyObj)
-
-        const templateIdxs = getAllIndexes(getters.dutyTemplateIDs, duty.template.id)
-        for (const templateIdx of templateIdxs) {
-          // Place in correct spot for templates with multiple slots / day (i.e. Kitchen)
-          if (mapReal[templateIdx]['schedule'][duty.date.getDay()] === null) {
-            mapReal[templateIdx]['schedule'][duty.date.getDay()] = duty
-            break
-          }
-        }
-      })
-
-      return mapReal
-    },
-
-    dutyTemplateNames: state => {
-      var names = []
-      state.dutyTemplates.forEach(template => {
-        var maxNumDuties = 0
-        Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
-          maxNumDuties = Math.max(template[dutyTemplateKeys.schedule][weekday], maxNumDuties)
-        })
-
-        for (let i = 0; i < maxNumDuties; i++) {
-          names.push(template[dutyTemplateKeys.name])
-        }
-      })
-
-      return names
-    },
-
-    dutyTemplateIDs: state => {
-      var ids = []
-      state.dutyTemplates.forEach(template => {
-        var maxNumDuties = 0
-        Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
-          maxNumDuties = Math.max(template[dutyTemplateKeys.schedule][weekday], maxNumDuties)
-        })
-
-        for (let i = 0; i < maxNumDuties; i++) {
-          ids.push(template.id)
-        }
-      })
-
-      return ids
-    },
-
-    weekdaysToUse: state => {
-      var startDate = 6
-      var endDate = 0
-
-      state.dutyTemplates.forEach(template => {
-        Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
-          weekday = parseInt(weekday) // keys come as strings!
-
-          if (template[dutyTemplateKeys.schedule][weekday] <= 0) return
-
-          if (weekday < startDate) {
-            startDate = weekday
-          }
-
-          if (weekday > endDate) {
-            endDate = weekday
-          }
-        })
-      })
-
-      var weekdays = []
-      for (let i = startDate; i <= endDate; i++) {
-        weekdays.push(i)
-      }
-
-      return weekdays
+      return new DutyMap(getters.customDutyTemplates, getters.customWeekDuties)
     },
 
     dutyObjForID: (state) => (dutyID) => {
@@ -248,7 +164,31 @@ const puntsStore = {
     })
   },
 
-  getters: {}
+  getters: {
+    customAllPunts: (state) => {
+      return state.allPunts.map((puntObj) => {
+        return new Punt(puntObj)
+      })
+    },
+
+    customUserPunts: (state) => {
+      return state.userPunts.map((puntObj) => {
+        return new Punt(puntObj)
+      })
+    },
+
+    customPuntMakeups: (state) => {
+      return state.puntMakeups.map((puntMakeupObj) => {
+        return new PuntMakeup(puntMakeupObj)
+      })
+    },
+
+    customPuntMakeupTemplates: (state) => {
+      return state.makeupTemplates.map((makeupTemplateObj) => {
+        return new PuntMakeupTemplate(makeupTemplateObj)
+      })
+    }
+  }
 }
 
 const socialStore = {

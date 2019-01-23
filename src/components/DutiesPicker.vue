@@ -11,8 +11,8 @@
         <v-flex xs10>
           <v-layout row wrap>
             <v-flex
-                v-for="date in datesToUse"
-                :key="`weekdayHeader_${date.getDay()}`"
+                v-for="date in dutyMap.dates"
+                :key="`weekdayHeader_${date.toDateString()}`"
                 xs2
             >
               <v-card
@@ -27,7 +27,7 @@
       </template>
 
       <!-- DUTY SHEET (V-FOR over each ROW) -->
-      <template v-for="(duty, idx) in dutyTemplateNames">
+      <template v-for="(duty, idx) in dutyMap.templateNames">
 
         <!-- Duty Name -->
         <v-flex xs2 :key="`dutyHeader_${duty}_${idx}`">
@@ -43,7 +43,7 @@
         >
           <v-layout row wrap>
              <v-flex
-                 v-for="date in datesToUse"
+                 v-for="date in dutyMap.dates"
                  :key="`dutySlot_${duty}${idx}_${date.getDay()}`"
                  :data-duty="dutyForProperties(idx, date)"
                  :id="elementIDForDuty(dutyForProperties(idx, date))"
@@ -104,7 +104,7 @@ import { mapState, mapMutations, mapGetters } from 'vuex'
 import { DutyStatus } from '../definitions'
 import api from '../api'
 import { eventNames as appEvents } from '../events'
-import { isSameDay, eachDayOfInterval, startOfWeek, endOfWeek, format } from 'date-fns'
+import { isSameDay, format } from 'date-fns'
 import { permissionsMixin } from '../mixins'
 
 export default {
@@ -114,7 +114,7 @@ export default {
     // STATE
 
     dutyForProperties (dutyTemplateIndex, date) {
-      return this.dutyMap[dutyTemplateIndex]['schedule'][date.getDay()]
+      return this.dutyMap.dutyForTemplateAndWeekdayIndices(dutyTemplateIndex, date.getDay())
     },
 
     // STYLING
@@ -362,20 +362,6 @@ export default {
       return (this.$vuetify.breakpoint.smAndDown)
     },
 
-    datesToUse () {
-      const today = new Date()
-      const allWeekDates = eachDayOfInterval({ start: startOfWeek(today), end: endOfWeek(today) })
-
-      const weekDatesToUse = []
-      for (const weekday in this.weekdaysToUse) {
-        if (this.weekdaysToUse.hasOwnProperty(weekday)) {
-          weekDatesToUse.push(allWeekDates[weekday])
-        }
-      }
-
-      return weekDatesToUse
-    },
-
     // Store Computed
     ...mapState({
       selectedDuty: state => state.dutiesStore.selectedDuty,
@@ -383,7 +369,7 @@ export default {
     }),
 
     ...mapGetters([
-      'dutyTemplateNames', 'dutyMap', 'weekdaysToUse', 'currentFirestoreUser'
+      'dutyMap', 'currentFirestoreUser'
     ])
   },
 

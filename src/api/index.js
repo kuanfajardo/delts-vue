@@ -14,9 +14,9 @@ export default {
 
     var dutySheetBatch = fb.db.batch()
 
-    store.state.dutiesStore.dutyTemplates.forEach(template => {
-      Object.keys(template[dutyTemplateKeys.schedule]).forEach(weekday => {
-        for (let i = 0; i < template[dutyTemplateKeys.schedule][weekday]; i++) {
+    store.state.dutiesStore.getters.customDutyTemplates.forEach(dutyTemplate => { // Iterate over templates
+      Object.keys(dutyTemplate.schedule).forEach(weekday => { // Iterate over weekdays
+        for (let i = 0; i < dutyTemplate.schedule[weekday]; i++) { // Iterate over duties per weekday
           weekday = parseInt(weekday) // keys are strings!
 
           var dutyDate
@@ -31,7 +31,7 @@ export default {
             [dutyKeys.checkTime]: null,
             [dutyKeys.checker]: null,
             [dutyKeys.date]: dutyDate,
-            [dutyKeys.template]: fb.dutyTemplatesRef.doc(template.id)
+            [dutyKeys.template]: fb.dutyTemplatesRef.doc(dutyTemplate.id)
           }
 
           var newDutyRef = fb.allDutiesRef.doc()

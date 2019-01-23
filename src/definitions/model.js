@@ -10,7 +10,7 @@ import {
 
 import { comparePermissions, containsAllPermission, PermissionSets, DutyStatus, PuntStatus } from '../definitions'
 
-import { compareAsc, getDay } from 'date-fns'
+import { compareAsc, getDay, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns'
 
 import store from '../store'
 
@@ -27,6 +27,8 @@ class FirestoreObject {
     return new Date(timestamp.seconds * 1000)
   }
 }
+
+// Users
 
 export class User extends FirestoreObject {
   // KEYED
@@ -98,6 +100,8 @@ export class User extends FirestoreObject {
     return containsAllPermission(this.permissionSet, permissionSet)
   }
 }
+
+// Duties
 
 export class DutyTemplate extends FirestoreObject {
   // KEYED
@@ -181,6 +185,8 @@ export class Duty extends FirestoreObject {
     }
 
     // TODO: Switch today with new Date()!
+    // TODO: Switch from compareAsc to isPast / isFuture / isSameDay
+    // TODO: Make sure all dates are setHours(0, 0, 0, 0) - maybe convenience function to produce today's date like that
     const comparisonResult = compareAsc(this.date, today)
 
     switch (comparisonResult) {
@@ -229,39 +235,111 @@ export class Duty extends FirestoreObject {
   // METHODS
 }
 
-export class Party extends FirestoreObject {
-  // KEYED
+export class DutyMap {
+  constructor (dutyTemplates, weekDuties) {
+    if (!dutyTemplates || !weekDuties) throw TypeError()
 
-  get capacity () {
-    return this.object[partyKeys.capacity]
+    this._rawTemplates = dutyTemplates
+
+    this._generatedTemplates = []
+    this._generationMap = {}
+    this._dutyMap = null
+
+    try {
+      this._generateAllTemplates()
+      this._generateDutyMap(weekDuties)
+    } catch (e) {
+      // Errors (i.e. not yet fully defined state)
+    }
   }
 
-  get name () {
-    return this.object[partyKeys.name]
+  _generateAllTemplates () {
+    var i = 0
+    this._rawTemplates.forEach((dutyTemplate) => {
+      var maxNumDuties = 0
+      Object.keys(dutyTemplate.schedule).forEach(weekday => {
+        maxNumDuties = Math.max(dutyTemplate.schedule[weekday], maxNumDuties)
+      })
+
+      this._generationMap[dutyTemplate.id] = []
+      for (let j = 0; j < maxNumDuties; j++) {
+        this._generatedTemplates.push(dutyTemplate)
+        this._generationMap[dutyTemplate.id].push(i++)
+      }
+    })
   }
 
-  get theme () {
-    return this.object[partyKeys.theme]
+  _generateDutyMap (weekDuties) {
+    var dutyMap = []
+    this._generatedTemplates.forEach(template => {
+      dutyMap = dutyMap.concat({
+        template: template, // Unused, really only for visual debugging
+        schedule: new Array(7).fill(null)
+      })
+    })
+
+    weekDuties.forEach(duty => {
+      for (const idx of this._generationMap[duty.template.id]) {
+        // Place in correct spot for templates with multiple slots / day (i.e. Kitchen)
+        if (dutyMap[idx].schedule[duty.date.getDay()] === null) {
+          dutyMap[idx].schedule[duty.date.getDay()] = duty
+          break
+        }
+      }
+    })
+
+    this._dutyMap = dutyMap
   }
 
-  get photoURL () {
-    return this.object[partyKeys.photos]
+  dutyForTemplateAndWeekdayIndices (templateIndex, weekday) {
+    try {
+      return this._dutyMap[templateIndex].schedule[weekday]
+    } catch (e) {
+      return null
+    }
   }
 
-  get isActive () {
-    return this.object[partyKeys.isActive]
+  get templateNames () {
+    return this._generatedTemplates.map((template) => template.name)
   }
 
-  // COMPUTED
+  get dates () {
+    var startDate = 6
+    var endDate = 0
 
-  get startDate () {
-    return FirestoreObject.dateForFirestoreTimestamp(this.object[partyKeys.startTimestamp])
-  }
+    this._rawTemplates.forEach((dutyTemplate) => {
+      Object.keys(dutyTemplate.schedule).forEach(weekday => {
+        weekday = parseInt(weekday) // keys come as strings!
 
-  get endDate () {
-    return FirestoreObject.dateForFirestoreTimestamp(this.object[partyKeys.endTimestamp])
+        if (dutyTemplate.schedule[weekday] <= 0) return
+
+        if (weekday < startDate) {
+          startDate = weekday
+        }
+
+        if (weekday > endDate) {
+          endDate = weekday
+        }
+      })
+    })
+
+    var weekdays = []
+    for (let i = startDate; i <= endDate; i++) {
+      weekdays.push(i)
+    }
+
+    return eachDayOfInterval({
+      start: startOfWeek(today, {
+        weekStartsOn: startDate
+      }),
+      end: endOfWeek(today, {
+        weekStartsOn: (endDate + 1) % 7
+      })
+    })
   }
 }
+
+// Punts
 
 export class PuntMakeupTemplate extends FirestoreObject {
   // KEYED
@@ -318,3 +396,43 @@ export class Punt extends FirestoreObject {
     return this.object[puntKeys.reason]
   }
 }
+
+// Social
+
+export class Party extends FirestoreObject {
+  // KEYED
+
+  get capacity () {
+    return this.object[partyKeys.capacity]
+  }
+
+  get name () {
+    return this.object[partyKeys.name]
+  }
+
+  get theme () {
+    return this.object[partyKeys.theme]
+  }
+
+  get photoURL () {
+    return this.object[partyKeys.photos]
+  }
+
+  get isActive () {
+    return this.object[partyKeys.isActive]
+  }
+
+  // COMPUTED
+
+  get startDate () {
+    return FirestoreObject.dateForFirestoreTimestamp(this.object[partyKeys.startTimestamp])
+  }
+
+  get endDate () {
+    return FirestoreObject.dateForFirestoreTimestamp(this.object[partyKeys.endTimestamp])
+  }
+}
+
+
+// TODO: Use fromUnixTimestamp for creation of firestore dates
+//
