@@ -9,7 +9,7 @@
         class="elevation-1"
         :pagination.sync="pagination"
         :rows-per-page-items="rowsPerPageItems"
-        :item-key="PropKeys.id"
+        :item-key="'id'"
         select-all
     >
 
@@ -24,34 +24,34 @@
         </td>
 
         <!-- TIME -->
-        <td>{{ props.item[PropKeys.puntTime] }}</td>
+        <td>{{ props.item.puntTimeString }}</td>
 
         <!-- ASSIGNEE -->
-        <td :class="classForItem(props.item)">{{ props.item[PropKeys.assignee] }}</td>
+        <td :class="classForPunt(props.item)">{{ props.item.assigneeName }}</td>
 
         <!-- REASON -->
-        <td>{{ props.item[PropKeys.reason] }}</td>
+        <td>{{ props.item.reason }}</td>
 
         <!-- GIVEN BY -->
-        <td>{{ props.item[PropKeys.givenBy] }}</td>
+        <td>{{ props.item.giverName }}</td>
 
         <!-- STATUS -->
         <td>
           <v-btn
-              :color="props.item[PropKeys.statusColor]"
+              :color="props.item.statusColor"
               class="elevation-0"
               round
               small
           >
-            {{ props.item[PropKeys.statusString] }}
+            {{ props.item.statusString }}
           </v-btn>
         </td>
 
         <!-- MAKEUP TIME -->
-        <td>{{ props.item[PropKeys.makeUpTime] }}</td>
+        <td>{{ props.item.makeUpTimeString }}</td>
 
         <!-- MAKEUP -->
-        <td>{{ props.item[PropKeys.makeUp] }}</td>
+        <td>{{ props.item.makeUpName }}</td>
 
       </template>
     </v-data-table>
@@ -59,42 +59,26 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from 'vuex'
-import { puntKeys, puntMakeupKeys, userKeys, puntMakeupTemplateKeys } from '../api'
-import { puntsMixin } from '../mixins'
+import { mapState, mapMutations, mapGetters } from 'vuex'
+import { permissionsMixin } from '../mixins'
 import { PuntStatus } from '../definitions'
 import { EDIT_SELECTED_PUNTS } from '../store'
 
 export default {
   name: 'punts-table',
 
-  mixins: [puntsMixin],
+  mixins: [permissionsMixin],
 
   data () {
     return {
-      // TODO: Move outside, so can use in headers
-      PropKeys: Object.freeze({
-        puntTime: 'puntTime',
-        reason: 'reason',
-        assignee: 'assignee',
-        makeUp: 'makeUp',
-        makeUpTime: 'makeUpTime',
-        status: 'status',
-        statusString: 'statusString',
-        statusColor: 'statusColor',
-        givenBy: 'givenBy',
-        id: 'id',
-        object: 'object'
-      }),
-
-      headers: [ // LOL can't use PropKeys
-        { text: 'Date', align: 'left', value: 'puntTime' },
-        { text: 'Assignee', align: 'left', value: 'assignee' },
+      headers: [
+        { text: 'Date', align: 'left', value: 'puntTimeString' },
+        { text: 'Assignee', align: 'left', value: 'assigneeName' },
         { text: 'Reason', align: 'left', value: 'reason' },
-        { text: 'Given By', value: 'givenBy' },
+        { text: 'Given By', value: 'giverName' },
         { text: 'Status', value: 'statusString' },
-        { text: 'Make-Up Time', value: 'makeUpTime' },
-        { text: 'Make-Up', value: 'makeUp' }
+        { text: 'Make-Up Time', value: 'makeUpTimeString' },
+        { text: 'Make-Up', value: 'makeUpName' }
       ],
 
       pagination: {
@@ -111,21 +95,12 @@ export default {
 
   computed: {
     punts () {
-      return this.puntsToShow.map((punt) => {
-        return { // TODO: make constructor in object i.e. 'PuntsTableObj(punt)'
-          [this.PropKeys.id]: punt.id, // Needed for sorting
-          [this.PropKeys.object]: punt, // Needed for later (when in 'selected')
-          [this.PropKeys.puntTime]: this.timeForItem(punt),
-          [this.PropKeys.reason]: this.reasonForItem(punt),
-          [this.PropKeys.assignee]: this.assigneeForItem(punt),
-          [this.PropKeys.status]: this.statusForPunt(punt),
-          [this.PropKeys.statusString]: this.stringForPuntStatus(this.statusForPunt(punt)),
-          [this.PropKeys.statusColor]: this.statusColorForItem(punt),
-          [this.PropKeys.makeUp]: this.makeUpForItem(punt),
-          [this.PropKeys.makeUpTime]: this.makeUpTimeForItem(punt),
-          [this.PropKeys.givenBy]: this.givenByForItem(punt)
-        }
+      const puntsToShow = this.puntsToShow
+      puntsToShow.forEach(punt => {
+        punt.statusColor = this.statusColorForPunt(punt)
       })
+
+      return puntsToShow
     },
 
     puntsToShow () {
@@ -135,10 +110,7 @@ export default {
 
       if (this.isAnyPuntsAdmin) {
         return this.allPunts.filter(punt => {
-          const isAssignedToMe = punt[puntKeys.assignee].id === this.currentUser.uid
-          const isGivenByMe = punt[puntKeys.givenBy].id === this.currentUser.uid
-
-          return isAssignedToMe || isGivenByMe
+          return punt.isAssignedToCurrentUser() || punt.isGivenByCurrentUser()
         })
       }
 
@@ -146,37 +118,23 @@ export default {
     },
 
     ...mapState({
-      allPunts: state => state.puntsStore.allPunts,
-      userPunts: state => state.puntsStore.userPunts,
       puntSearch: state => state.puntsStore.puntSearch,
       selectedPunts: state => state.puntsStore.selectedPunts
     }),
 
     ...mapState([
       'currentUser'
-    ])
+    ]),
+
+    ...mapGetters({
+      allPunts: 'customAllPunts',
+      userPunts: 'customUserPunts'
+    })
   },
 
   methods: {
-    timeForItem (item) {
-      return new Date(item[puntKeys.puntTime].seconds * 1000).toDateString()
-    },
-
-    reasonForItem (item) {
-      return item[puntKeys.reason]
-    },
-
-    assigneeForItem (item) {
-      if (item[puntKeys.assignee]) {
-        // TODO: full name helper (or use user display name)
-        return item[puntKeys.assignee][userKeys.firstName] + ' ' + item[puntKeys.assignee][userKeys.lastName]
-      }
-      return ''
-    },
-
-    statusColorForItem (item) {
-      const puntStatues = this.statusForPunt(item)
-      switch (puntStatues) {
+    statusColorForPunt (punt) {
+      switch (punt.status) {
         case PuntStatus.Punted:
           return 'error'
         case PuntStatus.MakeUpClaimed:
@@ -188,47 +146,8 @@ export default {
       }
     },
 
-    makeUpForItem (item) {
-      // TODO: make functions for all this! have it check for undefined and return something if not defined
-      if (item[puntKeys.makeUp]) {
-        if (item[puntKeys.makeUp][puntMakeupKeys.makeupTemplate]) {
-          return item[puntKeys.makeUp][puntMakeupKeys.makeupTemplate][puntMakeupTemplateKeys.name]
-        }
-      }
-      return ''
-    },
-
-    makeUpTimeForItem (item) {
-      if (item[puntKeys.makeUp]) {
-        if (item[puntKeys.makeUp][puntMakeupKeys.completionTime]) {
-          return new Date(item[puntKeys.makeUp][puntMakeupKeys.completionTime].seconds * 1000).toDateString()
-        }
-      }
-      return ''
-    },
-
-    givenByForItem (item) {
-      if (item[puntKeys.givenBy]) {
-        return item[puntKeys.givenBy][userKeys.firstName]
-      }
-      return ''
-    },
-
-    stringForPuntStatus (status) {
-      switch (status) {
-        case PuntStatus.Punted:
-          return 'Punted'
-        case PuntStatus.MakeUpClaimed:
-          return 'Making Up'
-        case PuntStatus.MadeUp:
-          return 'Made Up'
-        default:
-          return ''
-      }
-    },
-
-    classForItem (item) {
-      const isMyPunt = (item[this.PropKeys.object][puntKeys.assignee].id === this.currentUser.uid)
+    classForPunt (punt) {
+      const isMyPunt = punt.isAssignedToCurrentUser()
       return {
         'my-punt': isMyPunt
       }

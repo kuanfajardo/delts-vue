@@ -255,22 +255,6 @@ export default new Vuex.Store({
         return user.id === uid
       })
 
-      return userObj ? new User(userObj) : null
-    },
-
-    currentPermissionSet: (state, getters) => {
-      if (!getters.currentFirestoreUser) return PermissionSets.User
-      return getters.currentFirestoreUser[userKeys.permissionSet] || PermissionSets.User
-    },
-
-    // Returns if current user has ONE of the permissions in permissionSet
-    currentUserHasPermissions: (state, getters) => (permissionSet) => {
-      return comparePermissions(getters.currentPermissionSet, permissionSet)
-    },
-
-    // Returns if current user has ALL of the permissions in permissionSet
-    currentUserHasAllPermissions: (state, getters) => (permissionSet) => {
-      return containsAllPermission(getters.currentPermissionSet, permissionSet)
       return userObj ? User.createFromFirestoreObject(userObj) : null
     }
   }

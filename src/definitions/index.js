@@ -82,6 +82,16 @@ export class PermissionTester {
     if (!user) return false
     return user.hasPermissions(Permissions.House_Admin)
   }
+
+  static isPuntsGiver (user) {
+    if (!user) return false
+    return user.hasPermissions(Permissions.Punts_Giver)
+  }
+
+  static isPuntsAdmin (user) {
+    if (!user) return false
+    return user.hasPermissions(Permissions.Punts_Admin)
+  }
 }
 
 export function TODAY () {
