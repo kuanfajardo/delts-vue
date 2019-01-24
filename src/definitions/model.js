@@ -8,26 +8,70 @@ import {
   userKeys
 } from '../api'
 
-import { comparePermissions, containsAllPermission, PermissionSets, DutyStatus, PuntStatus, TODAY } from '../definitions'
+import { comparePermissions, containsAllPermission, PermissionSets, DutyStatus, PuntStatus, PuntMakeupStatus, TODAY } from '../definitions'
 
-import { compareAsc, getDay, eachDayOfInterval, startOfWeek, endOfWeek, fromUnixTime } from 'date-fns'
+import { compareAsc, eachDayOfInterval, startOfWeek, endOfWeek, fromUnixTime } from 'date-fns'
 
 import store from '../store'
 
+// TODO: Wait until loaded to not have to check so many nulls!
+
 class FirestoreObject {
+  classKeyMap = {
+    User: {}, // TODO: Use userKeys when can guarantee all user have those keys
+    Duty: dutyKeys,
+    DutyTemplate: dutyTemplateKeys,
+    Punt: puntKeys,
+    PuntMakeup: puntMakeupKeys,
+    PuntMakeupTemplate: puntMakeupTemplateKeys,
+    Party: partyKeys
+  }
+
   constructor (obj) {
-    this.object = obj
-    this.id = obj.id
+    // Check for validity
+    const instanceType = this.constructor.name
+    const keyObj = this.classKeyMap[instanceType]
+    if (FirestoreObject.isValidObject(obj, keyObj)) {
+      // Set properties
+      this.object = obj
+      this.id = obj.id
+      this.isValid = true
+    } else {
+      return { isValid: false }
+    }
+  }
+
+  static createFromFirestoreObject (obj) {
+    const dynamicObject = null
+    eval('dynamicObject = new ' + this.name + '(obj)')
+    return dynamicObject.isValid ? dynamicObject : null
   }
 
   static dateForFirestoreTimestamp (timestamp) {
     return fromUnixTime(timestamp.seconds)
+  }
+
+  static isValidObject (obj, keyObj) {
+    var keysToCheck = [
+      'id',
+      ...Object.values(keyObj)
+    ]
+
+    var isValid = true
+    keysToCheck.forEach(key => {
+      if (!isValid) return
+
+      isValid = isValid && obj.hasOwnProperty(key)
+    })
+
+    return isValid
   }
 }
 
 // Users
 
 export class User extends FirestoreObject {
+
   // KEYED
 
   get courseNumber () {
@@ -122,18 +166,18 @@ export class Duty extends FirestoreObject {
   // KEYED
 
   get template () {
-    return new DutyTemplate(this.object[dutyKeys.template])
+    return DutyTemplate.createFromFirestoreObject(this.object[dutyKeys.template])
   }
 
   get assignee () {
     return this.object[dutyKeys.assignee]
-      ? new User(this.object[dutyKeys.assignee])
+      ? User.createFromFirestoreObject(this.object[dutyKeys.assignee])
       : null
   }
 
   get checker () {
     return this.object[dutyKeys.checker]
-      ? new User(this.object[dutyKeys.checker])
+      ? User.createFromFirestoreObject(this.object[dutyKeys.checker])
       : null
   }
 
@@ -171,7 +215,7 @@ export class Duty extends FirestoreObject {
 
   get status () {
     if (this.object === null) {
-      return DutyStatus.unavailable
+      return DutyStatus.unavailable // TODO: Turn DutyStatus.unavailable to NULL (like PuntStatus)
     }
 
     const isClaimed = this.assignee !== null
@@ -216,16 +260,10 @@ export class Duty extends FirestoreObject {
     }
   }
 
-  get weekday () {
-    return getDay(this.date)
-  }
-
   isDutyForCurrentUser () {
-    try {
-      return this.assignee.id === store.state.currentUser.uid
-    } catch (e) {
-      return false
-    }
+    return this.assignee
+      ? this.assignee.id === store.state.currentUser.uid
+      : false
   }
 
   // METHODS
@@ -233,7 +271,7 @@ export class Duty extends FirestoreObject {
 
 export class DutyMap {
   constructor (dutyTemplates, weekDuties) {
-    if (!dutyTemplates || !weekDuties) throw TypeError()
+    if (!dutyTemplates || !weekDuties) throw TypeError('DutyMap constructor params must be defined and non-null')
 
     this._rawTemplates = dutyTemplates
 
@@ -241,12 +279,8 @@ export class DutyMap {
     this._generationMap = {}
     this._dutyMap = null
 
-    try {
-      this._generateAllTemplates()
-      this._generateDutyMap(weekDuties)
-    } catch (e) {
-      // Errors (i.e. not yet fully defined state)
-    }
+    this._generateAllTemplates()
+    this._generateDutyMap(weekDuties)
   }
 
   _generateAllTemplates () {
@@ -275,6 +309,7 @@ export class DutyMap {
     })
 
     weekDuties.forEach(duty => {
+      if (!duty.template) return
       for (const idx of this._generationMap[duty.template.id]) {
         // Place in correct spot for templates with multiple slots / day (i.e. Kitchen)
         if (dutyMap[idx].schedule[duty.date.getDay()] === null) {
@@ -288,11 +323,7 @@ export class DutyMap {
   }
 
   dutyForTemplateAndWeekdayIndices (templateIndex, weekday) {
-    try {
-      return this._dutyMap[templateIndex].schedule[weekday]
-    } catch (e) {
-      return null
-    }
+    return this._dutyMap[templateIndex].schedule[weekday]
   }
 
   get templateNames () {
@@ -356,18 +387,37 @@ export class PuntMakeupTemplate extends FirestoreObject {
 }
 
 export class PuntMakeup extends FirestoreObject {
+
   // KEYED
 
   get assignee () {
-    return new User(this.object[puntMakeupKeys.assignedTo])
+    return User.createFromFirestoreObject(this.object[puntMakeupKeys.assignedTo])
   }
 
   get completionTime () {
-    return FirestoreObject.dateForFirestoreTimestamp(this.object[puntMakeupKeys.completionTime])
+    return this.object[puntMakeupKeys.completionTime]
+      ? FirestoreObject.dateForFirestoreTimestamp(this.object[puntMakeupKeys.completionTime])
+      : null
   }
 
   get makeupTemplate () {
-    return new PuntMakeupTemplate(this.object[puntMakeupKeys.makeupTemplate])
+    return PuntMakeupTemplate.createFromFirestoreObject(this.object[puntMakeupKeys.makeupTemplate])
+  }
+
+  // COMPUTED
+
+  get status () {
+    return this.completionTime === null
+      ? PuntMakeupStatus.NotCompleted
+      : PuntMakeupStatus.Completed
+  }
+
+  get name () {
+    return this.makeupTemplate ? this.makeupTemplate.name  :''
+  }
+
+  get completionTimeString () {
+    return this.completionTime ? this.completionTime.toDateString() : ''
   }
 }
 
@@ -375,15 +425,17 @@ export class Punt extends FirestoreObject {
   // KEYED
 
   get assignee () {
-    return new User(this.object[puntKeys.assignee])
+    return User.createFromFirestoreObject(this.object[puntKeys.assignee])
   }
 
   get giver () {
-    return new User(this.object[puntKeys.givenBy])
+    return User.createFromFirestoreObject(this.object[puntKeys.givenBy])
   }
 
   get makeUp () {
-    return new PuntMakeup(this.object[puntKeys.makeUp])
+    return this.object[puntKeys.makeUp]
+      ? PuntMakeup.createFromFirestoreObject(this.object[puntKeys.makeUp])
+      : null
   }
 
   get puntTime () {
@@ -392,6 +444,61 @@ export class Punt extends FirestoreObject {
 
   get reason () {
     return this.object[puntKeys.reason]
+  }
+
+  // COMPUTED
+
+  get puntTimeString () {
+    return this.puntTime.toDateString()
+  }
+
+  get assigneeName () {
+    return this.assignee ? this.assignee.fullName : ''
+  }
+
+  get giverName () {
+    return this.giver ? this.giver.fullName : ''
+  }
+
+  get status () {
+    if (this.object === null) return null
+
+    if (this.makeUp === null) {
+      return PuntStatus.Punted
+    }
+
+    return this.makeUp.status === PuntMakeupStatus.NotCompleted
+      ? PuntStatus.MakeUpClaimed
+      : PuntStatus.MadeUp
+  }
+
+  get statusString () {
+    switch (this.status) {
+      case PuntStatus.Punted:
+        return 'Punted'
+      case PuntStatus.MakeUpClaimed:
+        return 'Making Up'
+      case PuntStatus.MadeUp:
+        return 'Made Up'
+      default:
+        return ''
+    }
+  }
+
+  get makeUpName () {
+    return this.makeUp ? this.makeUp.name : ''
+  }
+
+  get makeUpTimeString () {
+    return this.makeUp ? this.makeUp.completionTimeString : ''
+  }
+
+  isAssignedToCurrentUser () {
+    return this.assignee ? this.assignee.id === store.state.currentUser.uid : false
+  }
+
+  isGivenByCurrentUser () {
+    return this.assignee ? this.assignee.id === store.state.currentUser.uid : false
   }
 }
 
@@ -430,7 +537,6 @@ export class Party extends FirestoreObject {
     return FirestoreObject.dateForFirestoreTimestamp(this.object[partyKeys.endTimestamp])
   }
 }
-
 
 // TODO: Use fromUnixTimestamp for creation of firestore dates
 //

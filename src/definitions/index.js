@@ -17,6 +17,11 @@ export const PuntStatus = Object.freeze({
   MadeUp: 2
 })
 
+export const PuntMakeupStatus = Object.freeze({
+  NotCompleted: 0,
+  Completed: 1
+})
+
 // TODO: Redo levels and sets, define how they work (each user has collection of defined sets (positions),
 // which correspond to one mask over all permissions. In code, check permissions against collection of sets.
 // In DB, store sets

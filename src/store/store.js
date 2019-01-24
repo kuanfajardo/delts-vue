@@ -68,25 +68,25 @@ const dutiesStore = {
   getters: {
     customAllDuties: (state) => {
       return state.allDuties.map((dutyObj) => {
-        return new Duty(dutyObj)
+        return Duty.createFromFirestoreObject(dutyObj)
       })
     },
 
     customUserDuties: (state) => {
       return state.userDuties.map((dutyObj) => {
-        return new Duty(dutyObj)
+        return Duty.createFromFirestoreObject(dutyObj)
       })
     },
 
     customWeekDuties: (state) => {
       return state.weekDuties.map((dutyObj) => {
-        return new Duty(dutyObj)
+        return Duty.createFromFirestoreObject(dutyObj)
       })
     },
 
     customDutyTemplates: (state) => {
       return state.dutyTemplates.map((dutyTemplateObj) => {
-        return new DutyTemplate(dutyTemplateObj)
+        return DutyTemplate.createFromFirestoreObject(dutyTemplateObj)
       })
     },
 
@@ -99,7 +99,7 @@ const dutiesStore = {
         return duty.id === dutyID
       })
 
-      return dutyObj ? new Duty(dutyObj) : null
+      return dutyObj ? Duty.createFromFirestoreObject(dutyObj) : null
     },
 
     dutySheetHasBeenGenerated: (state) => {
@@ -167,25 +167,25 @@ const puntsStore = {
   getters: {
     customAllPunts: (state) => {
       return state.allPunts.map((puntObj) => {
-        return new Punt(puntObj)
+        return Punt.createFromFirestoreObject(puntObj)
       })
     },
 
     customUserPunts: (state) => {
       return state.userPunts.map((puntObj) => {
-        return new Punt(puntObj)
+        return Punt.createFromFirestoreObject(puntObj)
       })
     },
 
     customPuntMakeups: (state) => {
       return state.puntMakeups.map((puntMakeupObj) => {
-        return new PuntMakeup(puntMakeupObj)
+        return PuntMakeup.createFromFirestoreObject(puntMakeupObj)
       })
     },
 
     customPuntMakeupTemplates: (state) => {
       return state.makeupTemplates.map((makeupTemplateObj) => {
-        return new PuntMakeupTemplate(makeupTemplateObj)
+        return PuntMakeupTemplate.createFromFirestoreObject(makeupTemplateObj)
       })
     }
   }
@@ -271,6 +271,7 @@ export default new Vuex.Store({
     // Returns if current user has ALL of the permissions in permissionSet
     currentUserHasAllPermissions: (state, getters) => (permissionSet) => {
       return containsAllPermission(getters.currentPermissionSet, permissionSet)
+      return userObj ? User.createFromFirestoreObject(userObj) : null
     }
   }
 })
