@@ -29,7 +29,7 @@
             <v-icon right>add_circle</v-icon>
           </v-btn>
 
-          <!-- DIALOG CARD (EDIT/NEW) -->
+          <!-- DIALOG CARD (EDIT) -->
           <v-card class="ma-auto">
             <v-card-title>
               <div class="mt-2 ml-2 mb-0">
@@ -185,7 +185,7 @@
         <!-- FIRST NAME -->
         <contacts-table-row
             :edit-item="props.item"
-            :edit-field="userKeys.firstName"
+            edit-field="firstName"
             title="First Name"
             :save="inlineSave"
             :editable="isContactsAdmin">
@@ -194,7 +194,7 @@
         <!-- LAST NAME -->
         <contacts-table-row
             :edit-item="props.item"
-            :edit-field="userKeys.lastName"
+            edit-field="lastName"
             title="Last Name"
             :save="inlineSave"
             :editable="isContactsAdmin">
@@ -203,7 +203,7 @@
         <!-- PHONE -->
         <contacts-table-row
             :edit-item="props.item"
-            :edit-field="userKeys.phone"
+            edit-field="phoneNumber"
             mask="phone"
             title="Phone"
             :save="inlineSave"
@@ -213,7 +213,7 @@
         <!-- EMAIL -->
         <contacts-table-row
             :edit-item="props.item"
-            :edit-field="userKeys.email"
+            edit-field="email"
             title="Email"
             :save="inlineSave"
             :editable="isContactsAdmin">
@@ -222,7 +222,7 @@
         <!-- COURSE NUMBER -->
         <contacts-table-row
             :edit-item="props.item"
-            :edit-field="userKeys.course"
+            edit-field="courseNumber"
             title="Course"
             dialog-type="select"
             :items="courses"
@@ -233,7 +233,7 @@
         <!-- CLASS YEAR -->
         <contacts-table-row
             :edit-item="props.item"
-            :edit-field="userKeys.year"
+            edit-field="classYear"
             title="Class Year"
             dialog-type="select"
             :items="years"
@@ -243,15 +243,15 @@
 
         <!-- FACEBOOK LINK -->
         <td class="text-xs-center">
-          <a :href="props.item[userKeys.facebook]">
-            {{ typeof props.item[userKeys.facebook] !== 'undefined' ? 'Link' : '' }}
+          <a :href="props.item.facebookURL">
+            {{ typeof props.item.facebookURL !== 'undefined' ? 'Link' : '' }}
           </a>
         </td>
 
         <!-- SNAPCHAT HANDLE -->
         <contacts-table-row
             :edit-item="props.item"
-            :edit-field="userKeys.snapchat"
+            edit-field="snapchatHandle"
             title="Snapchat"
             :save="inlineSave"
             :editable="isContactsAdmin">
@@ -260,7 +260,7 @@
         <!-- HOMETOWN STATE -->
         <contacts-table-row
             :edit-item="props.item"
-            :edit-field="userKeys.state"
+            edit-field="homeState"
             title="Home State"
             dialog-type="select"
             :items="states"
@@ -273,10 +273,10 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'
 import api, { userKeys } from '../api'
 import { eventNames as appEvents } from '../events'
-import { stateAbbreviations, getClassYears, courseNumbers, Permissions } from '../definitions'
+import { stateAbbreviations, getClassYears, courseNumbers } from '../definitions'
 import ContactsTableRow from './ContactsTableRow'
 
 export default {
@@ -289,15 +289,15 @@ export default {
       deleteDialog: false, // Delete dialog
       selected: [],
       headers: [
-        { text: 'First', align: 'left', value: userKeys.firstName },
-        { text: 'Last', align: 'left', value: userKeys.lastName },
-        { text: 'Phone', align: 'left', value: userKeys.phone, sortable: false },
-        { text: 'Email', value: userKeys.email },
-        { text: 'Course', value: userKeys.course },
-        { text: 'Year', value: userKeys.year },
-        { text: 'Facebook', value: userKeys.facebook },
-        { text: 'Snapchat', value: userKeys.snapchat },
-        { text: 'State', value: userKeys.state }
+        { text: 'First', align: 'left', value: 'firstName' },
+        { text: 'Last', align: 'left', value: 'lastName' },
+        { text: 'Phone', align: 'left', value: 'phoneNumber', sortable: false },
+        { text: 'Email', value: 'email' },
+        { text: 'Course', value: 'courseNumber' },
+        { text: 'Year', value: 'classYear' },
+        { text: 'Facebook', value: 'facebookURL' },
+        { text: 'Snapchat', value: 'snapchatHandle' },
+        { text: 'State', value: 'homeState' }
       ],
       isDialogEdit: false,
       editMap: {},
@@ -327,16 +327,12 @@ export default {
     },
 
     isContactsAdmin () {
-      return this.currentUserHasPermissions(Permissions.Admin)
+      return true
     },
 
-    ...mapState([
-      'users'
-    ]),
-
-    ...mapGetters([
-      'currentUserHasPermissions'
-    ])
+    ...mapGetters({
+      users: 'customUsers'
+    })
   },
 
   methods: {
@@ -350,19 +346,19 @@ export default {
       // We use a separate edit map in order to avoid changing the user obj. As long as all the properties on
       // userToEdit are primitive, this is a deep copy.
       const userToEdit = this.selected[0]
-      this.editMap = Object.assign({}, userToEdit)
+      this.editMap = Object.assign({}, userToEdit.object)
     },
 
     // DELETE DIALOG ACTIONS
     deleteSelectedItems () {
       this.deleteDialog = false
-      for (const item of this.selected) {
-        this.deleteItem(item)
+      for (const user of this.selected) {
+        this.deleteUser(user)
       }
     },
 
-    deleteItem (item) {
-      api.deleteUser(item, (error) => {
+    deleteUser (user) {
+      api.deleteUser(user, (error) => {
         if (error === null) {
           this.$_glob.root.$emit(appEvents.apiSuccess, 'USER DELETE success')
         } else {
@@ -374,8 +370,8 @@ export default {
     // EDIT/NEW DIALOG ACTIONS
     save () {
       if (this.isDialogEdit) { // Update
-        const editedUserObj = this.selected[0]
-        api.updateUserWithData(editedUserObj, this.editMap, (error) => {
+        const editedUser = this.selected[0]
+        api.updateUserWithData(editedUser, this.editMap, (error) => {
           if (error === null) {
             this.$_glob.root.$emit(appEvents.apiSuccess, 'USER UPDATE success')
           } else {
