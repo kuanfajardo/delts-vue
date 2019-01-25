@@ -73,7 +73,7 @@ export default {
   },
 
   // TODO: createPunt
-  createNewPunt (punteeID, reason, callback) {
+  createNewPunt (puntee, reason, callback) { // User, String
     // TODO: make helpers for ref objects
     // TODO: make helper for current user ref
     // TODO: just centralize all ref calculations (probs in firebase.js)
@@ -82,8 +82,8 @@ export default {
     if (typeof punteeID !== 'string') throw TypeError('{punteeID} should be a string')
     if (typeof reason !== 'string') throw TypeError('{reason} should be a string')
 
-    const punteeRef = fb.usersRef.doc(punteeID)
-    const currentUserRef = fb.usersRef.doc(firebase.auth().currentUser.uid)
+    const punteeRef = fb.usersRef.doc(puntee.id)
+    const currentUserRef = fb.usersRef.doc(firebase.auth().currentUser.uid) // TODO: For consistency, use store
     const puntObj = {
       [puntKeys.assignee]: punteeRef,
       [puntKeys.reason]: reason,
@@ -103,12 +103,13 @@ export default {
   },
 
   // TODO: createPuntBatch
-  createNewPuntsBatch (punteeIDs, reason, callback) {
+  createNewPuntsBatch (puntees, reason, callback) { // [User], String
     var puntsBatch = fb.db.batch()
 
-    const currentUserRef = fb.usersRef.doc(firebase.auth().currentUser.uid)
-    punteeIDs.forEach(punteeID => {
-      const punteeRef = fb.usersRef.doc(punteeID)
+    const currentUserRef = fb.usersRef.doc(firebase.auth().currentUser.uid) // TODO: For consistency, use store
+    puntees.forEach(puntee => {
+      console.log(puntee)
+      const punteeRef = fb.usersRef.doc(puntee.id)
 
       const puntObj = {
         [puntKeys.assignee]: punteeRef,
@@ -209,7 +210,7 @@ export default {
   },
 
   // TODO: updateDutyAssignee
-  updateAssigneeForDuty (duty, assignee, callback) { // Duty obj, User obj
+  updateAssigneeForDuty (duty, assignee, callback) { // Duty custom obj, User custom obj
     const assigneeRef = assignee ? fb.usersRef.doc(assignee.id) : null
     fb.allDutiesRef.doc(duty.id).update({
       [dutyKeys.assignee]: assigneeRef
@@ -236,17 +237,17 @@ export default {
 
   // TODO: updatePuntBatchMakeup
   // TODO: Change to accept makeupObj
-  updatePuntsWithMakeup (puntObjArr, makeupTemplateID, markAsComplete, callback) {
+  updatePuntsWithMakeup (puntArr, makeupTemplate, markAsComplete, callback) { // [Punt], PuntMakeupTemplate, Bool
     var batch = fb.db.batch()
 
-    const makeupTemplateRef = fb.puntMakeupTemplatesRef.doc(makeupTemplateID)
+    const makeupTemplateRef = fb.puntMakeupTemplatesRef.doc(makeupTemplate.id)
     const completionTime = markAsComplete ? new Date() : null
 
-    puntObjArr.forEach(puntObj => {
-      const assigneeRef = fb.usersRef.doc(puntObj[puntKeys.assignee].id)
+    puntArr.forEach(punt => {
+      const assigneeRef = fb.usersRef.doc(punt.assignee.id)
 
-      if (puntObj[puntKeys.makeUp] !== null) {
-        const oldMakeupRef = fb.puntMakeupsRef.doc(puntObj[puntKeys.makeUp].id)
+      if (punt.makeUp !== null) {
+        const oldMakeupRef = fb.puntMakeupsRef.doc(punt.makeUp.id)
 
         const makeupUpdateObj = {
           [puntMakeupKeys.completionTime]: completionTime,
@@ -264,7 +265,7 @@ export default {
 
         batch.set(newMakeupRef, newMakeupObj)
 
-        const puntRef = fb.allPuntsRef.doc(puntObj.id)
+        const puntRef = fb.allPuntsRef.doc(punt.id)
         const puntUpdateObj = {
           [puntKeys.makeUp]: newMakeupRef
         }
@@ -283,8 +284,8 @@ export default {
       })
   },
 
-  updateMakeupTemplateWithData (makeupTemplateObj, updateData, callback) {
-    fb.puntMakeupTemplatesRef.doc(makeupTemplateObj.id)
+  updateMakeupTemplateWithData (makeupTemplate, updateData, callback) {
+    fb.puntMakeupTemplatesRef.doc(makeupTemplate.id)
       .update(updateData)
       .then(() => { // Success
         callback(null)
@@ -313,8 +314,8 @@ export default {
     callback(new Error('Delete User not implemented yet'))
   },
 
-  deletePunt (puntObj, callback) {
-    fb.allPuntsRef.doc(puntObj.id).delete()
+  deletePunt (punt, callback) {
+    fb.allPuntsRef.doc(punt.id).delete()
       .then(() => { // Success
         callback(null)
       }, (error) => { // Failure
@@ -325,11 +326,11 @@ export default {
   },
 
   // TODO: deletePuntBatch
-  deletePuntsBatch (puntObjArr, callback) {
+  deletePuntsBatch (puntArr, callback) {
     var puntsBatch = fb.db.batch()
 
-    puntObjArr.forEach(puntObj => {
-      const puntRef = fb.allPuntsRef.doc(puntObj.id)
+    puntArr.forEach(punt => {
+      const puntRef = fb.allPuntsRef.doc(punt.id)
       puntsBatch.delete(puntRef)
     })
 

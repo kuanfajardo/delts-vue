@@ -17,7 +17,7 @@ import PuntMakeupComplementTable from './PuntMakeupComplementTable'
 
 export default {
   name: 'punts-makeup-tab',
-  components: { PuntMakeupTable, PuntMakeupComplementTable },
+  components: { PuntMakeupTable, PuntMakeupComplementTable }
 }
 </script>
 

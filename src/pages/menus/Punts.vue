@@ -32,12 +32,12 @@ import DutiesAdminBar from '../../components/DutiesAdminBar'
 import PuntsToolbar from '../../components/PuntsToolbar'
 import DutiesTable from '../../components/DutiesTable'
 import PuntMakeupsTab from '../../components/PuntsMakeupTab'
-import { puntsMixin } from '../../mixins'
+import { permissionsMixin } from '../../mixins'
 
 export default {
   name: 'punts-page',
 
-  mixins: [puntsMixin],
+  mixins: [permissionsMixin],
 
   components: { DutiesAdminBar, PuntsTable, DutiesTable, PuntsToolbar, PuntMakeupsTab },
 

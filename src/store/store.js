@@ -136,6 +136,7 @@ const puntsStore = {
       state.selectedPunts = selected
     },
 
+    // TODO: Rename to 'focused'
     [EDIT_SELECTED_MAKEUP_TEMPLATE] (state, selected) {
       state.focusedMakeupTemplate = selected
     },
@@ -256,6 +257,12 @@ export default new Vuex.Store({
       })
 
       return userObj ? User.createFromFirestoreObject(userObj) : null
+    },
+
+    customUsers: (state) => {
+      return state.users.map((userObj) => {
+        return User.createFromFirestoreObject(userObj)
+      })
     }
   }
 })

@@ -288,17 +288,17 @@
 </template>
 
 <script>
-import { puntsMixin } from '../mixins'
-import { mapMutations, mapState } from 'vuex'
+import { mapMutations, mapState, mapGetters } from 'vuex'
 import { EDIT_PUNT_SEARCH, EDIT_SELECTED_PUNTS, EDIT_MAKEUP_TEMPLATE_SEARCH } from '../store'
-import api, { userKeys, puntKeys, puntMakeupTemplateKeys, puntMakeupKeys } from '../api'
+import api from '../api'
 import { eventNames as appEvents } from '../events'
 import { PuntStatus } from '../definitions'
+import { permissionsMixin } from '../mixins'
 
 export default {
   name: 'punts-toolbar',
 
-  mixins: [puntsMixin],
+  mixins: [permissionsMixin],
 
   data () {
     return {
@@ -312,6 +312,7 @@ export default {
       makeupDialog: false,
       deleteDialog: false,
 
+      // TODO: Make dialog into form so no need for this
       assignees: null,
       reason: '',
 
@@ -320,7 +321,7 @@ export default {
       isDeleteButtonBusy: false,
 
       makeupDialogCheck: false,
-      makeupDialogMakeup: '',
+      makeupDialogMakeup: null,
 
       //-------------------------+
       //    Duties Tab (Tab 1)   |
@@ -351,7 +352,7 @@ export default {
     },
 
     savePuntDialog () {
-      this.isPuntButtonBusy = true
+      // this.isPuntButtonBusy = true
 
       api.createNewPuntsBatch(this.assignees, this.reason, (error) => {
         if (error === null) {
@@ -369,18 +370,14 @@ export default {
     closeMakeupDialog () {
       this.makeupDialog = false
       this.makeupDialogCheck = false
-      this.makeupDialogMakeup = ''
+      this.makeupDialogMakeup = null
       this.EDIT_SELECTED_PUNTS([])
     },
 
     saveMakeupDialog () {
       this.isMakeupButtonBusy = true
 
-      const puntsObjArr = this.selectedPunts.map(punt => {
-        return punt.object
-      })
-
-      api.updatePuntsWithMakeup(puntsObjArr, this.makeupDialogMakeup, this.makeupDialogCheck, (error) => {
+      api.updatePuntsWithMakeup(this.selectedPunts, this.makeupDialogMakeup, this.makeupDialogCheck, (error) => {
         if (error === null) {
           this.$_glob.root.$emit(appEvents.apiSuccess, 'MAKEUP PUNTS success')
         } else {
@@ -421,7 +418,7 @@ export default {
     // STORE MAPS
     ...mapMutations({
       EDIT_PUNT_SEARCH,
-      EDIT_SELECTED_PUNTS,
+      EDIT_SELECTED_PUNTS
     }),
 
     //----------------------+
@@ -469,8 +466,8 @@ export default {
     userItems () {
       return this.users.map(user => {
         return {
-          text: user[userKeys.firstName] + ' ' + user[userKeys.lastName],
-          value: user.id
+          text: user.fullName,
+          value: user,
         }
       })
     },
@@ -478,8 +475,8 @@ export default {
     makeupItems () {
       return this.makeupTemplates.map(template => {
         return {
-          text: template[puntMakeupTemplateKeys.name],
-          value: template.id
+          text: template.name,
+          value: template
         }
       })
     },
@@ -494,47 +491,35 @@ export default {
       //         and all selected don't share the same make up template => Disable
       //    4) Everything else, Enable
 
-      var includesPunted = false
-      var commonMakeupTemplate = null
+      var firstPunt = this.selectedPunts[0]
+      var commonStatus = firstPunt.status
+
+      var commonMakeupTemplate
+      if (commonStatus === PuntStatus.MakeUpClaimed || commonStatus === PuntStatus.MadeUp) {
+        commonMakeupTemplate = firstPunt.makeUp.makeupTemplate
+      } else {
+        commonMakeupTemplate = null
+      }
 
       for (const selectedPunt of this.selectedPunts) {
-        const puntObj = selectedPunt.object
-        const puntStatus = this.statusForPunt(puntObj)
-
         if (!this.isFullPuntsAdmin) {
-          if (puntObj[puntKeys.givenBy].id !== this.currentUser.uid) {
-            return true
-          }
+          return !selectedPunt.isGivenByCurrentUser()
         }
 
-        if (puntStatus === PuntStatus.MadeUp) {
+        if (selectedPunt.status !== commonStatus) {
           return true
         }
 
-        if (puntStatus === PuntStatus.MakeUpClaimed) {
-          if (includesPunted) return true
-
-          if (commonMakeupTemplate !== null) {
-            if (puntObj[puntKeys.makeUp][puntMakeupKeys.makeupTemplate].id !== commonMakeupTemplate.id) {
-              return true
-            }
-          } else {
-            commonMakeupTemplate = puntObj[puntKeys.makeUp][puntMakeupKeys.makeupTemplate]
-          }
-        }
-
-        if (puntStatus === PuntStatus.Punted) {
-          if (commonMakeupTemplate !== null) {
+        if (commonStatus === PuntStatus.MakeUpClaimed || commonStatus === PuntStatus.MadeUp) {
+          if (commonMakeupTemplate.id !== selectedPunt.makeUp.makeupTemplate.id) {
             return true
-          } else {
-            includesPunted = true
           }
         }
       }
 
       if (commonMakeupTemplate) {
-        this.makeupDialogMakeup = commonMakeupTemplate.id
-        this.makeupDialogCheck = true
+        this.makeupDialogMakeup = commonMakeupTemplate
+        this.makeupDialogCheck = commonStatus === PuntStatus.MakeUpClaimed
       }
 
       return false
@@ -547,8 +532,7 @@ export default {
 
       if (this.isAnyPuntsAdmin) {
         for (const selectedPunt of this.selectedPunts) {
-          const puntObj = selectedPunt.object
-          if (puntObj[puntKeys.givenBy].id !== this.currentUser.uid) {
+          if (selectedPunt.giver.id !== this.currentFirestoreUser.id) {
             return true
           }
         }
@@ -559,14 +543,18 @@ export default {
       return true
     },
 
-    ...mapState([
-      'users', 'currentUser'
-    ]),
-
     ...mapState({
-      makeupTemplates: state => state.puntsStore.makeupTemplates,
       selectedPunts: state => state.puntsStore.selectedPunts
-    })
+    }),
+
+    ...mapGetters({
+      users: 'customUsers',
+      makeupTemplates: 'customPuntMakeupTemplates'
+    }),
+
+    ...mapGetters([
+      'currentFirestoreUser'
+    ])
   },
 
   watch: {
@@ -582,7 +570,7 @@ export default {
     disableMakeupButton (newValue) {
       // To make sure props are reset after selecting and then deselecting rows
       if (newValue === true) {
-        this.makeupDialogMakeup = ''
+        this.makeupDialogMakeup = null
         this.makeupDialogCheck = false
       }
     },

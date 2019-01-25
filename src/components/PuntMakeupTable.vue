@@ -11,36 +11,35 @@
         v-model="selected"
         :headers="headers"
         :search="makeupTemplateSearch"
-        :items="templates"
+        :items="makeupTemplates"
         class="elevation-1"
         :pagination.sync="pagination"
         :rows-per-page-items="rowsPerPageItems"
-        :item-key="PropKeys.id"
+        item-key="id"
     >
 
       <template slot="items" slot-scope="props">
         <!-- DATE -->
-        <td>{{ props.item[PropKeys.date] }}</td>
+        <td>{{ props.item.dateString }}</td>
 
         <!-- NAME -->
+        <!-- TODO: Rename -->
         <contacts-table-row
             :edit-item="props.item"
-            :edit-field="PropKeys.name"
+            :edit-field="'name'"
             title="Name"
             :save="inlineSave"
             editable>
         </contacts-table-row>
-        <!--<td>{{ props.item[PropKeys.name] }}</td>-->
 
         <!-- DESCRIPTION -->
         <contacts-table-row
             :edit-item="props.item"
-            :edit-field="PropKeys.description"
+            :edit-field="'description'"
             title="Description"
             :save="inlineSave"
             editable>
         </contacts-table-row>
-        <!--<td>{{ props.item[PropKeys.description] }}</td>-->
 
         <!-- ACTIONS -->
         <td class="justify-center layout px-0">
@@ -69,31 +68,22 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from 'vuex'
+import { mapState, mapMutations, mapGetters } from 'vuex'
 import api, { puntMakeupTemplateKeys } from '../api'
-import { puntsMixin } from '../mixins'
 import { EDIT_SELECTED_MAKEUP_TEMPLATE } from '../store'
 import { eventNames as appEvents } from '../events'
 import ContactsTableRow from './ContactsTableRow'
+import { permissionsMixin } from '../mixins'
 
 export default {
   name: 'punts-table',
   components: { ContactsTableRow },
-  mixins: [puntsMixin],
+  mixins: [permissionsMixin],
 
   data () {
     return {
-      // TODO: Move outside, so can use in headers
-      PropKeys: Object.freeze({
-        date: 'date',
-        name: 'name',
-        description: 'description',
-        id: 'id',
-        object: 'object'
-      }),
-
-      headers: [ // LOL can't use PropKeys
-        { text: 'Date', align: 'left', value: 'date' },
+      headers: [
+        { text: 'Date', align: 'left', value: 'dateString' },
         { text: 'Name', align: 'left', value: 'name' },
         { text: 'Description', align: 'left', value: 'description' },
         { text: 'See Makeups', sortable: false, value: false }
@@ -112,64 +102,33 @@ export default {
   },
 
   computed: {
-    templates () {
-      return this.makeupTemplates.map((template) => {
-        return { // TODO: make constructor in object i.e. 'PuntsTableObj(punt)'
-          [this.PropKeys.id]: template.id, // Needed for sorting
-          [this.PropKeys.object]: template, // Needed for later (when in 'selected')
-          [this.PropKeys.date]: this.dateForItem(template),
-          [this.PropKeys.name]: this.nameForItem(template),
-          [this.PropKeys.description]: this.descriptionForItem(template)
-        }
-      })
-    },
-
     ...mapState({
-      makeupTemplates: state => state.puntsStore.makeupTemplates,
       focusedTemplate: state => state.puntsStore.focusedMakeupTemplate,
       makeupTemplateSearch: state => state.puntsStore.makeupTemplateSearch
+    }),
+
+    ...mapGetters({
+      makeupTemplates: 'customPuntMakeupTemplates'
     })
   },
 
   methods: {
-    dateForItem (item) {
-      // TODO: Make a helper function
-      const itemDate = new Date(item[puntMakeupTemplateKeys.date].seconds * 1000)
-
-      const date = itemDate.getDate()
-      const month = itemDate.getMonth() + 1 // Months are zero based
-      const year = itemDate.getFullYear()
-      const twoDigitYear = year.toString().slice(2)
-
-      return month + '/' + date + '/' + twoDigitYear
+    seeMakeups (makeupTemplate) {
+      this.EDIT_SELECTED_MAKEUP_TEMPLATE(makeupTemplate)
     },
 
-    nameForItem (item) {
-      return item[puntMakeupTemplateKeys.name]
-    },
-
-    descriptionForItem (item) {
-      return item[puntMakeupTemplateKeys.description]
-    },
-
-    seeMakeups (item) {
-      this.EDIT_SELECTED_MAKEUP_TEMPLATE(item)
-    },
-
-    isFocused (item) {
+    isFocused (makeupTemplate) {
       if (!this.focusedTemplate) return false
-      return item[this.PropKeys.id] === this.focusedTemplate.id
+      return makeupTemplate.id === this.focusedTemplate.id
     },
 
-    inlineSave (item) {
-      const makeupTemplateObj = item[this.PropKeys.object]
-
+    inlineSave (makeupTemplate) {
       const updateData = {
-        [puntMakeupTemplateKeys.name]: item[this.PropKeys.name],
-        [puntMakeupTemplateKeys.description]: item[this.PropKeys.description]
+        [puntMakeupTemplateKeys.name]: makeupTemplate.name,
+        [puntMakeupTemplateKeys.description]: makeupTemplate.description
       }
 
-      api.updateMakeupTemplateWithData(makeupTemplateObj, updateData, (error) => {
+      api.updateMakeupTemplateWithData(makeupTemplate, updateData, (error) => {
         if (error === null) {
           this.$_glob.root.$emit(appEvents.apiSuccess, 'MAKEUP TEMPLATE UPDATE success')
         } else {

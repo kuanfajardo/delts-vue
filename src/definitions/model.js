@@ -10,7 +10,7 @@ import {
 
 import { comparePermissions, containsAllPermission, PermissionSets, DutyStatus, PuntStatus, PuntMakeupStatus, TODAY } from '../definitions'
 
-import { compareAsc, eachDayOfInterval, startOfWeek, endOfWeek, fromUnixTime } from 'date-fns'
+import { compareAsc, eachDayOfInterval, startOfWeek, endOfWeek, fromUnixTime, format } from 'date-fns'
 
 import store from '../store'
 
@@ -384,6 +384,10 @@ export class PuntMakeupTemplate extends FirestoreObject {
   get date () {
     return FirestoreObject.dateForFirestoreTimestamp(this.object[puntMakeupTemplateKeys.date])
   }
+
+  get dateString () {
+    return format(this.date, 'MM/dd/yy')
+  }
 }
 
 export class PuntMakeup extends FirestoreObject {
@@ -400,6 +404,7 @@ export class PuntMakeup extends FirestoreObject {
       : null
   }
 
+  // TODO: Rename to template
   get makeupTemplate () {
     return PuntMakeupTemplate.createFromFirestoreObject(this.object[puntMakeupKeys.makeupTemplate])
   }

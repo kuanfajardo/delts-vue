@@ -60,9 +60,9 @@
 
 <script>
 import { mapState, mapMutations, mapGetters } from 'vuex'
-import { permissionsMixin } from '../mixins'
 import { PuntStatus } from '../definitions'
 import { EDIT_SELECTED_PUNTS } from '../store'
+import { permissionsMixin } from '../mixins'
 
 export default {
   name: 'punts-table',

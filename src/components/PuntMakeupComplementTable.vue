@@ -13,29 +13,29 @@
         class="elevation-1"
         :pagination.sync="pagination"
         :rows-per-page-items="rowsPerPageItems"
-        :item-key="PropKeys.id"
+        item-key="id"
     >
 
       <template slot="items" slot-scope="props">
 
         <!-- TIME -->
-        <td>{{ props.item[PropKeys.puntTime] }}</td>
+        <td>{{ props.item.puntTimeString }}</td>
 
         <!-- ASSIGNEE -->
-        <td>{{ props.item[PropKeys.assignee] }}</td>
+        <td>{{ props.item.assigneeName }}</td>
 
         <!-- REASON -->
-        <td>{{ props.item[PropKeys.reason] }}</td>
+        <td>{{ props.item.reason }}</td>
 
         <!-- STATUS -->
         <td>
           <v-btn
-              :color="props.item[PropKeys.statusColor]"
+              :color="props.item.statusColor"
               class="elevation-0"
               round
               small
           >
-            {{ props.item[PropKeys.statusString] }}
+            {{ props.item.statusString }}
           </v-btn>
         </td>
       </template>
@@ -54,32 +54,20 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import { puntKeys, puntMakeupKeys, userKeys } from '../api'
-import { puntsMixin } from '../mixins'
+import { mapState, mapGetters } from 'vuex'
 import { PuntStatus } from '../definitions'
+import { permissionsMixin } from '../mixins'
 
 export default {
   name: 'punts-table',
 
-  mixins: [puntsMixin],
+  mixins: [permissionsMixin],
 
   data () {
     return {
-      // TODO: Move outside, so can use in headers
-      PropKeys: Object.freeze({
-        puntTime: 'puntTime',
-        reason: 'reason',
-        assignee: 'assignee',
-        status: 'status',
-        statusString: 'statusString',
-        statusColor: 'statusColor',
-        id: 'id'
-      }),
-
-      headers: [ // LOL can't use PropKeys
-        { text: 'Date', align: 'left', value: 'puntTime' },
-        { text: 'Assignee', align: 'left', value: 'assignee' },
+      headers: [
+        { text: 'Date', align: 'left', value: 'puntTimeString' },
+        { text: 'Assignee', align: 'left', value: 'assigneeName' },
         { text: 'Reason', align: 'left', value: 'reason' },
         { text: 'Status', value: 'statusString' }
       ],
@@ -98,58 +86,32 @@ export default {
     punts () {
       const puntsToShow = this.allPunts.filter(punt => {
         try {
-          return punt[puntKeys.makeUp][puntMakeupKeys.makeupTemplate].id === this.focusedTemplate.id
+          return punt.makeUp.makeupTemplate.id === this.focusedTemplate.id
         } catch (e) {
           return false
         }
       })
 
-      return puntsToShow.map((punt) => {
-        return { // TODO: make constructor in object i.e. 'PuntsTableObj(punt)'
-          [this.PropKeys.id]: punt.id, // Needed for sorting
-          [this.PropKeys.puntTime]: this.timeForItem(punt),
-          [this.PropKeys.reason]: this.reasonForItem(punt),
-          [this.PropKeys.assignee]: this.assigneeForItem(punt),
-          [this.PropKeys.status]: this.statusForPunt(punt),
-          [this.PropKeys.statusString]: this.stringForPuntStatus(this.statusForPunt(punt)),
-          [this.PropKeys.statusColor]: this.statusColorForItem(punt),
-        }
+      puntsToShow.forEach((punt) => {
+        punt.statusColor = this.statusColorForPunt(punt)
       })
+
+      return puntsToShow
     },
 
     ...mapState({
-      allPunts: state => state.puntsStore.allPunts,
       focusedTemplate: state => state.puntsStore.focusedMakeupTemplate
+    }),
+
+    ...mapGetters({
+      allPunts: 'customAllPunts'
     })
   },
 
   methods: {
-    timeForItem (item) {
-      const itemDate = new Date(item[puntKeys.puntTime].seconds * 1000)
-
-      const date = itemDate.getDate()
-      const month = itemDate.getMonth() + 1 // Months are zero based
-      const year = itemDate.getFullYear()
-      const twoDigitYear = year.toString().slice(2)
-
-      return month + '/' + date + '/' + twoDigitYear
-    },
-
-    reasonForItem (item) {
-      return item[puntKeys.reason]
-    },
-
-    assigneeForItem (item) {
-      if (item[puntKeys.assignee]) {
-        // TODO: full name helper (or use user display name)
-        return item[puntKeys.assignee][userKeys.firstName] + ' ' + item[puntKeys.assignee][userKeys.lastName]
-      }
-      return ''
-    },
-
-    statusColorForItem (item) {
-      const puntStatues = this.statusForPunt(item)
-      switch (puntStatues) {
+    // TODO: Export b/c also used in Punts Table
+    statusColorForPunt (punt) {
+      switch (punt.status) {
         case PuntStatus.Punted:
           return 'error'
         case PuntStatus.MakeUpClaimed:
@@ -158,19 +120,6 @@ export default {
           return 'success'
         default:
           return 'transparent'
-      }
-    },
-
-    stringForPuntStatus (status) {
-      switch (status) {
-        case PuntStatus.Punted:
-          return 'Punted'
-        case PuntStatus.MakeUpClaimed:
-          return 'Making Up'
-        case PuntStatus.MadeUp:
-          return 'Made Up'
-        default:
-          return ''
       }
     }
   }

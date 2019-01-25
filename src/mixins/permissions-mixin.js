@@ -2,6 +2,10 @@ import { PermissionTester } from '../definitions'
 import store from '../store'
 
 export const permissionsMixin = {
+  data () {
+    return {}
+  },
+
   computed: {
     // TODO: Maybe redo?
     isFullDutiesAdmin () {
