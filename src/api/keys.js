@@ -1,18 +1,19 @@
 // TODO: Cast firestore stuff into objects. Internally, objects use key constants, but externally can use (.) notation
 export const userKeys = {
-  course: 'course',
+  courseNumber: 'course',
   email: 'email',
-  facebook: 'facebook',
+  facebookURL: 'facebook',
   firstName: 'first',
   givenName: 'given',
   interests: 'interests',
   lastName: 'last',
   permissionSet: 'permissionsMask',
-  phone: 'phone',
-  snapchat: 'snapchat',
-  state: 'state',
-  verified: 'verified',
-  year: 'year'
+  phoneNumber: 'phone',
+  snapchatHandle: 'snapchat',
+  homeState: 'state',
+  isVerified: 'verified',
+  classYear: 'year'
+}
 }
 
 export const dutyKeys = {
@@ -31,16 +32,16 @@ export const dutyTemplateKeys = {
 
 export const puntKeys = {
   assignee: 'brother',
-  givenBy: 'given-by',
+  giver: 'given-by',
   makeUp: 'make-up',
   puntTime: 'punt-time',
   reason: 'reason'
 }
 
 export const puntMakeupKeys = {
-  assignedTo: 'assigned-to',
+  assignee: 'assigned-to',
   completionTime: 'completion-time',
-  makeupTemplate: 'template'
+  template: 'template'
 }
 
 export const puntMakeupTemplateKeys = {
@@ -52,10 +53,10 @@ export const puntMakeupTemplateKeys = {
 export const partyKeys = {
   capacity: 'capacity',
   name: 'name',
-  startTimestamp: 'time-start',
-  endTimestamp: 'time-end',
+  startDate: 'time-start',
+  endDate: 'time-end',
   theme: 'theme',
-  photos: 'photos',
+  photoURL: 'photos',
   isActive: 'is-active'
 }
 }

@@ -75,7 +75,7 @@ export class User extends FirestoreObject {
   // KEYED
 
   get courseNumber () {
-    return this.object[userKeys.course]
+    return this.object[userKeys.courseNumber]
   }
 
   get email () {
@@ -83,7 +83,7 @@ export class User extends FirestoreObject {
   }
 
   get facebookURL () {
-    return this.object[userKeys.facebook]
+    return this.object[userKeys.facebookURL]
   }
 
   get firstName () {
@@ -99,7 +99,7 @@ export class User extends FirestoreObject {
   }
 
   get phoneNumber () {
-    return this.object[userKeys.phone]
+    return this.object[userKeys.phoneNumber]
   }
 
   get interests () {
@@ -107,19 +107,19 @@ export class User extends FirestoreObject {
   }
 
   get snapchatHandle () {
-    return this.object[userKeys.snapchat]
+    return this.object[userKeys.snapchatHandle]
   }
 
   get homeState () {
-    return this.object[userKeys.state]
+    return this.object[userKeys.homeState]
   }
 
   get isVerified () {
-    return this.object[userKeys.verified]
+    return this.object[userKeys.isVerified]
   }
 
   get classYear () {
-    return this.object[userKeys.year]
+    return this.object[userKeys.classYear]
   }
 
   get permissionSet () {
@@ -395,7 +395,7 @@ export class PuntMakeup extends FirestoreObject {
   // KEYED
 
   get assignee () {
-    return User.createFromFirestoreObject(this.object[puntMakeupKeys.assignedTo])
+    return User.createFromFirestoreObject(this.object[puntMakeupKeys.assignee])
   }
 
   get completionTime () {
@@ -406,7 +406,7 @@ export class PuntMakeup extends FirestoreObject {
 
   // TODO: Rename to template
   get makeupTemplate () {
-    return PuntMakeupTemplate.createFromFirestoreObject(this.object[puntMakeupKeys.makeupTemplate])
+    return PuntMakeupTemplate.createFromFirestoreObject(this.object[puntMakeupKeys.template])
   }
 
   // COMPUTED
@@ -418,7 +418,7 @@ export class PuntMakeup extends FirestoreObject {
   }
 
   get name () {
-    return this.makeupTemplate ? this.makeupTemplate.name  :''
+    return this.makeupTemplate ? this.makeupTemplate.name : ''
   }
 
   get completionTimeString () {
@@ -434,7 +434,7 @@ export class Punt extends FirestoreObject {
   }
 
   get giver () {
-    return User.createFromFirestoreObject(this.object[puntKeys.givenBy])
+    return User.createFromFirestoreObject(this.object[puntKeys.giver])
   }
 
   get makeUp () {
@@ -525,7 +525,7 @@ export class Party extends FirestoreObject {
   }
 
   get photoURL () {
-    return this.object[partyKeys.photos]
+    return this.object[partyKeys.photoURL]
   }
 
   get isActive () {
@@ -535,11 +535,12 @@ export class Party extends FirestoreObject {
   // COMPUTED
 
   get startDate () {
-    return FirestoreObject.dateForFirestoreTimestamp(this.object[partyKeys.startTimestamp])
+    return FirestoreObject.dateForFirestoreTimestamp(this.object[partyKeys.startDate])
   }
 
   get endDate () {
-    return FirestoreObject.dateForFirestoreTimestamp(this.object[partyKeys.endTimestamp])
+    return FirestoreObject.dateForFirestoreTimestamp(this.object[partyKeys.endDate])
+  }
   }
 }
 

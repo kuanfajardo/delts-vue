@@ -52,25 +52,25 @@
                 </v-flex>
                 <template v-if="isDialogEdit">
                 <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editMap[userKeys.phone]" label="Phone" mask="phone"></v-text-field>
+                  <v-text-field v-model="editMap[userKeys.phoneNumber]" label="Phone" mask="phone"></v-text-field>
                 </v-flex>
                 <v-flex xs12 sm6 md4>
-                  <v-select :items="courses" v-model="editMap[userKeys.course]" label="Course"></v-select>
+                  <v-select :items="courses" v-model="editMap[userKeys.courseNumber]" label="Course"></v-select>
                 </v-flex>
                 <v-flex xs12 sm6 md4>
-                  <v-select :items="years" v-model="editMap[userKeys.year]" label="Class Year"></v-select>
+                  <v-select :items="years" v-model="editMap[userKeys.classYear]" label="Class Year"></v-select>
                 </v-flex>
                 <v-flex xs12 sm6 md4>
                   <v-text-field v-model="editMap[userKeys.givenName]" label="Given Name"></v-text-field>
                 </v-flex>
                 <v-flex xs12 sm6 md4>
-                  <v-text-field v-model="editMap[userKeys.snapchat]" label="Snapchat"></v-text-field>
+                  <v-text-field v-model="editMap[userKeys.snapchatHandle]" label="Snapchat"></v-text-field>
                 </v-flex>
                 <v-flex xs12 sm6 md4>
-                   <v-select :items="states" v-model="editMap[userKeys.state]" label="State"></v-select>
+                   <v-select :items="states" v-model="editMap[userKeys.homeState]" label="State"></v-select>
                 </v-flex>
                 <v-flex xs12>
-                  <v-text-field v-model="editMap[userKeys.facebook]" label="Facebook"></v-text-field>
+                  <v-text-field v-model="editMap[userKeys.facebookURL]" label="Facebook"></v-text-field>
                 </v-flex>
                 </template>
               </v-layout>

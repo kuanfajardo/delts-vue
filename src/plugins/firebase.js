@@ -24,7 +24,7 @@ export const puntMakeupsRef = db.collection('punt-makeups')
 export const puntMakeupTemplatesRef = db.collection('punt-makeup-templates')
 // TODO: Fix this
 export const partiesCollectionRef = db.collection('parties')
-export const partiesRef = db.collection('parties').orderBy(partyKeys.startTimestamp)
+export const partiesRef = db.collection('parties').orderBy(partyKeys.startDate)
 
 console.log(lastStartOfWeek())
 console.log(nextStartOfWeek())

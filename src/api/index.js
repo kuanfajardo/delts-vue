@@ -88,7 +88,7 @@ export default {
       [puntKeys.assignee]: punteeRef,
       [puntKeys.reason]: reason,
       [puntKeys.puntTime]: new Date(),
-      [puntKeys.givenBy]: currentUserRef,
+      [puntKeys.giver]: currentUserRef,
       [puntKeys.makeUp]: null
     }
 
@@ -115,7 +115,7 @@ export default {
         [puntKeys.assignee]: punteeRef,
         [puntKeys.reason]: reason,
         [puntKeys.puntTime]: new Date(),
-        [puntKeys.givenBy]: currentUserRef,
+        [puntKeys.giver]: currentUserRef,
         [puntKeys.makeUp]: null
       }
 
@@ -160,9 +160,9 @@ export default {
       [partyKeys.capacity]: capacity,
       [partyKeys.name]: name,
       [partyKeys.theme]: theme,
-      [partyKeys.startTimestamp]: start,
-      [partyKeys.endTimestamp]: end,
-      [partyKeys.photos]: null,
+      [partyKeys.startDate]: start,
+      [partyKeys.endDate]: end,
+      [partyKeys.photoURL]: null,
       [partyKeys.isActive]: true
     }
 
@@ -251,7 +251,7 @@ export default {
 
         const makeupUpdateObj = {
           [puntMakeupKeys.completionTime]: completionTime,
-          [puntMakeupKeys.makeupTemplate]: makeupTemplateRef
+          [puntMakeupKeys.template]: makeupTemplateRef
         }
 
         batch.update(oldMakeupRef, makeupUpdateObj)
@@ -259,8 +259,8 @@ export default {
         const newMakeupRef = fb.puntMakeupsRef.doc()
         const newMakeupObj = {
           [puntMakeupKeys.completionTime]: completionTime,
-          [puntMakeupKeys.makeupTemplate]: makeupTemplateRef,
-          [puntMakeupKeys.assignedTo]: assigneeRef
+          [puntMakeupKeys.template]: makeupTemplateRef,
+          [puntMakeupKeys.assignee]: assigneeRef
         }
 
         batch.set(newMakeupRef, newMakeupObj)

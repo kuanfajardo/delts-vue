@@ -245,11 +245,11 @@ export default {
     if (this.model) {
       this.partyModel = Object.assign({}, this.model)
 
-      const start = new Date(this.model[partyKeys.startTimestamp].seconds * 1000)
+      const start = new Date(this.model[partyKeys.startDate].seconds * 1000)
       this.partyModel.startDate = this.dateStringFromDate(start)
       this.partyModel.startTime = this.timeStringFromDate(start)
 
-      const end = new Date(this.model[partyKeys.endTimestamp].seconds * 1000)
+      const end = new Date(this.model[partyKeys.endDate].seconds * 1000)
       this.partyModel.endDate = this.dateStringFromDate(end)
       this.partyModel.endTime = this.timeStringFromDate(end)
     }
