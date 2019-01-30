@@ -213,7 +213,13 @@ const socialStore = {
     })
   },
 
-  getters: {}
+  getters: {
+    customParties: state => {
+      return state.parties.map((partyObj) => {
+        return Party.createFromFirestoreObject(partyObj)
+      })
+    }
+  }
 }
 
 export default new Vuex.Store({

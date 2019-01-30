@@ -19,9 +19,9 @@
       >
         <v-card>
           <v-card-title class="subheading font-weight-bold">
-            {{ props.item[partyKeys.name] }}
+            {{ props.item.name }}
             <v-spacer></v-spacer>
-            <v-chip :color="props.item[partyKeys.isActive] ? 'primary' : 'white'" text-color="white" class="ma-0 pa-0">
+            <v-chip :color="props.item.isActive ? 'primary' : 'white'" text-color="white" class="ma-0 pa-0">
               Active
             </v-chip>
           </v-card-title>
@@ -31,29 +31,29 @@
           <v-list dense>
             <v-list-tile>
               <v-list-tile-content>Theme:</v-list-tile-content>
-              <v-list-tile-content class="align-end">{{ props.item[partyKeys.theme] }}</v-list-tile-content>
+              <v-list-tile-content class="align-end">{{ props.item.theme }}</v-list-tile-content>
             </v-list-tile>
 
             <v-list-tile>
               <v-list-tile-content>Start:</v-list-tile-content>
-              <v-list-tile-content class="align-end">{{ props.item[partyKeys.startTimestamp] }}</v-list-tile-content>
+              <v-list-tile-content class="align-end">{{ props.item.startDateString }}</v-list-tile-content>
             </v-list-tile>
 
             <v-list-tile>
               <v-list-tile-content>End:</v-list-tile-content>
-              <v-list-tile-content class="align-end">{{ props.item[partyKeys.endTimestamp] }}</v-list-tile-content>
+              <v-list-tile-content class="align-end">{{ props.item.endDateString }}</v-list-tile-content>
             </v-list-tile>
 
             <v-list-tile>
               <v-list-tile-content>Capacity:</v-list-tile-content>
-              <v-list-tile-content class="align-end">{{ props.item[partyKeys.capacity] }}</v-list-tile-content>
+              <v-list-tile-content class="align-end">{{ props.item.capacity }}</v-list-tile-content>
             </v-list-tile>
           </v-list>
 
           <v-divider class="mt-1"></v-divider>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <edit-party-dialog v-if="props.item[partyKeys.isActive]" class="my-1 pr-2 mr-1 elevation-0" :model="props.item.object" :on-save="updateParty">
+            <edit-party-dialog v-if="props.item.isActive" class="my-1 pr-2 mr-1 elevation-0" :model="props.item.object" :on-save="updateParty">
               <v-btn
                   class="elevation-4"
                   small
@@ -66,7 +66,7 @@
               </v-btn>
             </edit-party-dialog>
             <v-btn class="my-1 mr-1 elevation-4" small fab color="primary" @click.native="viewInviteListForParty(props.item)"><v-icon>face</v-icon></v-btn>
-            <v-btn :disabled="props.item[partyKeys.photos] === null" class="my-1 mr-1 elevation-4" small fab color="white" :href="props.item[partyKeys.photos]" target="_blank"><v-icon color="black">photo_camera</v-icon></v-btn>
+            <v-btn :disabled="props.item.photoURL === null" class="my-1 mr-1 elevation-4" small fab color="white" :href="props.item.photoURL" target="_blank"><v-icon color="black">photo_camera</v-icon></v-btn>
             <v-btn class="my-1 mr-1 elevation-4" small fab color="accent" @click.native="deleteParty(props.item)"><v-icon>delete</v-icon></v-btn>
             <v-spacer></v-spacer>
           </v-card-actions>
@@ -77,14 +77,16 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import { partyKeys } from '../api'
+import { mapState, mapGetters } from 'vuex'
+import { format } from 'date-fns'
+
+import api, { partyKeys } from '../api'
 import EditPartyDialog from './EditPartyDialog'
-import api from '../api'
 
 export default {
   name: 'party-iterator',
   components: { EditPartyDialog },
+
   //-------------------+
   //     PROPERTIES    |
   //-------------------+
@@ -97,8 +99,6 @@ export default {
 
       editDialog: false,
       isEditFormValid: false,
-      editFormModel: {}
-
     }
   },
 
@@ -110,18 +110,7 @@ export default {
     // TODO: Obj factories for these maps
     // TODO: Custom objs!
     parties () {
-      return this.partyObjects.map((partyObj) => {
-        return {
-          [partyKeys.name]: partyObj[partyKeys.name],
-          [partyKeys.capacity]: partyObj[partyKeys.capacity],
-          [partyKeys.theme]: partyObj[partyKeys.theme],
-          [partyKeys.photos]: partyObj[partyKeys.photos],
-          [partyKeys.startTimestamp]: this.dateForTimestamp(partyObj[partyKeys.startTimestamp]),
-          [partyKeys.endTimestamp]: this.dateForTimestamp(partyObj[partyKeys.endTimestamp]),
-          [partyKeys.isActive]: partyObj[partyKeys.isActive],
-          object: partyObj
-        }
-      })
+      return this.customParties
     },
 
     breakpoint () {
@@ -129,8 +118,11 @@ export default {
     },
 
     ...mapState({
-      partyObjects: state => state.socialStore.parties,
       partySearch: state => state.socialStore.partySearch
+    }),
+
+    ...mapGetters({
+      parties: 'customParties'
     })
   },
 
@@ -139,27 +131,6 @@ export default {
   //------------------+
 
   methods: {
-    // TODO: Make function for to string with string format
-    dateForTimestamp (item) {
-      const itemDate = new Date(item.seconds * 1000)
-
-      const date = itemDate.getDate()
-      const month = itemDate.getMonth() + 1 // Months are zero based
-      const year = itemDate.getFullYear()
-      const twoDigitYear = year.toString().slice(2)
-
-      var hour = itemDate.getHours()
-      var amOrPm = hour < 12 ? 'AM' : 'PM'
-
-      hour = hour % 12
-      if (hour === 0) hour = 12
-
-      const minute = itemDate.getMinutes()
-      var minuteString = (minute.toString().length === 1 ? '0' : '') + minute
-
-      return month + '/' + date + '/' + twoDigitYear + ' @ ' + hour + ':' + minuteString + ' ' + amOrPm
-    },
-
     updateParty (valid, partyModel, callback) {
       if (valid) {
         // Create Date obj from start date and time
@@ -202,6 +173,10 @@ export default {
 
     updateRowsPerPage () {
       this.pagination.rowsPerPage = this.numRowItemsForBreakpoint(this.$vuetify.breakpoint.name)
+    },
+
+    formatDate (date, formatStr) {
+      return format(date, formatStr)
     }
   },
 
@@ -209,7 +184,6 @@ export default {
     this.updateRowsPerPage()
   },
 
-  // https://vuejs.org/v2/api/#watch
   watch: {
     breakpoint: 'updateRowsPerPage'
   }
