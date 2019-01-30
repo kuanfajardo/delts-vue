@@ -5,12 +5,18 @@ import {
   puntKeys,
   puntMakeupKeys,
   puntMakeupTemplateKeys,
-  userKeys
+  userKeys,
+  userProxyKeys,
+  puntProxyKeys
 } from '../api'
 
-import { comparePermissions, containsAllPermission, PermissionSets, DutyStatus, PuntStatus, PuntMakeupStatus, TODAY } from '../definitions'
+import Keys from '../api/keys'
 
-import { compareAsc, eachDayOfInterval, startOfWeek, endOfWeek, fromUnixTime, format } from 'date-fns'
+import { comparePermissions, containsAllPermission, PermissionSets, DutyStatus, PuntStatus, PuntMakeupStatus, TODAY, typeGuard, parameterTypeGuard } from '../definitions'
+
+import { compareAsc, eachDayOfInterval, startOfWeek, endOfWeek, format } from 'date-fns'
+
+import { firestore } from 'firebase'
 
 import store from '../store'
 
@@ -35,6 +41,8 @@ class FirestoreObject {
       // Set properties
       this.object = obj
       this.id = obj.id
+
+      // For factory method
       this.isValid = true
     } else {
       return { isValid: false }
@@ -47,8 +55,21 @@ class FirestoreObject {
     return dynamicObject.isValid ? dynamicObject : null
   }
 
+  /**
+   *
+   * @param {firebase.firestore.Timestamp} timestamp
+   * @return {Date}
+   */
   static dateForFirestoreTimestamp (timestamp) {
-    return fromUnixTime(timestamp.seconds)
+    return timestamp.toDate()
+  }
+
+  /**
+   *
+   * @param {firebase.firestore.Timestamp} date
+   */
+  static firestoreTimestampFromDate (date) {
+    return firestore.Timestamp.fromDate(date)
   }
 
   static isValidObject (obj, keyObj) {
@@ -68,10 +89,491 @@ class FirestoreObject {
   }
 }
 
+/**
+ * @typedef {Object} target
+ */
+
+/**
+ * @typedef {Object} proxy
+ */
+
+/**
+ * @typedef {*} value
+ */
+
+/**
+ * Function type for proxy field getter
+ *
+ * @typedef {Function} proxyGetter
+ * @param {target} target
+ * @param {proxy} proxy
+ */
+
+/**
+ * Function type for proxy field setter
+ *
+ * @typedef {Function} proxySetter
+ * @param {target} target
+ * @param {value} value
+ * @param {proxy} proxy
+ */
+
+/**
+ * Function type for proxy field function
+ *
+ * @typedef {Object} proxyFunction
+ * @property {String} name
+ * @property {Function} body
+ */
+
+/**
+ * @typedef {Object} proxyFieldGetter
+ * @property {String} field - name of field // TODO: Rename to name
+ * @property {proxyGetter} get - getter for field
+ */
+
+/**
+ * @typedef {Object} proxyFieldSetter
+ * @property {String} field - name of field
+ * @property {*} type - type of value // TODO: ??
+ * @property {proxySetter} set - setter for field
+ */
+
+/**
+ * @typedef {Object} proxyProxy
+ * @property {String} field
+ * @property {String} name
+ * @property {*} proxyClass
+ */
+
+/**
+ * A type for specifying all aspects of a proxy handler
+ * @typedef {Object} proxyFieldHandler
+ * @property {String} field - name of field on target for this handler
+ * @property {proxyGetter} get - getter for field
+ * @property {proxySetter} set - setter for field
+ */
+
+class NotImplementedError extends Error {}
+class NoSetterAllowedError extends Error {}
+class AbstractMethodNotImplementedError extends Error {}
+
+// TODO: Rename ProxyWrapper?
+export class ProxyHandler {
+  // LIFECYCLE
+  /**
+   * @param {*} proxyClass
+   * @param {Object} handlers
+   * @param {Object} functions
+   */
+  constructor (proxyClass, handlers = {}, functions = {}) {
+    this.proxyClass = proxyClass
+    this.handlers = handlers
+    this.functions = functions
+  }
+
+  /**
+   * @param {*} proxyClass
+   * @return {ProxyHandler}
+   */
+  static new (proxyClass) {
+    return new ProxyHandler(proxyClass)
+  }
+
+  // HELPERS
+  /**
+   *
+   * @param {String} field
+   * @private
+   */
+  _initiateField (field) {
+    if (!(field in this.handlers)) {
+      this.handlers[field] = {
+        getter: () => { throw new NotImplementedError() },
+        setter: () => { throw new NoSetterAllowedError() }
+      }
+    }
+  }
+
+  /**
+   *
+   * @param {String} funcName
+   * @private
+   */
+  _initiateFunction (funcName) {
+    if (!(funcName in this.functions)) {
+      this.functions[funcName] = {
+        body: () => { throw new NotImplementedError() }
+      }
+    }
+  }
+
+  /**
+   *
+   * @param {String} field
+   * @return {*}
+   * @private
+   */
+  _getTargetField (field) {
+    return FirestoreObjectProxy.classKeyMap[this.proxyClass.name][field]
+  }
+
+  // GENERAL
+  // TODO: Rename all to 'set' rather than 'add'
+  // TODO: Rename method names?
+
+  /**
+   *
+   * @param {proxyFieldGetter} fieldGetter
+   */
+  addGetter (fieldGetter) {
+    console.log(fieldGetter.field)
+    this._initiateField(fieldGetter.field)
+    this.handlers[fieldGetter.field].getter = fieldGetter.get
+    return this
+  }
+
+  /**
+   *
+   * @param {proxyFieldSetter} fieldSetter
+   */
+  addSetter (fieldSetter) {
+    this._initiateField(fieldSetter.field)
+    this.handlers[fieldSetter.field].setter = fieldSetter.set
+    return this
+  }
+
+  /**
+   *
+   * @param {proxyFieldHandler} fieldHandler
+   * @return {ProxyHandler}
+   */
+  _addHandler (fieldHandler) {
+    this._initiateField(fieldHandler.field)
+    this.handlers[fieldHandler.field] = {
+      getter: fieldHandler.get,
+      setter: fieldHandler.set
+    }
+
+    return this
+  }
+
+  // SPECIFIC
+
+  /**
+   *
+   * @param {String} proxyField
+   * @return {ProxyHandler}
+   */
+  addString (proxyField) {
+    return this.addPrimitive(proxyField, String)
+  }
+
+  /**
+   *
+   * @param {String} proxyField
+   * @return {ProxyHandler}
+   */
+  addNumber (proxyField) {
+    return this.addPrimitive(proxyField, Number)
+  }
+
+  /**
+   *
+   * @param {String} proxyField
+   * @return {ProxyHandler}
+   */
+  addArray (proxyField) {
+    return this.addPrimitive(proxyField, Array)
+  }
+
+  /**
+   *
+   * @param {String} proxyField
+   * @return {ProxyHandler}
+   */
+  addObject (proxyField) {
+    return this.addPrimitive(proxyField, Object)
+  }
+
+  /**
+   *
+   * @param {String} proxyField
+   * @return {ProxyHandler}
+   */
+  addBoolean (proxyField) {
+    return this.addPrimitive(proxyField, Boolean)
+  }
+
+  /**
+   *
+   * @param proxyField
+   * @param type
+   * @return {ProxyHandler}
+   */
+  addPrimitive (proxyField, type) {
+    console.log(proxyField)
+    const targetField = this._getTargetField(proxyField)
+    console.log(targetField)
+    return this._addHandler({
+      field: proxyField,
+      get: (target, proxy) => { return target[targetField] },
+      set: (target, value, proxy) => {
+        typeGuard(value, type)
+        target[targetField] = value
+      }
+    })
+  }
+
+  /**
+   *
+   * @param {proxyFunction} func
+   * @return {ProxyHandler}
+   */
+  addFunction (func) {
+    console.log(func.name)
+    this._initiateFunction(func.name)
+    this.functions[func.name].body = func.body
+    return this
+  }
+
+  /**
+   *
+   * @param {String} field
+   * @return {ProxyHandler}
+   */
+  addDate (field) {
+    console.log(field)
+    const targetField = this._getTargetField(field)
+    return this._addHandler({
+      field: field,
+      get: (target, proxy) => {
+        const timestamp = target[targetField]
+        return timestamp
+          ? FirestoreObjectProxy.dateForFirestoreTimestamp(timestamp)
+          : null
+      },
+      set: (target, value, proxy) => {
+        typeGuard(value, Date)
+        target[targetField] = FirestoreObjectProxy.firestoreTimestampForDate(value)
+      }
+    })
+  }
+
+  /**
+   *
+   * @param {String} field
+   * @param {*} proxyClass
+   * @return {ProxyHandler}
+   */
+  addProxy (field, proxyClass) {
+    console.log(field)
+    const targetField = this._getTargetField(field)
+    console.log(targetField)
+    return this._addHandler({
+      field: field,
+      get: (target, proxy) => {
+        console.log('getting proxy -> ' + proxyClass.name + ' -> ' + field)
+        if (!target[targetField]) return null
+
+        const dynamicProxyHandler = null
+        eval('dynamicProxyHandler = ' + proxyClass.name + '.proxyHandler()')
+        console.log(dynamicProxyHandler)
+        console.log('FCUKING SUCCEX')
+        console.log(target[targetField])
+        return dynamicProxyHandler
+          ? new Proxy(target[targetField], dynamicProxyHandler.formatForProxy())
+          : null
+      },
+      set: (target, value, proxy) => {
+        typeGuard(value, proxyClass)
+        const isValid = FirestoreObjectProxy.isValid(value, proxyClass)
+        if (isValid) {
+          target[targetField] = value
+        } else {
+          throw new TypeError()
+        }
+      }
+    })
+  }
+
+  // USE
+  /**
+   *
+   * @return {Object} actual handler for Proxy object
+   */
+  formatForProxy () {
+    const properties = this.handlers
+    const methods = this.functions
+    return {
+      get (target, field, proxy) {
+        console.log('GETTING ' + field)
+        try {
+          if (field in properties) {
+            console.log('prop')
+            return properties[field].getter(target, proxy)
+          }
+
+          if (field in methods) {
+            console.log('func')
+            const func = methods[field].body
+            console.log(func)
+            return function (...args) {
+              return func.apply(proxy, args)
+            }
+          }
+
+          if (field in target) {
+            console.log('raw')
+            return target[field]
+          }
+
+          console.log('sike')
+        } catch (e) {
+          console.warn(e)
+          return null
+        }
+      },
+
+      set (target, field, value, proxy) {
+        if (field in properties) {
+          properties[field].setter(target, value, proxy)
+        }
+
+        if (field in target) {
+          target[field] = value
+        }
+
+        return true
+      },
+
+      has (target, field) {
+        console.log(field)
+        return field in target
+      }
+    }
+  }
+}
+
 // Users
 
-export class User extends FirestoreObject {
+/**
+ * Callback
+ */
 
+export class FirestoreObjectProxy {
+  static classKeyMap = {
+    UserProxy: Keys.userKeys,
+    DutyProxy: Keys.dutyKeys,
+    DutyTemplateProxy: Keys.dutyTemplateKeys,
+    PuntProxy: Keys.puntKeys,
+    PuntMakeupProxy: Keys.puntMakeupKeys,
+    PuntMakeupTemplateProxy: Keys.puntMakeupTemplateKeys,
+    PartyProxy: Keys.partyKeys
+  }
+
+  // LIFE CYCLE
+  static createFromFirestoreObject (obj) {
+    // TODO: Check validity!
+    console.log(obj)
+    const handler = this.proxyHandler().formatForProxy()
+    console.log(handler)
+    if (obj) return new Proxy(obj, handler)
+    else return null
+  }
+
+  /**
+   *
+   * @param {Object} obj
+   * @param {*} proxyClass
+   * @return {boolean}
+   */
+  static isValid (obj, proxyClass) {
+    const keyObj = FirestoreObjectProxy.classKeyMap[proxyClass.name]
+    var keysToCheck = [
+      'id',
+      ...Object.values(keyObj)
+    ]
+
+    var isValid = true
+    keysToCheck.forEach(key => {
+      if (!isValid) return
+      isValid = isValid && (key in obj)
+    })
+
+    return isValid
+  }
+
+  // ABSTRACT
+  /**
+   * @return {ProxyHandler} proxyHandler for class ... TO BE SUBCLASSED
+   */
+  static proxyHandler () {
+    console.log('YEETING')
+    throw new AbstractMethodNotImplementedError()
+  }
+
+  // HELPERS
+  /**
+   *
+   * @param {firebase.firestore.Timestamp} timestamp
+   */
+  static dateForFirestoreTimestamp (timestamp) {
+    return timestamp.toDate()
+  }
+
+  /**
+   *
+   * @param {Date} date
+   * @return {firebase.firestore.Timestamp}
+   */
+  static firestoreTimestampForDate (date) {
+    return firestore.Timestamp.fromDate(date)
+  }
+}
+
+export class UserProxy extends FirestoreObjectProxy {
+  static proxyHandler () {
+    console.log('Here We Go')
+    return ProxyHandler
+      .new(UserProxy)
+      .addString('courseNumber')
+      .addString('email')
+      .addString('facebookURL')
+      .addString('firstName')
+      .addString('givenName')
+      .addString('lastName')
+      .addString('phoneNumber')
+      .addString('snapchatHandle')
+      .addString('homeState')
+      .addArray('interests')
+      .addBoolean('isVerified')
+      .addNumber('classYear')
+      .addNumber('permissionSet')
+      .addGetter({
+        field: userProxyKeys.fullName,
+        get: (target, proxy) => {
+          console.log('getting fullname')
+          return target[userKeys.firstName] + ' ' + target[userKeys.lastName]
+          // return proxy.firstName + ' ' + proxy.lastName
+        }
+      })
+      .addFunction({
+        name: userProxyKeys.hasPermissions,
+        body: (permissionSet) => {
+          return comparePermissions(this.permissionSet, permissionSet)
+        }
+      })
+      .addFunction({
+        name: userProxyKeys.hasAllPermissions,
+        body: (permissionSet) => {
+          return containsAllPermission(this.permissionSet, permissionSet)
+        }
+      })
+  }
+}
+
+export class User extends FirestoreObject {
   // KEYED
 
   get courseNumber () {
@@ -144,6 +646,16 @@ export class User extends FirestoreObject {
 
 // Duties
 
+export class DutyTemplateProxy extends FirestoreObjectProxy {
+  static proxyHandler () {
+    return ProxyHandler
+      .new(DutyTemplateProxy)
+      .addObject('schedule')
+      .addString('name')
+      .addString('description')
+  }
+}
+
 export class DutyTemplate extends FirestoreObject {
   // KEYED
 
@@ -157,6 +669,86 @@ export class DutyTemplate extends FirestoreObject {
 
   get schedule () {
     return this.object[dutyTemplateKeys.schedule]
+  }
+}
+
+export class DutyProxy extends FirestoreObjectProxy {
+  static proxyHandler () {
+    return ProxyHandler
+      .new(DutyProxy)
+      .addDate('date')
+      .addDate('checkTime')
+      .addProxy('assignee', UserProxy)
+      .addProxy('checker', UserProxy)
+      .addProxy('template', DutyTemplateProxy)
+      .addGetter({
+        field: 'name',
+        get: (target, proxy) => { return proxy.template.name }
+      })
+      .addGetter({
+        field: 'assigneeName',
+        get: (target, proxy) => { return proxy.assignee.fullName }
+      })
+      .addGetter({
+        field: 'checkerName',
+        get: (target, proxy) => { return proxy.checker.fullName }
+      })
+      .addGetter({
+        field: 'status',
+        get: (target, proxy) => {
+          // if (this.object === null) {
+          //   return DutyStatus.unavailable // TODO: Turn DutyStatus.unavailable to NULL (like PuntStatus)
+          // }
+
+          const isClaimed = proxy.assignee !== null
+          const isCheckedOff = proxy.checkTime !== null
+
+          if (store.state.dutiesStore.isDutySheetLive) {
+            return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
+          }
+
+          // TODO: Switch from compareAsc to isPast / isFuture / isSameDay
+          const comparisonResult = compareAsc(proxy.date, TODAY())
+
+          switch (comparisonResult) {
+            case -1: // Duty date BEFORE today
+              return isCheckedOff ? DutyStatus.completed : DutyStatus.punted
+            case 0: // Duty date IS today
+              return isCheckedOff ? DutyStatus.completed : (isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed)
+            case 1: // Duty date is AFTER today
+              return isClaimed ? DutyStatus.claimed : DutyStatus.unclaimed
+
+            // Should never execute
+            default:
+              throw Error('Something went wrong. Comparison result should be between -1 and 1.')
+          }
+        }
+      })
+      .addGetter({
+        field: 'statusString',
+        get: (target, proxy) => {
+          switch (proxy.status) {
+            case DutyStatus.unavailable:
+              return ''
+            case DutyStatus.unclaimed:
+              return 'Unclaimed'
+            case DutyStatus.claimed:
+              return 'Claimed'
+            case DutyStatus.completed:
+              return 'Checked'
+            case DutyStatus.punted:
+              return 'Punted'
+            default:
+              return ''
+          }
+        }
+      })
+      .addFunction({
+        name: 'isAssignedToCurrentUser',
+        body: () => {
+          return this.assignee ? this.assignee.id === store.state.currentUser.uid : false
+        }
+      })
   }
 }
 
@@ -370,6 +962,16 @@ export class DutyMap {
 
 // Punts
 
+export class PuntMakeupTemplateProxy extends FirestoreObjectProxy {
+  static proxyHandler () {
+    return ProxyHandler
+      .new(PuntMakeupTemplateProxy)
+      .addString('description')
+      .addString('name')
+      .addDate('date')
+  }
+}
+
 export class PuntMakeupTemplate extends FirestoreObject {
   // KEYED
 
@@ -387,6 +989,28 @@ export class PuntMakeupTemplate extends FirestoreObject {
 
   get dateString () {
     return format(this.date, 'MM/dd/yy')
+  }
+}
+
+export class PuntMakeupProxy extends FirestoreObjectProxy {
+  static proxyHandler () {
+    return ProxyHandler
+      .new(PuntMakeupProxy)
+      .addDate('completionTime')
+      .addProxy('assignee', UserProxy)
+      .addProxy('template', PuntMakeupTemplateProxy)
+      .addGetter({
+        field: 'status',
+        get: (target, proxy) => {
+          return proxy.completionTime === null
+            ? PuntMakeupStatus.NotCompleted
+            : PuntMakeupStatus.Completed
+        }
+      })
+      .addGetter({
+        field: 'name',
+        get: (target, proxy) => { return proxy.template.name }
+      })
   }
 }
 
@@ -423,6 +1047,64 @@ export class PuntMakeup extends FirestoreObject {
 
   get completionTimeString () {
     return this.completionTime ? this.completionTime.toDateString() : ''
+  }
+}
+
+export class PuntProxy extends FirestoreObjectProxy {
+  static proxyHandler () {
+    return ProxyHandler.new(PuntProxy)
+      .addString('reason')
+      .addProxy('assignee', UserProxy)
+      .addProxy('giver', UserProxy)
+      .addProxy('makeUp', PuntMakeupProxy)
+      .addDate('puntTime')
+      .addGetter({
+        field: puntProxyKeys.assigneeName,
+        get: (target, proxy) => { return proxy[puntKeys.assignee][userProxyKeys.fullName] }
+      })
+      .addGetter({
+        field: puntProxyKeys.giverName,
+        get: (target, proxy) => { return proxy[puntKeys.giver][userProxyKeys.fullName] }
+      })
+      .addGetter({
+        field: puntProxyKeys.status,
+        get: (target, proxy) => {
+          if (target[puntKeys.makeUp] === null) {
+            return PuntStatus.Punted
+          }
+
+          return proxy.makeUp.status === PuntMakeupStatus.NotCompleted
+            ? PuntStatus.MakeUpClaimed
+            : PuntStatus.MadeUp
+        }
+      })
+      .addGetter({
+        field: puntProxyKeys.statusString,
+        get: (target, proxy) => {
+          switch (proxy.status) {
+            case PuntStatus.Punted:
+              return 'Punted'
+            case PuntStatus.MakeUpClaimed:
+              return 'Making Up'
+            case PuntStatus.MadeUp:
+              return 'Made Up'
+            default:
+              return ''
+          }
+        }
+      })
+      .addFunction({
+        name: puntProxyKeys.isAssignedToCurrentUser,
+        body: () => {
+          return this.assignee ? this.assignee.id === store.state.currentUser.uid : false
+        }
+      })
+      .addFunction({
+        name: puntProxyKeys.isGivenByCurrentUser,
+        body: () => {
+          return this.assignee ? this.assignee.id === store.state.currentUser.uid : false
+        }
+      })
   }
 }
 
@@ -509,6 +1191,20 @@ export class Punt extends FirestoreObject {
 
 // Social
 
+export class PartyProxy extends FirestoreObjectProxy {
+  static proxyHandler () {
+    return ProxyHandler
+      .new(PartyProxy)
+      .addNumber('capacity')
+      .addString('name')
+      .addString('theme')
+      .addString('photoURL')
+      .addBoolean('isActive')
+      .addDate('startDate')
+      .addDate('endDate')
+  }
+}
+
 export class Party extends FirestoreObject {
   // KEYED
 
@@ -532,8 +1228,6 @@ export class Party extends FirestoreObject {
     return this.object[partyKeys.isActive]
   }
 
-  // COMPUTED
-
   get startDate () {
     return FirestoreObject.dateForFirestoreTimestamp(this.object[partyKeys.startDate])
   }
@@ -541,6 +1235,15 @@ export class Party extends FirestoreObject {
   get endDate () {
     return FirestoreObject.dateForFirestoreTimestamp(this.object[partyKeys.endDate])
   }
+
+  // COMPUTED
+
+  get startDateString () {
+    return format(this.startDate, 'MM/dd/yy @ p')
+  }
+
+  get endDateString () {
+    return format(this.endDate, 'MM/dd/yy @ p')
   }
 }
 

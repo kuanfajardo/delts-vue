@@ -14,6 +14,26 @@ export const userKeys = {
   isVerified: 'verified',
   classYear: 'year'
 }
+
+export const userProxyKeys = {
+  // Props
+  fullName: 'fullName',
+
+  // Funcs
+  hasPermissions: 'hasPermissions',
+  hasAllPermissions: 'hasAllPermissions'
+}
+
+export const puntProxyKeys = {
+  // Props
+  assigneeName: 'assigneeName',
+  giverName: 'giverName',
+  status: 'status',
+  statusString: 'statusString',
+
+  // Funcs
+  isAssignedToCurrentUser: 'isAssignedToCurrentUser',
+  isGivenByCurrentUser: 'isGivenByCurrentUser'
 }
 
 export const dutyKeys = {
@@ -61,3 +81,13 @@ export const partyKeys = {
 }
 }
 
+export default {
+  userKeys: userKeys,
+  dutyKeys: dutyKeys,
+  dutyTemplateKeys: dutyTemplateKeys,
+  puntKeys: puntKeys,
+  puntMakeupKeys: puntMakeupKeys,
+  puntMakeupTemplateKeys: puntMakeupTemplateKeys,
+  inviteListKeys: inviteListKeys,
+  partyKeys: partyKeys
+}
