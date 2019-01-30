@@ -404,13 +404,13 @@ export default {
     },
 
     // INLINE ACTIONS
-    inlineSave (userObj) {
-      api.updateUserWithData(userObj, userObj, (error) => {
+    inlineSave (user) {
+      api.updateUserWithData(user, user.object, (error) => {
         if (error === null) {
-          console.log('User ' + userObj.id + ' updated successfully')
+          console.log('User ' + user.id + ' updated successfully')
           this.$_glob.root.$emit(appEvents.apiSuccess, 'USER UPDATE success')
         } else {
-          console.log('User ' + userObj.id + ' updated successfully')
+          console.log('User ' + user.id + ' updated successfully')
           this.$_glob.root.$emit(appEvents.apiFailure, 'USER UPDATE failed')
         }
       })
