@@ -126,7 +126,7 @@ export default {
     colorForDuty (duty) {
       if (!duty) return
 
-      const isMyDuty = duty.isDutyForCurrentUser()
+      const isMyDuty = duty.isAssignedToCurrentUser()
       switch (duty.status) {
         case DutyStatus.unavailable:
           return 'surface darken-3'
@@ -161,7 +161,7 @@ export default {
     tooltipForDuty (duty) {
       if (!duty) return
 
-      const isMyDuty = duty.isDutyForCurrentUser()
+      const isMyDuty = duty.isAssignedToCurrentUser()
 
       const checker = duty.checkerName
       const assignee = duty.assigneeName
@@ -204,7 +204,7 @@ export default {
 
     iconForDuty (duty) {
       if (!duty) return
-      const isMyDuty = duty.isDutyForCurrentUser()
+      const isMyDuty = duty.isAssignedToCurrentUser()
 
       switch (duty.status) {
         case DutyStatus.unavailable:
@@ -238,7 +238,7 @@ export default {
 
     iconColorForDuty (duty) {
       if (!duty) return
-      const isMyDuty = duty.isDutyForCurrentUser()
+      const isMyDuty = duty.isAssignedToCurrentUser()
 
       switch (duty.status) {
         case DutyStatus.unavailable:
@@ -338,7 +338,7 @@ export default {
     unclaimDuty (duty) {
       // Make sure it's yours and not punted/completed! TODO: Make rules against this in firestore rules
       if (duty.statyus !== DutyStatus.claimed) return
-      if (!duty.isDutyForCurrentUser()) return
+      if (!duty.isAssignedToCurrentUser()) return
 
       api.updateAssigneeForDuty(duty.object, null, (error) => {
         if (!error) {

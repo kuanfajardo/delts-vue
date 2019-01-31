@@ -227,7 +227,6 @@ export class ProxyHandler {
    * @param {proxyFieldGetter} fieldGetter
    */
   addGetter (fieldGetter) {
-    console.log(fieldGetter.field)
     this._initiateField(fieldGetter.field)
     this.handlers[fieldGetter.field].getter = fieldGetter.get
     return this
@@ -312,9 +311,7 @@ export class ProxyHandler {
    * @return {ProxyHandler}
    */
   addPrimitive (proxyField, type) {
-    console.log(proxyField)
     const targetField = this._getTargetField(proxyField)
-    console.log(targetField)
     return this._addHandler({
       field: proxyField,
       get: (target, proxy) => { return target[targetField] },
@@ -331,7 +328,6 @@ export class ProxyHandler {
    * @return {ProxyHandler}
    */
   addFunction (func) {
-    console.log(func.name)
     this._initiateFunction(func.name)
     this.functions[func.name].body = func.body
     return this
@@ -343,7 +339,6 @@ export class ProxyHandler {
    * @return {ProxyHandler}
    */
   addDate (field) {
-    console.log(field)
     const targetField = this._getTargetField(field)
     return this._addHandler({
       field: field,
@@ -367,20 +362,14 @@ export class ProxyHandler {
    * @return {ProxyHandler}
    */
   addProxy (field, proxyClass) {
-    console.log(field)
     const targetField = this._getTargetField(field)
-    console.log(targetField)
     return this._addHandler({
       field: field,
       get: (target, proxy) => {
-        console.log('getting proxy -> ' + proxyClass.name + ' -> ' + field)
         if (!target[targetField]) return null
 
         const dynamicProxyHandler = null
         eval('dynamicProxyHandler = ' + proxyClass.name + '.proxyHandler()')
-        console.log(dynamicProxyHandler)
-        console.log('FCUKING SUCCEX')
-        console.log(target[targetField])
         return dynamicProxyHandler
           ? new Proxy(target[targetField], dynamicProxyHandler.formatForProxy())
           : null
@@ -407,30 +396,23 @@ export class ProxyHandler {
     const methods = this.functions
     return {
       get (target, field, proxy) {
-        console.log('GETTING ' + field)
         try {
           if (field in properties) {
-            console.log('prop')
             return properties[field].getter(target, proxy)
           }
 
           if (field in methods) {
-            console.log('func')
             const func = methods[field].body
-            console.log(func)
             return function (...args) {
-              return func.apply(proxy, args)
+              return func.apply(proxy, [proxy, ...args])
             }
           }
 
           if (field in target) {
-            console.log('raw')
             return target[field]
           }
-
-          console.log('sike')
         } catch (e) {
-          console.warn(e)
+          // console.warn(e)
           return null
         }
       },
@@ -448,7 +430,6 @@ export class ProxyHandler {
       },
 
       has (target, field) {
-        console.log(field)
         return field in target
       }
     }
@@ -475,9 +456,7 @@ export class FirestoreObjectProxy {
   // LIFE CYCLE
   static createFromFirestoreObject (obj) {
     // TODO: Check validity!
-    console.log(obj)
     const handler = this.proxyHandler().formatForProxy()
-    console.log(handler)
     if (obj) return new Proxy(obj, handler)
     else return null
   }
@@ -509,7 +488,6 @@ export class FirestoreObjectProxy {
    * @return {ProxyHandler} proxyHandler for class ... TO BE SUBCLASSED
    */
   static proxyHandler () {
-    console.log('YEETING')
     throw new AbstractMethodNotImplementedError()
   }
 
@@ -534,7 +512,6 @@ export class FirestoreObjectProxy {
 
 export class UserProxy extends FirestoreObjectProxy {
   static proxyHandler () {
-    console.log('Here We Go')
     return ProxyHandler
       .new(UserProxy)
       .addString('courseNumber')
@@ -553,21 +530,20 @@ export class UserProxy extends FirestoreObjectProxy {
       .addGetter({
         field: userProxyKeys.fullName,
         get: (target, proxy) => {
-          console.log('getting fullname')
           return target[userKeys.firstName] + ' ' + target[userKeys.lastName]
           // return proxy.firstName + ' ' + proxy.lastName
         }
       })
       .addFunction({
         name: userProxyKeys.hasPermissions,
-        body: (permissionSet) => {
-          return comparePermissions(this.permissionSet, permissionSet)
+        body: (proxy, permissionSet) => {
+          return comparePermissions(proxy.permissionSet, permissionSet)
         }
       })
       .addFunction({
         name: userProxyKeys.hasAllPermissions,
-        body: (permissionSet) => {
-          return containsAllPermission(this.permissionSet, permissionSet)
+        body: (proxy, permissionSet) => {
+          return containsAllPermission(proxy.permissionSet, permissionSet)
         }
       })
   }
@@ -745,8 +721,8 @@ export class DutyProxy extends FirestoreObjectProxy {
       })
       .addFunction({
         name: 'isAssignedToCurrentUser',
-        body: () => {
-          return this.assignee ? this.assignee.id === store.state.currentUser.uid : false
+        body: (proxy) => {
+          return proxy.assignee ? proxy.assignee.id === store.state.currentUser.uid : false
         }
       })
   }
@@ -758,18 +734,18 @@ export class Duty extends FirestoreObject {
   // KEYED
 
   get template () {
-    return DutyTemplate.createFromFirestoreObject(this.object[dutyKeys.template])
+    return DutyTemplateProxy.createFromFirestoreObject(this.object[dutyKeys.template])
   }
 
   get assignee () {
     return this.object[dutyKeys.assignee]
-      ? User.createFromFirestoreObject(this.object[dutyKeys.assignee])
+      ? UserProxy.createFromFirestoreObject(this.object[dutyKeys.assignee])
       : null
   }
 
   get checker () {
     return this.object[dutyKeys.checker]
-      ? User.createFromFirestoreObject(this.object[dutyKeys.checker])
+      ? UserProxy.createFromFirestoreObject(this.object[dutyKeys.checker])
       : null
   }
 
@@ -1019,7 +995,7 @@ export class PuntMakeup extends FirestoreObject {
   // KEYED
 
   get assignee () {
-    return User.createFromFirestoreObject(this.object[puntMakeupKeys.assignee])
+    return UserProxy.createFromFirestoreObject(this.object[puntMakeupKeys.assignee])
   }
 
   get completionTime () {
@@ -1030,7 +1006,7 @@ export class PuntMakeup extends FirestoreObject {
 
   // TODO: Rename to template
   get makeupTemplate () {
-    return PuntMakeupTemplate.createFromFirestoreObject(this.object[puntMakeupKeys.template])
+    return PuntMakeupTemplateProxy.createFromFirestoreObject(this.object[puntMakeupKeys.template])
   }
 
   // COMPUTED
@@ -1095,14 +1071,14 @@ export class PuntProxy extends FirestoreObjectProxy {
       })
       .addFunction({
         name: puntProxyKeys.isAssignedToCurrentUser,
-        body: () => {
-          return this.assignee ? this.assignee.id === store.state.currentUser.uid : false
+        body: (proxy) => {
+          return proxy.assignee ? proxy.assignee.id === store.state.currentUser.uid : false
         }
       })
       .addFunction({
         name: puntProxyKeys.isGivenByCurrentUser,
-        body: () => {
-          return this.assignee ? this.assignee.id === store.state.currentUser.uid : false
+        body: (proxy) => {
+          return proxy.assignee ? proxy.assignee.id === store.state.currentUser.uid : false
         }
       })
   }
@@ -1112,16 +1088,16 @@ export class Punt extends FirestoreObject {
   // KEYED
 
   get assignee () {
-    return User.createFromFirestoreObject(this.object[puntKeys.assignee])
+    return UserProxy.createFromFirestoreObject(this.object[puntKeys.assignee])
   }
 
   get giver () {
-    return User.createFromFirestoreObject(this.object[puntKeys.giver])
+    return UserProxy.createFromFirestoreObject(this.object[puntKeys.giver])
   }
 
   get makeUp () {
     return this.object[puntKeys.makeUp]
-      ? PuntMakeup.createFromFirestoreObject(this.object[puntKeys.makeUp])
+      ? PuntMakeupProxy.createFromFirestoreObject(this.object[puntKeys.makeUp])
       : null
   }
 

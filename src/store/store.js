@@ -11,9 +11,7 @@ import {
 
 import { firebaseMutations, firebaseAction } from 'vuexfire'
 
-import { PermissionSets, comparePermissions, containsAllPermission } from '../definitions'
-import { userKeys } from '../api'
-import { Party, Duty, User, Punt, PuntMakeup, DutyTemplate, PuntMakeupTemplate, DutyMap } from '../definitions/model'
+import { Party, DutyMap, DutyProxy, DutyTemplateProxy, UserProxy, PuntMakeupTemplateProxy, PuntProxy, PuntMakeupProxy, PartyProxy  } from '../definitions/model'
 
 Vue.use(Vuex)
 
@@ -68,25 +66,25 @@ const dutiesStore = {
   getters: {
     customAllDuties: (state) => {
       return state.allDuties.map((dutyObj) => {
-        return Duty.createFromFirestoreObject(dutyObj)
+        return DutyProxy.createFromFirestoreObject(dutyObj)
       })
     },
 
     customUserDuties: (state) => {
       return state.userDuties.map((dutyObj) => {
-        return Duty.createFromFirestoreObject(dutyObj)
+        return DutyProxy.createFromFirestoreObject(dutyObj)
       })
     },
 
     customWeekDuties: (state) => {
       return state.weekDuties.map((dutyObj) => {
-        return Duty.createFromFirestoreObject(dutyObj)
+        return DutyProxy.createFromFirestoreObject(dutyObj)
       })
     },
 
     customDutyTemplates: (state) => {
       return state.dutyTemplates.map((dutyTemplateObj) => {
-        return DutyTemplate.createFromFirestoreObject(dutyTemplateObj)
+        return DutyTemplateProxy.createFromFirestoreObject(dutyTemplateObj)
       })
     },
 
@@ -99,7 +97,7 @@ const dutiesStore = {
         return duty.id === dutyID
       })
 
-      return dutyObj ? Duty.createFromFirestoreObject(dutyObj) : null
+      return dutyObj ? DutyProxy.createFromFirestoreObject(dutyObj) : null
     },
 
     dutySheetHasBeenGenerated: (state) => {
@@ -168,25 +166,25 @@ const puntsStore = {
   getters: {
     customAllPunts: (state) => {
       return state.allPunts.map((puntObj) => {
-        return Punt.createFromFirestoreObject(puntObj)
+        return PuntProxy.createFromFirestoreObject(puntObj)
       })
     },
 
     customUserPunts: (state) => {
       return state.userPunts.map((puntObj) => {
-        return Punt.createFromFirestoreObject(puntObj)
+        return PuntProxy.createFromFirestoreObject(puntObj)
       })
     },
 
     customPuntMakeups: (state) => {
       return state.puntMakeups.map((puntMakeupObj) => {
-        return PuntMakeup.createFromFirestoreObject(puntMakeupObj)
+        return PuntMakeupProxy.createFromFirestoreObject(puntMakeupObj)
       })
     },
 
     customPuntMakeupTemplates: (state) => {
       return state.makeupTemplates.map((makeupTemplateObj) => {
-        return PuntMakeupTemplate.createFromFirestoreObject(makeupTemplateObj)
+        return PuntMakeupTemplateProxy.createFromFirestoreObject(makeupTemplateObj)
       })
     }
   }
@@ -216,7 +214,7 @@ const socialStore = {
   getters: {
     customParties: state => {
       return state.parties.map((partyObj) => {
-        return Party.createFromFirestoreObject(partyObj)
+        return PartyProxy.createFromFirestoreObject(partyObj)
       })
     }
   }
@@ -262,12 +260,12 @@ export default new Vuex.Store({
         return user.id === uid
       })
 
-      return userObj ? User.createFromFirestoreObject(userObj) : null
+      return userObj ? UserProxy.createFromFirestoreObject(userObj) : null
     },
 
     customUsers: (state) => {
       return state.users.map((userObj) => {
-        return User.createFromFirestoreObject(userObj)
+        return UserProxy.createFromFirestoreObject(userObj)
       })
     }
   }
