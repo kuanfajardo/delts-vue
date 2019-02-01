@@ -57,7 +57,7 @@
 import { mapState, mapGetters } from 'vuex'
 import { PuntStatus } from '../definitions'
 import { permissionsMixin } from '../mixins'
-import { PuntProxy, ProxyHandler } from '../definitions/model'
+import { PuntProxy } from '../definitions/model'
 
 export default {
   name: 'punts-table',
@@ -93,8 +93,7 @@ export default {
         }
       })
 
-      const localHandler = ProxyHandler
-        .new(PuntProxy)
+      const localHandler = PuntProxy.proxyHandler()
         .addGetter({
           field: 'statusColor',
           get: (target, proxy) => {
@@ -118,7 +117,7 @@ export default {
         })
 
       return puntsToShow.map((punt) => {
-        return PuntProxy.proxyHandler().merge(localHandler).generateProxy(punt.object)
+        return localHandler.generateProxy(punt.object)
       })
     },
 

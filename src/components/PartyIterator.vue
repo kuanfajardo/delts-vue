@@ -79,7 +79,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 import { format } from 'date-fns'
-import { PartyProxy, ProxyHandler } from '../definitions/model'
+import { PartyProxy } from '../definitions/model'
 
 import api, { partyKeys } from '../api'
 import EditPartyDialog from './EditPartyDialog'
@@ -111,8 +111,7 @@ export default {
     // TODO: Obj factories for these maps
     // TODO: Custom objs!
     parties () {
-      const localHandler = ProxyHandler
-        .new(PartyProxy)
+      const localHandler = PartyProxy.proxyHandler()
         .addGetter({
           field: 'startDateString',
           get: (target, proxy) => { return format(proxy.startDate, 'MM/dd/yy @ p') }
@@ -123,7 +122,7 @@ export default {
         })
 
       return this.customParties.map((party) => {
-        return PartyProxy.proxyHandler().merge(localHandler).generateProxy(party.object)
+        return localHandler.generateProxy(party.object)
       })
     },
 

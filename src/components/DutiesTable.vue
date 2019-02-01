@@ -48,7 +48,7 @@
 import { mapState, mapGetters } from 'vuex'
 import { DutyStatus } from '../definitions'
 import { permissionsMixin } from '../mixins'
-import { ProxyHandler, DutyProxy } from '../definitions/model'
+import { DutyProxy } from '../definitions/model'
 
 export default {
   name: 'duties-table',
@@ -78,8 +78,7 @@ export default {
     duties () {
       const dutiesToShow = this.isFullDutiesAdmin ? this.allDuties : this.userDuties
 
-      const localHandler = ProxyHandler
-        .new(DutyProxy)
+      const localHandler = DutyProxy.proxyHandler()
         .addGetter({
           field: 'statusColor',
           get: (target, proxy) => {
@@ -111,7 +110,7 @@ export default {
         })
 
       return dutiesToShow.map((duty) => {
-        return DutyProxy.proxyHandler().merge(localHandler).generateProxy(duty.object)
+        return localHandler.generateProxy(duty.object)
       })
     },
 
