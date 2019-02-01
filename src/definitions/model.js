@@ -166,7 +166,7 @@ export class ProxyHandler {
    * @param {Object} handlers
    * @param {Object} functions
    */
-  constructor (proxyClass, handlers = {}, functions = {}) {
+  constructor (proxyClass = null, handlers = {}, functions = {}) {
     this.proxyClass = proxyClass
     this.handlers = handlers
     this.functions = functions
@@ -371,7 +371,7 @@ export class ProxyHandler {
         const dynamicProxyHandler = null
         eval('dynamicProxyHandler = ' + proxyClass.name + '.proxyHandler()')
         return dynamicProxyHandler
-          ? new Proxy(target[targetField], dynamicProxyHandler.formatForProxy())
+          ? dynamicProxyHandler.generateProxy(target[targetField])
           : null
       },
       set: (target, value, proxy) => {
@@ -391,12 +391,16 @@ export class ProxyHandler {
    *
    * @return {Object} actual handler for Proxy object
    */
-  formatForProxy () {
+  _formatForProxy () {
     const properties = this.handlers
     const methods = this.functions
     return {
       get (target, field, proxy) {
         try {
+          if (field === 'object') {
+            return target
+          }
+
           if (field in properties) {
             return properties[field].getter(target, proxy)
           }
@@ -434,6 +438,39 @@ export class ProxyHandler {
       }
     }
   }
+
+  generateProxy (obj) {
+    return obj ? new Proxy(obj, this._formatForProxy()) : null
+  }
+
+  /**
+   *
+   * @param {ProxyHandler} handlerA
+   * @param {ProxyHandler} handlerB
+   * @return {ProxyHandler}
+   */
+  static merge (handlerA, handlerB) {
+    if (handlerA.proxyClass !== handlerB.proxyClass) throw new Error('To merge handlers, they both must wrap the same class.')
+
+    const mergedHandlers = {}
+    Object.assign(mergedHandlers, handlerA.handlers)
+    Object.assign(mergedHandlers, handlerB.handlers)
+
+    const mergedFunctions = {}
+    Object.assign(mergedFunctions, handlerA.functions)
+    Object.assign(mergedFunctions, handlerB.functions)
+
+    return new ProxyHandler(handlerA.proxyClass, mergedHandlers, mergedFunctions)
+  }
+
+  /**
+   *
+   * @param {ProxyHandler} handler
+   * @return {ProxyHandler}
+   */
+  merge (handler) {
+    return ProxyHandler.merge(this, handler)
+  }
 }
 
 // Users
@@ -456,9 +493,7 @@ export class FirestoreObjectProxy {
   // LIFE CYCLE
   static createFromFirestoreObject (obj) {
     // TODO: Check validity!
-    const handler = this.proxyHandler().formatForProxy()
-    if (obj) return new Proxy(obj, handler)
-    else return null
+    return this.proxyHandler().generateProxy(obj)
   }
 
   /**
@@ -1036,11 +1071,11 @@ export class PuntProxy extends FirestoreObjectProxy {
       .addDate('puntTime')
       .addGetter({
         field: puntProxyKeys.assigneeName,
-        get: (target, proxy) => { return proxy[puntKeys.assignee][userProxyKeys.fullName] }
+        get: (target, proxy) => { return proxy.assignee.fullName }
       })
       .addGetter({
         field: puntProxyKeys.giverName,
-        get: (target, proxy) => { return proxy[puntKeys.giver][userProxyKeys.fullName] }
+        get: (target, proxy) => { return proxy.giver.fullName }
       })
       .addGetter({
         field: puntProxyKeys.status,

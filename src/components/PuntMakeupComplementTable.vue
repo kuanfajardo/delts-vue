@@ -57,6 +57,7 @@
 import { mapState, mapGetters } from 'vuex'
 import { PuntStatus } from '../definitions'
 import { permissionsMixin } from '../mixins'
+import { PuntProxy, ProxyHandler } from '../definitions/model'
 
 export default {
   name: 'punts-table',
@@ -86,17 +87,39 @@ export default {
     punts () {
       const puntsToShow = this.allPunts.filter(punt => {
         try {
-          return punt.makeUp.makeupTemplate.id === this.focusedTemplate.id
+          return punt.makeUp.template.id === this.focusedTemplate.id
         } catch (e) {
           return false
         }
       })
 
-      puntsToShow.forEach((punt) => {
-        punt.statusColor = this.statusColorForPunt(punt)
-      })
+      const localHandler = ProxyHandler
+        .new(PuntProxy)
+        .addGetter({
+          field: 'statusColor',
+          get: (target, proxy) => {
+            switch (proxy.status) {
+              case PuntStatus.Punted:
+                return 'error'
+              case PuntStatus.MakeUpClaimed:
+                return 'primary'
+              case PuntStatus.MadeUp:
+                return 'success'
+              default:
+                return 'transparent'
+            }
+          }
+        })
+        .addGetter({
+          field: 'puntTimeString',
+          get: (target, proxy) => {
+            return proxy.puntTime.toDateString()
+          }
+        })
 
-      return puntsToShow
+      return puntsToShow.map((punt) => {
+        return PuntProxy.proxyHandler().merge(localHandler).generateProxy(punt.object)
+      })
     },
 
     ...mapState({

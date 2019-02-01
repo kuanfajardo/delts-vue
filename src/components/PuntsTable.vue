@@ -63,6 +63,7 @@ import { mapState, mapMutations, mapGetters } from 'vuex'
 import { PuntStatus } from '../definitions'
 import { EDIT_SELECTED_PUNTS } from '../store'
 import { permissionsMixin } from '../mixins'
+import { PuntProxy, ProxyHandler } from '../definitions/model'
 
 export default {
   name: 'punts-table',
@@ -96,11 +97,44 @@ export default {
   computed: {
     punts () {
       const puntsToShow = this.puntsToShow
-      puntsToShow.forEach(punt => {
-        punt.statusColor = this.statusColorForPunt(punt)
-      })
 
-      return puntsToShow
+      const localHandler = ProxyHandler
+        .new(PuntProxy)
+        .addGetter({
+          field: 'statusColor',
+          get: (target, proxy) => {
+            switch (proxy.status) {
+              case PuntStatus.Punted:
+                return 'error'
+              case PuntStatus.MakeUpClaimed:
+                return 'primary'
+              case PuntStatus.MadeUp:
+                return 'success'
+              default:
+                return 'transparent'
+            }
+          }
+        })
+        .addGetter({
+          field: 'puntTimeString',
+          get: (target, proxy) => {
+            return proxy.puntTime.toDateString()
+          }
+        })
+        .addGetter({
+          field: 'makeUpTimeString',
+          get: (target, proxy) => {
+            return proxy.makeUp.completionTime.toDateString()
+          }
+        })
+        .addGetter({
+          field: 'makeUpName',
+          get: (target, proxy) => { return proxy.makeUp.name }
+        })
+
+      return puntsToShow.map((punt) => {
+        return PuntProxy.proxyHandler().merge(localHandler).generateProxy(punt.object)
+      })
     },
 
     puntsToShow () {
@@ -133,19 +167,6 @@ export default {
   },
 
   methods: {
-    statusColorForPunt (punt) {
-      switch (punt.status) {
-        case PuntStatus.Punted:
-          return 'error'
-        case PuntStatus.MakeUpClaimed:
-          return 'primary'
-        case PuntStatus.MadeUp:
-          return 'success'
-        default:
-          return 'transparent'
-      }
-    },
-
     classForPunt (punt) {
       const isMyPunt = punt.isAssignedToCurrentUser()
       return {

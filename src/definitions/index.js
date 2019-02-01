@@ -59,6 +59,29 @@ export const PermissionSets = Object.freeze({
     Permissions.Events_Bouncing | Permissions.Events_Social | Permissions.Admin // 127
 })
 
+export function typeGuard (instance, type) {
+  if (type === String) {
+    instance = new String(instance)
+  }
+  if (!(instance instanceof type)) throw new TypeError()
+}
+
+/**
+ * @typedef {Object} paramObject
+ * @property {*} instance
+ * @property {*} type
+ */
+
+/**
+ *
+ * @param {paramObject[]} paramTypeArr
+ */
+export function parameterTypeGuard (paramTypeArr) {
+  paramTypeArr.forEach((paramObj) => {
+    typeGuard(paramObj.instance, paramObj.type)
+  })
+}
+
 export function comparePermissions (a, b) {
   return (a & b) !== Permissions.None
 }

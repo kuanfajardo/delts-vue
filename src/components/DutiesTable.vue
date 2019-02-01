@@ -48,6 +48,7 @@
 import { mapState, mapGetters } from 'vuex'
 import { DutyStatus } from '../definitions'
 import { permissionsMixin } from '../mixins'
+import { ProxyHandler, DutyProxy } from '../definitions/model'
 
 export default {
   name: 'duties-table',
@@ -77,11 +78,41 @@ export default {
     duties () {
       const dutiesToShow = this.isFullDutiesAdmin ? this.allDuties : this.userDuties
 
-      dutiesToShow.forEach(duty => {
-        duty.statusColor = this.statusColorForDuty(duty)
-      })
+      const localHandler = ProxyHandler
+        .new(DutyProxy)
+        .addGetter({
+          field: 'statusColor',
+          get: (target, proxy) => {
+            switch (proxy.status) {
+              case DutyStatus.unclaimed:
+                return 'warning'
+              case DutyStatus.claimed:
+                return 'primary'
+              case DutyStatus.completed:
+                return 'success'
+              case DutyStatus.punted:
+                return 'error'
+              default:
+                return 'transparent'
+            }
+          }
+        })
+        .addGetter({
+          field: 'dateString',
+          get: (target, proxy) => {
+            return proxy.date.toDateString()
+          }
+        })
+        .addGetter({
+          field: 'checkTimeString',
+          get: (target, proxy) => {
+            return proxy.checkTime ? proxy.checkTime.toUTCString() : ''
+          }
+        })
 
-      return dutiesToShow
+      return dutiesToShow.map((duty) => {
+        return DutyProxy.proxyHandler().merge(localHandler).generateProxy(duty.object)
+      })
     },
 
     ...mapState({
@@ -92,23 +123,6 @@ export default {
       allDuties: 'customAllDuties',
       userDuties: 'customUserDuties'
     })
-  },
-
-  methods: {
-    statusColorForDuty (duty) {
-      switch (duty.status) {
-        case DutyStatus.unclaimed:
-          return 'warning'
-        case DutyStatus.claimed:
-          return 'primary'
-        case DutyStatus.completed:
-          return 'success'
-        case DutyStatus.punted:
-          return 'error'
-        default:
-          return 'transparent'
-      }
-    }
   }
 }
 </script>

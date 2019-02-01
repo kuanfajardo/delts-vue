@@ -74,6 +74,8 @@ import { EDIT_SELECTED_MAKEUP_TEMPLATE } from '../store'
 import { eventNames as appEvents } from '../events'
 import ContactsTableRow from './ContactsTableRow'
 import { permissionsMixin } from '../mixins'
+import { ProxyHandler, PuntMakeupTemplateProxy } from '../definitions/model'
+import { format } from 'date-fns'
 
 export default {
   name: 'punts-table',
@@ -102,13 +104,26 @@ export default {
   },
 
   computed: {
+    makeupTemplates () {
+      const localHandler = ProxyHandler
+        .new(PuntMakeupTemplateProxy)
+        .addGetter({
+          field: 'dateString',
+          get: (target, proxy) => { return format(proxy.date, 'MM/dd/yy') }
+        })
+
+      return this.customPuntMakeupTemplates.map((template) => {
+        return PuntMakeupTemplateProxy.proxyHandler().merge(localHandler).generateProxy(template.object)
+      })
+    },
+
     ...mapState({
       focusedTemplate: state => state.puntsStore.focusedMakeupTemplate,
       makeupTemplateSearch: state => state.puntsStore.makeupTemplateSearch
     }),
 
     ...mapGetters({
-      makeupTemplates: 'customPuntMakeupTemplates'
+      customPuntMakeupTemplates: 'customPuntMakeupTemplates'
     })
   },
 
