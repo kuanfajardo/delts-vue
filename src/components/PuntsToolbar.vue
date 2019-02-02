@@ -36,7 +36,7 @@
               <v-layout wrap>
                 <v-flex xs12>
                   <v-select
-                    :items="userItems"
+                    :items="users"
                     v-model="assignees"
                     label="Brother(s)"
                     multiple
@@ -45,7 +45,9 @@
                     deletable-chips
                     solo
                     hint="Select brother(s) to assign punt to."
-                    persistent-hint>
+                    persistent-hint
+                    return-object
+                  >
                   </v-select>
                 </v-flex>
                 <v-flex xs12>
@@ -107,12 +109,14 @@
               <v-layout wrap>
                 <v-flex xs12>
                   <v-select
-                    :items="makeupItems"
+                    :items="makeupTemplates"
                     v-model="makeupDialogMakeup"
                     label="Makeup"
                     solo
                     hint="Select makeup to assign to punt."
-                    persistent-hint>
+                    persistent-hint
+                    return-object
+                  >
                   </v-select>
                 </v-flex>
                 <v-flex xs12>
@@ -462,25 +466,6 @@ export default {
     //    Duty Sheet (Tab 0)   |
     //-------------------------+
 
-    // TODO: make a helper method (not only place!)
-    userItems () {
-      return this.users.map(user => {
-        return {
-          text: user.fullName,
-          value: user,
-        }
-      })
-    },
-
-    makeupItems () {
-      return this.makeupTemplates.map(template => {
-        return {
-          text: template.name,
-          value: template
-        }
-      })
-    },
-
     disableMakeupButton () {
       if (this.selectedPunts.length === 0) return true
 
@@ -496,7 +481,7 @@ export default {
 
       var commonMakeupTemplate
       if (commonStatus === PuntStatus.MakeUpClaimed || commonStatus === PuntStatus.MadeUp) {
-        commonMakeupTemplate = firstPunt.makeUp.makeupTemplate
+        commonMakeupTemplate = firstPunt.makeUp.template
       } else {
         commonMakeupTemplate = null
       }
@@ -511,7 +496,7 @@ export default {
         }
 
         if (commonStatus === PuntStatus.MakeUpClaimed || commonStatus === PuntStatus.MadeUp) {
-          if (commonMakeupTemplate.id !== selectedPunt.makeUp.makeupTemplate.id) {
+          if (commonMakeupTemplate.id !== selectedPunt.makeUp.template.id) {
             return true
           }
         }
