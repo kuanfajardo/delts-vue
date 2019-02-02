@@ -32,11 +32,14 @@
           <!-- DIALOG CARD (EDIT) -->
           <v-card class="ma-auto">
             <v-card-title>
-              <div class="mt-2 ml-2 mb-0">
-                <span class="headline pb-2">{{ formTitle }}</span>
-                <div class="mt-1">{{ formSubheader }}</div>
-              </div>
+              <v-toolbar color="primary" dark class="my-0 py-0">
+                <v-toolbar-title>{{ formTitle }}</v-toolbar-title>
+              </v-toolbar>
             </v-card-title>
+
+            <v-card-text class="my-0 pt-0 pb-3 px-4">
+              {{ formSubheader }}
+            </v-card-text>
 
             <!-- FORM -->
             <v-container grid-list-md class="pb-2 pt-0">
@@ -76,15 +79,13 @@
               </v-layout>
             </v-container>
 
-            <v-divider></v-divider>
-
             <!-- DIALOG ACTIONS -->
             <v-card-actions color="white">
               <v-spacer></v-spacer>
               <!-- CANCEL BUTTON -->
-              <v-btn flat color="error" @click.native="close">Cancel</v-btn>
+              <v-btn outline color="error" @click.native="close">Cancel</v-btn>
               <!-- SAVE/INVITE BUTTON -->
-              <v-btn flat color="primary" :disabled="!editMap[userKeys.email]" @click.native="save">{{ isDialogEdit ? 'Save' : 'Invite'}}</v-btn>
+              <v-btn color="primary" :disabled="!editMap[userKeys.email]" @click.native="save">{{ isDialogEdit ? 'Save' : 'Invite'}}</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -130,11 +131,12 @@
         <!-- DIALOG CARD -->
         <v-card class="ma-auto">
           <v-card-title>
-            <div class="mt-2 ml-2 mb-0">
-              <span class="headline pb-2">Delete account</span>
-            </div>
+            <v-toolbar color="primary" dark>
+              <v-toolbar-title>Delete Account(s)</v-toolbar-title>
+            </v-toolbar>
           </v-card-title>
-           <v-alert
+
+          <v-alert
             type="error"
             color="accent"
             class="mx-4"
@@ -148,14 +150,12 @@
             selected.map(user => { return user[userKeys.firstName] + ' ' + user[userKeys.lastName]}).join(', ') }}
           </v-card-text>
 
-          <v-divider></v-divider>
-
-          <v-card-actions>
+          <v-card-actions class="mx-2">
             <v-spacer></v-spacer>
             <!-- CANCEL BUTTON -->
-            <v-btn color="primary" @click.stop="deleteDialog = false">Cancel</v-btn>
+            <v-btn color="primary" class="mb-2" @click.stop="deleteDialog = false">Cancel</v-btn>
             <!-- DELETE BUTTON -->
-            <v-btn color="accent" flat @click.stop="deleteSelectedItems">Delete</v-btn>
+            <v-btn color="accent" outline class="mb-2" @click.stop="deleteSelectedItems">Delete</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -405,6 +405,7 @@ export default {
 
     // INLINE ACTIONS
     inlineSave (user) {
+      console.log(user)
       api.updateUserWithData(user, user.object, (error) => {
         if (error === null) {
           console.log('User ' + user.id + ' updated successfully')
