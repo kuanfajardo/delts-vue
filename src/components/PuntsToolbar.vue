@@ -7,7 +7,9 @@
     <template v-if="tab === 0">
       <template v-if="isAnyPuntsAdmin">
         <!-- PUNT DIALOG -->
-        <new-punt-dialog :on-save="savePuntDialog">
+        <new-punt-dialog
+          :on-save="savePuntDialog"
+        >
           <v-btn
             color="primary"
             :loading="isPuntButtonBusy"
@@ -25,8 +27,8 @@
         >
           <v-btn
             color="secondary"
-            :disabled="isMakeupDialogDisabled"
             :loading="isMakeupButtonBusy"
+            :disabled="isMakeupDialogDisabled"
           >
             Makeup
             <v-icon right>edit</v-icon>
@@ -34,63 +36,19 @@
         </edit-punt-dialog>
 
         <!-- DELETE DIALOG -->
-        <v-btn
-          v-if="disableDeleteButton"
-          color="error"
-          disabled
-          :loading="isDeleteButtonBusy"
+        <delete-punt-dialog
+          :on-delete="saveDeleteDialog"
+          :on-cancel="closeDeleteDialog"
         >
-          Delete
-          <v-icon right>delete</v-icon>
-        </v-btn>
-
-        <v-dialog
-          v-else
-          v-model="deleteDialog"
-          persistent
-          max-width="450">
-
-          <!-- DELETE BUTTON-->
           <v-btn
             color="error"
-            slot="activator"
             :loading="isDeleteButtonBusy"
+            :disabled="disableDeleteButton"
           >
             Delete
             <v-icon right>delete</v-icon>
           </v-btn>
-
-          <!-- DIALOG CARD -->
-          <v-card class="ma-auto">
-            <v-card-title>
-              <div class="mt-2 ml-2 mb-0">
-                <span class="headline pb-2">{{ 'Delete ' + selectedPunts.length + ' Punt' + (selectedPunts.length > 1 ? 's' : '') }}</span>
-              </div>
-            </v-card-title>
-             <v-alert
-              type="error"
-              color="accent"
-              class="mx-4"
-              :value="true"
-            >
-              After you delete a punt, it's permanently deleted. Punts can't be undeleted.
-            </v-alert>
-
-            <v-card-text>
-              {{ 'Are you sure you want to delete ' + selectedPunts.length + ' punts?' }}
-            </v-card-text>
-
-            <v-divider></v-divider>
-
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <!-- CANCEL BUTTON -->
-              <v-btn color="primary" @click.stop="closeDeleteDialog">Cancel</v-btn>
-              <!-- DELETE BUTTON -->
-              <v-btn color="accent" flat @click.stop="saveDeleteDialog">Delete</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+        </delete-punt-dialog>
 
         <v-divider
           class="mx-3"
@@ -113,56 +71,19 @@
     <template v-if="tab === 1">
 
       <!-- NEW MAKEUP DIALOG -->
-      <v-dialog
-          v-model="newMakeupDialog"
-          max-width="500px"
+      <new-punt-makeup-template-dialog
+        :on-save="saveNewMakeupDialog"
+      >
+        <v-btn
+          color="primary"
+          :loading="isNewMakeupTemplateButtonBusy"
         >
+          New Template
+          <v-icon right>add_circle</v-icon>
+        </v-btn>
+      </new-punt-makeup-template-dialog>
 
-          <!-- NEW MAKEUP BUTTON -->
-          <v-btn
-            dark
-            color="primary"
-            slot="activator"
-            :loading="isNewMakeupButtonBusy">
-            New Template
-            <v-icon right>add_circle</v-icon>
-          </v-btn>
-
-          <!-- DIALOG CARD -->
-          <v-card class="ma-auto">
-            <v-card-title>
-              <div class="mt-2 ml-2 mb-0">
-                <span class="headline pb-2">New Makeup Template</span>
-                <div class="mt-1">This will serve as a general template for a set of punt makeups.</div>
-              </div>
-            </v-card-title>
-
-            <!-- FORM -->
-            <v-container grid-list-md class="pb-2 pt-0">
-              <v-layout wrap>
-                <v-flex xs12>
-                  <v-text-field v-model="templateName" label="Name"></v-text-field>
-                </v-flex>
-                <v-flex xs12>
-                  <v-text-field v-model="templateDescription" label="Description"></v-text-field>
-                </v-flex>
-              </v-layout>
-            </v-container>
-
-            <v-divider></v-divider>
-
-            <!-- DIALOG ACTIONS -->
-            <v-card-actions color="white">
-              <v-spacer></v-spacer>
-              <!-- CANCEL BUTTON -->
-              <v-btn flat color="error" @click.native="closeNewMakeupDialog">Cancel</v-btn>
-              <!-- SAVE BUTTON -->
-              <v-btn flat color="primary" :disabled="!templateName || !templateDescription" @click.native="saveNewMakeupDialog">Save</v-btn>
-            </v-card-actions>
-          </v-card>
-      </v-dialog>
-
-       <v-divider
+      <v-divider
           class="mx-3"
           vertical
         ></v-divider>
@@ -190,10 +111,12 @@ import { PuntStatus } from '../definitions'
 import { permissionsMixin } from '../mixins'
 import NewPuntDialog from './NewPuntDialog'
 import EditPuntDialog from './EditPuntDialog'
+import NewPuntMakeupTemplateDialog from './NewPuntMakeupTemplateDialog'
+import DeletePuntDialog from './DeletePuntDialog'
 
 export default {
   name: 'punts-toolbar',
-  components: { EditPuntDialog, NewPuntDialog },
+  components: { DeletePuntDialog, NewPuntMakeupTemplateDialog, EditPuntDialog, NewPuntDialog },
   mixins: [permissionsMixin],
 
   data () {
@@ -214,7 +137,6 @@ export default {
       isMakeupButtonBusy: false,
 
       // Delete Dialog
-      deleteDialog: false,
       isDeleteButtonBusy: false,
 
       //-------------------------+
@@ -222,10 +144,8 @@ export default {
       //-------------------------+
 
       search_2: '',
-      newMakeupDialog: false,
-      isNewMakeupButtonBusy: false,
-      templateName: '',
-      templateDescription: ''
+
+      isNewMakeupTemplateButtonBusy: false
     }
   },
 
@@ -240,9 +160,8 @@ export default {
     //----------------------+
 
     savePuntDialog (valid, model, callback) {
-      this.isPuntButtonBusy = true
-
       if (valid) {
+        this.isPuntButtonBusy = true
         api.createNewPuntsBatch(model.assignees, model.reason, (error) => {
           if (error === null) {
             this.$_glob.root.$emit(appEvents.apiSuccess, 'ASSIGN PUNTS success')
@@ -262,9 +181,8 @@ export default {
     },
 
     saveMakeupDialog (valid, model, callback) {
-      this.isMakeupButtonBusy = true
-
       if (valid) {
+        this.isMakeupButtonBusy = true
         api.updatePuntsWithMakeup(this.selectedPunts, model.makeupTemplate, model.checkedOff, (error) => {
           if (error === null) {
             this.$_glob.root.$emit(appEvents.apiSuccess, 'MAKEUP PUNTS success')
@@ -280,11 +198,10 @@ export default {
     },
 
     closeDeleteDialog () {
-      this.deleteDialog = false
       this.EDIT_SELECTED_PUNTS([])
     },
 
-    saveDeleteDialog () {
+    saveDeleteDialog (callback) {
       this.isDeleteButtonBusy = true
 
       const puntsObjArr = this.selectedPunts.map(punt => {
@@ -301,7 +218,7 @@ export default {
         this.isDeleteButtonBusy = false
       })
 
-      this.closeDeleteDialog()
+      callback()
     },
 
     // STORE MAPS
@@ -314,26 +231,21 @@ export default {
     //    Makeups (Tab 1)   |
     //----------------------+
 
-    closeNewMakeupDialog () {
-      this.newMakeupDialog = false
-      this.templateDescription = ''
-      this.templateName = ''
-    },
+    saveNewMakeupDialog (valid, model, callback) {
+      if (valid) {
+        this.isNewMakeupTemplateButtonBusy = true
+        api.createNewMakeupTemplate(model.templateName, model.templateDescription, (error) => {
+          if (error === null) {
+            this.$_glob.root.$emit(appEvents.apiSuccess, 'NEW MAKEUP success')
+          } else {
+            this.$_glob.root.$emit(appEvents.apiFailure, 'NEW MAKEUP failed')
+          }
 
-    saveNewMakeupDialog () {
-      this.isNewMakeupButtonBusy = true
+          this.isNewMakeupTemplateButtonBusy = false
+        })
+      }
 
-      api.createNewMakeupTemplate(this.templateName, this.templateDescription, (error) => {
-        if (error === null) {
-          this.$_glob.root.$emit(appEvents.apiSuccess, 'NEW MAKEUP success')
-        } else {
-          this.$_glob.root.$emit(appEvents.apiFailure, 'NEW MAKEUP failed')
-        }
-
-        this.isNewMakeupButtonBusy = false
-      })
-
-      this.closeNewMakeupDialog()
+      callback()
     },
 
     ...mapMutations({

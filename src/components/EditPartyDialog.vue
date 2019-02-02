@@ -182,6 +182,7 @@
 
 <script>
 import { partyKeys } from '../api'
+import { format } from 'date-fns'
 
 export default {
   name: 'edit-party-dialog',
@@ -192,14 +193,17 @@ export default {
 
   data () {
     return {
+      // DIALOG
       dialog: false,
-      isActivatorBusy: false,
 
+      // FORM
       partyStartDateMenu: false,
       partyStartTimeMenu: false,
       partyEndDateMenu: false,
       partyEndTimeMenu: false,
+      valid: false,
 
+      // MODEL
       partyModel: {
         name: null,
         theme: null,
@@ -210,9 +214,7 @@ export default {
         endTime: null,
 
         capacity: null
-      },
-
-      valid: false
+      }
     }
   },
 
@@ -241,18 +243,6 @@ export default {
 
   mounted () {
     this.$validator.localize('en', this.dictionary)
-
-    if (this.model) {
-      this.partyModel = Object.assign({}, this.model)
-
-      const start = new Date(this.model[partyKeys.startDate].seconds * 1000)
-      this.partyModel.startDate = this.dateStringFromDate(start)
-      this.partyModel.startTime = this.timeStringFromDate(start)
-
-      const end = new Date(this.model[partyKeys.endDate].seconds * 1000)
-      this.partyModel.endDate = this.dateStringFromDate(end)
-      this.partyModel.endTime = this.timeStringFromDate(end)
-    }
   },
 
   computed: {
@@ -265,35 +255,6 @@ export default {
   },
 
   methods: {
-    dateStringFromDate (date) {
-      const year = date.getFullYear()
-      var month = date.getMonth() + 1
-      if (month < 10) {
-        month = '0' + month
-      }
-
-      var monthDate = date.getDate()
-      if (monthDate < 10) {
-        monthDate = '0' + monthDate
-      }
-
-      return year + '-' + month + '-' + monthDate
-    },
-
-    timeStringFromDate (date) {
-      var hours = date.getHours()
-      if (hours < 10) {
-        hours = '0' + hours
-      }
-
-      var minutes = date.getMinutes()
-      if (minutes < 10) {
-        minutes = '0' + minutes
-      }
-
-      return hours + ':' + minutes
-    },
-
     cancel () {
       this.dialog = false
 
@@ -311,6 +272,22 @@ export default {
           if (valid) this.cancel()
         })
       })
+    }
+  },
+
+  watch: {
+    model (newValue) {
+      if (newValue) {
+        this.partyModel = Object.assign({}, newValue)
+
+        const start = new Date(newValue[partyKeys.startDate].seconds * 1000)
+        this.partyModel.startDate = format(start, 'yy-MM-dd')
+        this.partyModel.startTime = format(start, 'hh:mm')
+
+        const end = new Date(newValue[partyKeys.endDate].seconds * 1000)
+        this.partyModel.endDate = format(end, 'yy-MM-dd')
+        this.partyModel.endTime = format(end, 'hh:mm')
+      }
     }
   }
 }
