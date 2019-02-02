@@ -7,67 +7,77 @@
     <template v-if="tab === 0">
       <template v-if="isAnyPuntsAdmin">
         <!-- PUNT DIALOG -->
-        <v-dialog
-            v-model="puntDialog"
-            max-width="500px"
-        >
-
-          <!-- PUNT BUTTON -->
+        <new-punt-dialog :on-save="savePuntDialog">
           <v-btn
-              dark
-              color="primary"
-              slot="activator"
-              :loading="isPuntButtonBusy">
+            dark
+            color="primary"
+          >
             New Punt
             <v-icon right>add_circle</v-icon>
           </v-btn>
+        </new-punt-dialog>
 
-          <!-- DIALOG CARD -->
-          <v-card class="ma-auto">
-            <v-card-title>
-              <div class="mt-2 ml-2 mb-0">
-                <span class="headline pb-2">New Punt</span>
-                <div class="mt-1">The puntee(s) will be notified as soon as you submit.</div>
-              </div>
-            </v-card-title>
+        <!--<v-dialog-->
+            <!--v-model="puntDialog"-->
+            <!--max-width="500px"-->
+        <!--&gt;-->
 
-            <!-- FORM -->
-            <v-container grid-list-md class="pb-2 pt-0">
-              <v-layout wrap>
-                <v-flex xs12>
-                  <v-select
-                    :items="users"
-                    v-model="assignees"
-                    label="Brother(s)"
-                    multiple
-                    chips
-                    clearable
-                    deletable-chips
-                    solo
-                    hint="Select brother(s) to assign punt to."
-                    persistent-hint
-                    return-object
-                  >
-                  </v-select>
-                </v-flex>
-                <v-flex xs12>
-                  <v-text-field v-model="reason" label="Reason"></v-text-field>
-                </v-flex>
-              </v-layout>
-            </v-container>
+          <!--&lt;!&ndash; PUNT BUTTON &ndash;&gt;-->
+          <!--<v-btn-->
+              <!--dark-->
+              <!--color="primary"-->
+              <!--slot="activator"-->
+              <!--:loading="isPuntButtonBusy">-->
+            <!--New Punt-->
+            <!--<v-icon right>add_circle</v-icon>-->
+          <!--</v-btn>-->
 
-            <v-divider></v-divider>
+          <!--&lt;!&ndash; DIALOG CARD &ndash;&gt;-->
+          <!--<v-card class="ma-auto">-->
+            <!--<v-card-title>-->
+              <!--<div class="mt-2 ml-2 mb-0">-->
+                <!--<span class="headline pb-2">New Punt</span>-->
+                <!--<div class="mt-1">The puntee(s) will be notified as soon as you submit.</div>-->
+              <!--</div>-->
+            <!--</v-card-title>-->
 
-            <!-- DIALOG ACTIONS -->
-            <v-card-actions color="white">
-              <v-spacer></v-spacer>
-              <!-- CANCEL BUTTON -->
-              <v-btn flat color="error" @click.native="closePuntDialog">Cancel</v-btn>
-              <!-- PUNT BUTTON -->
-              <v-btn flat color="primary" :disabled="!assignees || !reason" @click.native="savePuntDialog">Punt</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+            <!--&lt;!&ndash; FORM &ndash;&gt;-->
+            <!--<v-container grid-list-md class="pb-2 pt-0">-->
+              <!--<v-layout wrap>-->
+                <!--<v-flex xs12>-->
+                  <!--<v-select-->
+                    <!--:items="users"-->
+                    <!--v-model="assignees"-->
+                    <!--label="Brother(s)"-->
+                    <!--multiple-->
+                    <!--chips-->
+                    <!--clearable-->
+                    <!--deletable-chips-->
+                    <!--solo-->
+                    <!--hint="Select brother(s) to assign punt to."-->
+                    <!--persistent-hint-->
+                    <!--return-object-->
+                  <!--&gt;-->
+                  <!--</v-select>-->
+                <!--</v-flex>-->
+                <!--<v-flex xs12>-->
+                  <!--<v-text-field v-model="reason" label="Reason"></v-text-field>-->
+                <!--</v-flex>-->
+              <!--</v-layout>-->
+            <!--</v-container>-->
+
+            <!--<v-divider></v-divider>-->
+
+            <!--&lt;!&ndash; DIALOG ACTIONS &ndash;&gt;-->
+            <!--<v-card-actions color="white">-->
+              <!--<v-spacer></v-spacer>-->
+              <!--&lt;!&ndash; CANCEL BUTTON &ndash;&gt;-->
+              <!--<v-btn flat color="error" @click.native="closePuntDialog">Cancel</v-btn>-->
+              <!--&lt;!&ndash; PUNT BUTTON &ndash;&gt;-->
+              <!--<v-btn flat color="primary" :disabled="!assignees || !reason" @click.native="savePuntDialog">Punt</v-btn>-->
+            <!--</v-card-actions>-->
+          <!--</v-card>-->
+        <!--</v-dialog>-->
 
         <!-- MAKEUP DIALOG -->
         <v-btn
@@ -298,10 +308,11 @@ import api from '../api'
 import { eventNames as appEvents } from '../events'
 import { PuntStatus } from '../definitions'
 import { permissionsMixin } from '../mixins'
+import NewPuntDialog from './NewPuntDialog'
 
 export default {
   name: 'punts-toolbar',
-
+  components: { NewPuntDialog },
   mixins: [permissionsMixin],
 
   data () {
@@ -309,7 +320,6 @@ export default {
       //-------------------------+
       //    Duty Sheet (Tab 0)   |
       //-------------------------+
-
       search: '',
 
       puntDialog: false,
@@ -349,26 +359,21 @@ export default {
     //     Punts  (Tab 0)   |
     //----------------------+
 
-    closePuntDialog () {
-      this.puntDialog = false
-      this.reason = ''
-      this.assignees = null
-    },
-
-    savePuntDialog () {
+    savePuntDialog (valid, puntModel, callback) {
       // this.isPuntButtonBusy = true
+      if (valid) {
+        api.createNewPuntsBatch(puntModel.assignees, puntModel.reason, (error) => {
+          if (error === null) {
+            this.$_glob.root.$emit(appEvents.apiSuccess, 'ASSIGN PUNTS success')
+          } else {
+            this.$_glob.root.$emit(appEvents.apiSuccess, 'ASSIGN PUNTS failed')
+          }
 
-      api.createNewPuntsBatch(this.assignees, this.reason, (error) => {
-        if (error === null) {
-          this.$_glob.root.$emit(appEvents.apiSuccess, 'ASSIGN PUNTS success')
-        } else {
-          this.$_glob.root.$emit(appEvents.apiSuccess, 'ASSIGN PUNTS failed')
-        }
+          this.isPuntButtonBusy = false
+        })
+      }
 
-        this.isPuntButtonBusy = false
-      })
-
-      this.closePuntDialog()
+      callback()
     },
 
     closeMakeupDialog () {
