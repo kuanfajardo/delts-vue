@@ -386,6 +386,18 @@ export class ProxyHandler {
     })
   }
 
+  /**
+   *
+   * @param {proxyGetter} func
+   * @return {ProxyHandler}
+   */
+  addName (func) {
+    return this.addGetter({
+      field: 'text',
+      get: func
+    })
+  }
+
   // USE
   /**
    *
@@ -397,8 +409,19 @@ export class ProxyHandler {
     return {
       get (target, field, proxy) {
         try {
+          // CUSTOM INSERTS FOR ALL PROXIES: .object and .toString
           if (field === 'object') {
             return target
+          }
+
+          if (field === 'toString') {
+            return function () {
+              return target.id + (proxy.text || '')
+            }
+          }
+
+          if (field === 'value') {
+            return target.id
           }
 
           if (field in properties) {
@@ -581,6 +604,7 @@ export class UserProxy extends FirestoreObjectProxy {
           return containsAllPermission(proxy.permissionSet, permissionSet)
         }
       })
+      .addName((target, proxy) => { return proxy.fullName })
   }
 }
 
@@ -980,6 +1004,7 @@ export class PuntMakeupTemplateProxy extends FirestoreObjectProxy {
       .addString('description')
       .addString('name')
       .addDate('date')
+      .addName((target, proxy) => { return proxy.name })
   }
 }
 
