@@ -3,7 +3,7 @@
     v-model="dialog"
     max-width="500px"
   >
-    <!-- ACTIVATOR BUTTON -->
+     <!--ACTIVATOR BUTTON -->
     <template slot="activator">
     <slot></slot>
     </template>
@@ -14,7 +14,7 @@
 
       <v-card-title>
         <v-toolbar color="primary" dark>
-          <v-toolbar-title>New Punt</v-toolbar-title>
+          <v-toolbar-title>Assign Makeup to Punt(s)</v-toolbar-title>
         </v-toolbar>
       </v-card-title>
 
@@ -24,31 +24,26 @@
         <v-layout wrap>
           <v-flex xs12>
             <v-select
-              :items="users"
-              v-model="localModel.assignees"
-              label="Brother(s)"
-              multiple
-              chips
-              clearable
-              deletable-chips
+              :items="makeupTemplates"
+              v-model="localModel.makeupTemplate"
+              label="Makeup"
               solo
-              hint="Select brother(s) to assign punt to."
+              hint="Select makeup to assign to punt."
               persistent-hint
               return-object
               v-validate="'required'"
-              data-vv-name="assignees"
-              :error-messages="errors.collect('assignees')"
+              data-vv-name="template"
+              :error-messages="errors.collect('template')"
             >
             </v-select>
           </v-flex>
           <v-flex xs12>
-            <v-text-field
-              v-model="localModel.reason"
-              label="Reason"
-              v-validate="'required'"
-              data-vv-name="reason"
-              :error-messages="errors.collect('reason')"
-            ></v-text-field>
+            <v-checkbox
+              v-model="localModel.checkedOff"
+              color="primary"
+              hide-details
+              label="Mark makeup as complete"
+            ></v-checkbox>
           </v-flex>
         </v-layout>
       </v-container>
@@ -70,7 +65,7 @@
 import { mapGetters } from 'vuex'
 
 export default {
-  name: 'new-punt-dialog',
+  name: 'edit-punt-dialog',
 
   //-------------------+
   //     PROPERTIES    |
@@ -83,8 +78,8 @@ export default {
 
       // MODEL
       localModel: {
-        assignees: null,
-        reason: null
+        makeupTemplate: null,
+        checkedOff: false
       },
 
       // FORM
@@ -113,15 +108,11 @@ export default {
 
   mounted () {
     this.$validator.localize('en', this.dictionary)
-
-    if (this.model) {
-      this.localModel = Object.assign({}, this.model)
-    }
   },
 
   computed: {
     ...mapGetters({
-      users: 'customUsers'
+      makeupTemplates: 'customPuntMakeupTemplates'
     })
   },
 
@@ -143,6 +134,14 @@ export default {
           if (valid) this.cancel()
         })
       })
+    }
+  },
+
+  watch: {
+    model (newValue) {
+      if (newValue) {
+        this.localModel = Object.assign({}, newValue)
+      }
     }
   }
 }

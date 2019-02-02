@@ -9,149 +9,29 @@
         <!-- PUNT DIALOG -->
         <new-punt-dialog :on-save="savePuntDialog">
           <v-btn
-            dark
             color="primary"
+            :loading="isPuntButtonBusy"
           >
             New Punt
             <v-icon right>add_circle</v-icon>
           </v-btn>
         </new-punt-dialog>
 
-        <!--<v-dialog-->
-            <!--v-model="puntDialog"-->
-            <!--max-width="500px"-->
-        <!--&gt;-->
-
-          <!--&lt;!&ndash; PUNT BUTTON &ndash;&gt;-->
-          <!--<v-btn-->
-              <!--dark-->
-              <!--color="primary"-->
-              <!--slot="activator"-->
-              <!--:loading="isPuntButtonBusy">-->
-            <!--New Punt-->
-            <!--<v-icon right>add_circle</v-icon>-->
-          <!--</v-btn>-->
-
-          <!--&lt;!&ndash; DIALOG CARD &ndash;&gt;-->
-          <!--<v-card class="ma-auto">-->
-            <!--<v-card-title>-->
-              <!--<div class="mt-2 ml-2 mb-0">-->
-                <!--<span class="headline pb-2">New Punt</span>-->
-                <!--<div class="mt-1">The puntee(s) will be notified as soon as you submit.</div>-->
-              <!--</div>-->
-            <!--</v-card-title>-->
-
-            <!--&lt;!&ndash; FORM &ndash;&gt;-->
-            <!--<v-container grid-list-md class="pb-2 pt-0">-->
-              <!--<v-layout wrap>-->
-                <!--<v-flex xs12>-->
-                  <!--<v-select-->
-                    <!--:items="users"-->
-                    <!--v-model="assignees"-->
-                    <!--label="Brother(s)"-->
-                    <!--multiple-->
-                    <!--chips-->
-                    <!--clearable-->
-                    <!--deletable-chips-->
-                    <!--solo-->
-                    <!--hint="Select brother(s) to assign punt to."-->
-                    <!--persistent-hint-->
-                    <!--return-object-->
-                  <!--&gt;-->
-                  <!--</v-select>-->
-                <!--</v-flex>-->
-                <!--<v-flex xs12>-->
-                  <!--<v-text-field v-model="reason" label="Reason"></v-text-field>-->
-                <!--</v-flex>-->
-              <!--</v-layout>-->
-            <!--</v-container>-->
-
-            <!--<v-divider></v-divider>-->
-
-            <!--&lt;!&ndash; DIALOG ACTIONS &ndash;&gt;-->
-            <!--<v-card-actions color="white">-->
-              <!--<v-spacer></v-spacer>-->
-              <!--&lt;!&ndash; CANCEL BUTTON &ndash;&gt;-->
-              <!--<v-btn flat color="error" @click.native="closePuntDialog">Cancel</v-btn>-->
-              <!--&lt;!&ndash; PUNT BUTTON &ndash;&gt;-->
-              <!--<v-btn flat color="primary" :disabled="!assignees || !reason" @click.native="savePuntDialog">Punt</v-btn>-->
-            <!--</v-card-actions>-->
-          <!--</v-card>-->
-        <!--</v-dialog>-->
-
         <!-- MAKEUP DIALOG -->
-        <v-btn
-            v-if="disableMakeupButton"
-            light
-            disabled
-            color="secondary"
-            :loading="isMakeupButtonBusy">
-        Makeup
-          <v-icon dark right>edit</v-icon>
-        </v-btn>
-
-        <v-dialog
-            v-else
-            v-model="makeupDialog"
-            max-width="500px"
+        <edit-punt-dialog
+          :on-save="saveMakeupDialog"
+          :on-cancel="closeMakeupDialog"
+          :model="makeupDialogModel"
         >
-
-          <!-- MAKEUP BUTTON -->
           <v-btn
-              dark
-              color="secondary"
-              slot="activator"
-              :loading="isMakeupButtonBusy">
-          Makeup
-            <v-icon dark right>edit</v-icon>
+            color="secondary"
+            :disabled="isMakeupDialogDisabled"
+            :loading="isMakeupButtonBusy"
+          >
+            Makeup
+            <v-icon right>edit</v-icon>
           </v-btn>
-
-          <!-- DIALOG CARD -->
-          <v-card class="ma-auto">
-            <v-card-title>
-              <div class="mt-2 ml-2 mb-0">
-                <span class="headline pb-2">{{ 'Assign Makeup to ' + selectedPunts.length + ' Punt' + (selectedPunts.length > 1 ? 's' : '') }}</span>
-              </div>
-            </v-card-title>
-
-            <!-- FORM -->
-            <v-container grid-list-md class="pb-2 pt-0">
-              <v-layout wrap>
-                <v-flex xs12>
-                  <v-select
-                    :items="makeupTemplates"
-                    v-model="makeupDialogMakeup"
-                    label="Makeup"
-                    solo
-                    hint="Select makeup to assign to punt."
-                    persistent-hint
-                    return-object
-                  >
-                  </v-select>
-                </v-flex>
-                <v-flex xs12>
-                  <v-checkbox
-                    v-model="makeupDialogCheck"
-                    color="primary"
-                    hide-details
-                    label="Mark makeup as complete"
-                  ></v-checkbox>
-                </v-flex>
-              </v-layout>
-            </v-container>
-
-            <v-divider></v-divider>
-
-            <!-- DIALOG ACTIONS -->
-            <v-card-actions color="white">
-              <v-spacer></v-spacer>
-              <!-- CANCEL BUTTON -->
-              <v-btn flat color="error" @click.native="closeMakeupDialog">Cancel</v-btn>
-              <!-- PUNT BUTTON -->
-              <v-btn flat color="primary" :disabled="!makeupDialogMakeup" @click.native="saveMakeupDialog">Save</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+        </edit-punt-dialog>
 
         <!-- DELETE DIALOG -->
         <v-btn
@@ -309,10 +189,11 @@ import { eventNames as appEvents } from '../events'
 import { PuntStatus } from '../definitions'
 import { permissionsMixin } from '../mixins'
 import NewPuntDialog from './NewPuntDialog'
+import EditPuntDialog from './EditPuntDialog'
 
 export default {
   name: 'punts-toolbar',
-  components: { NewPuntDialog },
+  components: { EditPuntDialog, NewPuntDialog },
   mixins: [permissionsMixin],
 
   data () {
@@ -320,22 +201,21 @@ export default {
       //-------------------------+
       //    Duty Sheet (Tab 0)   |
       //-------------------------+
+
       search: '',
 
-      puntDialog: false,
-      makeupDialog: false,
-      deleteDialog: false,
-
-      // TODO: Make dialog into form so no need for this
-      assignees: null,
-      reason: '',
-
+      // New Punt Dialog
       isPuntButtonBusy: false,
-      isMakeupButtonBusy: false,
-      isDeleteButtonBusy: false,
 
-      makeupDialogCheck: false,
-      makeupDialogMakeup: null,
+      // Makeup Dialog
+      makeupDialogCommonTemplate: null,
+      makeupDialogCheckedOff: false,
+      isMakeupDialogDisabled: true,
+      isMakeupButtonBusy: false,
+
+      // Delete Dialog
+      deleteDialog: false,
+      isDeleteButtonBusy: false,
 
       //-------------------------+
       //    Duties Tab (Tab 1)   |
@@ -359,10 +239,11 @@ export default {
     //     Punts  (Tab 0)   |
     //----------------------+
 
-    savePuntDialog (valid, puntModel, callback) {
-      // this.isPuntButtonBusy = true
+    savePuntDialog (valid, model, callback) {
+      this.isPuntButtonBusy = true
+
       if (valid) {
-        api.createNewPuntsBatch(puntModel.assignees, puntModel.reason, (error) => {
+        api.createNewPuntsBatch(model.assignees, model.reason, (error) => {
           if (error === null) {
             this.$_glob.root.$emit(appEvents.apiSuccess, 'ASSIGN PUNTS success')
           } else {
@@ -377,26 +258,25 @@ export default {
     },
 
     closeMakeupDialog () {
-      this.makeupDialog = false
-      this.makeupDialogCheck = false
-      this.makeupDialogMakeup = null
       this.EDIT_SELECTED_PUNTS([])
     },
 
-    saveMakeupDialog () {
+    saveMakeupDialog (valid, model, callback) {
       this.isMakeupButtonBusy = true
 
-      api.updatePuntsWithMakeup(this.selectedPunts, this.makeupDialogMakeup, this.makeupDialogCheck, (error) => {
-        if (error === null) {
-          this.$_glob.root.$emit(appEvents.apiSuccess, 'MAKEUP PUNTS success')
-        } else {
-          this.$_glob.root.$emit(appEvents.apiFailure, 'MAKEUP PUNTS failed')
-        }
+      if (valid) {
+        api.updatePuntsWithMakeup(this.selectedPunts, model.makeupTemplate, model.checkedOff, (error) => {
+          if (error === null) {
+            this.$_glob.root.$emit(appEvents.apiSuccess, 'MAKEUP PUNTS success')
+          } else {
+            this.$_glob.root.$emit(appEvents.apiFailure, 'MAKEUP PUNTS failed')
+          }
 
-        this.isMakeupButtonBusy = false
-      })
+          this.isMakeupButtonBusy = false
+        })
+      }
 
-      this.closeMakeupDialog()
+      callback()
     },
 
     closeDeleteDialog () {
@@ -471,48 +351,11 @@ export default {
     //    Duty Sheet (Tab 0)   |
     //-------------------------+
 
-    disableMakeupButton () {
-      if (this.selectedPunts.length === 0) return true
-
-      // Rules:
-      //    1) If any selected are MADE UP => Disable
-      //    2) If selected includes both PUNTED and MAKE UP CLAIMED => Disable
-      //    3) If selected includes all MAKE UP CLAIMED,
-      //         and all selected don't share the same make up template => Disable
-      //    4) Everything else, Enable
-
-      var firstPunt = this.selectedPunts[0]
-      var commonStatus = firstPunt.status
-
-      var commonMakeupTemplate
-      if (commonStatus === PuntStatus.MakeUpClaimed || commonStatus === PuntStatus.MadeUp) {
-        commonMakeupTemplate = firstPunt.makeUp.template
-      } else {
-        commonMakeupTemplate = null
+    makeupDialogModel () {
+      return {
+        makeupTemplate: this.makeupDialogCommonTemplate,
+        checkedOff: this.makeupDialogCheckedOff
       }
-
-      for (const selectedPunt of this.selectedPunts) {
-        if (!this.isFullPuntsAdmin) {
-          return !selectedPunt.isGivenByCurrentUser()
-        }
-
-        if (selectedPunt.status !== commonStatus) {
-          return true
-        }
-
-        if (commonStatus === PuntStatus.MakeUpClaimed || commonStatus === PuntStatus.MadeUp) {
-          if (commonMakeupTemplate.id !== selectedPunt.makeUp.template.id) {
-            return true
-          }
-        }
-      }
-
-      if (commonMakeupTemplate) {
-        this.makeupDialogMakeup = commonMakeupTemplate
-        this.makeupDialogCheck = commonStatus === PuntStatus.MakeUpClaimed
-      }
-
-      return false
     },
 
     disableDeleteButton () {
@@ -557,20 +400,57 @@ export default {
       this.EDIT_PUNT_SEARCH(newValue)
     },
 
-    disableMakeupButton (newValue) {
-      // To make sure props are reset after selecting and then deselecting rows
-      if (newValue === true) {
-        this.makeupDialogMakeup = null
-        this.makeupDialogCheck = false
-      }
-    },
-
     //-------------------------+
     //    Duties Tab (Tab 1)   |
     //-------------------------+
 
     search_2 (newValue) {
       this.EDIT_MAKEUP_TEMPLATE_SEARCH(newValue)
+    },
+
+    selectedPunts (newValue) {
+      if (newValue.length === 0) {
+        this.isMakeupDialogDisabled = true
+        this.makeupDialogCheckedOff = false
+        this.makeupDialogCommonTemplate = null
+        return
+      }
+
+      var firstPunt = newValue[0]
+      var commonStatus = firstPunt.status
+
+      var commonMakeupTemplate
+      if (commonStatus === PuntStatus.MakeUpClaimed || commonStatus === PuntStatus.MadeUp) {
+        commonMakeupTemplate = firstPunt.makeUp.template
+      } else {
+        commonMakeupTemplate = null
+      }
+
+      for (const selectedPunt of newValue) {
+        if (!this.isFullPuntsAdmin) {
+          this.isMakeupDialogDisabled = !selectedPunt.isGivenByCurrentUser()
+          return
+        }
+
+        if (selectedPunt.status !== commonStatus) {
+          this.isMakeupDialogDisabled = true
+          return
+        }
+
+        if (commonStatus === PuntStatus.MakeUpClaimed || commonStatus === PuntStatus.MadeUp) {
+          if (commonMakeupTemplate.id !== selectedPunt.makeUp.template.id) {
+            this.isMakeupDialogDisabled = true
+            return
+          }
+        }
+      }
+
+      this.isMakeupDialogDisabled = false
+
+      if (commonMakeupTemplate) {
+        this.makeupDialogCommonTemplate = commonMakeupTemplate
+        this.makeupDialogCheckedOff = commonStatus === PuntStatus.MakeUpClaimed
+      }
     }
   }
 }
